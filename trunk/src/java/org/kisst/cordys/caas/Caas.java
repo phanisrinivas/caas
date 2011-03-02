@@ -31,7 +31,6 @@ import org.kisst.cordys.caas.pm.Template;
 import org.kisst.cordys.caas.soap.DummyCaller;
 import org.kisst.cordys.caas.soap.HttpClientCaller;
 import org.kisst.cordys.caas.soap.NativeCaller;
-import org.kisst.cordys.caas.soap.SamlClientCaller;
 import org.kisst.cordys.caas.soap.SoapCaller;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.XmlNode;
@@ -102,8 +101,6 @@ public class Caas {
 				caller = new HttpClientCaller(name);
 			else if (classname.equals("NativeCaller"))
 				caller=new NativeCaller(name);
-			else if (classname.equals("SamlClientCaller"))
-				caller=new SamlClientCaller(name);
 			else
 				throw new RuntimeException("Unknown SoapCaller class "+classname);
 			result = new CordysSystem(name, caller);

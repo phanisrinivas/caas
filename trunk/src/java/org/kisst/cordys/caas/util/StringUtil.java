@@ -1,7 +1,6 @@
 package org.kisst.cordys.caas.util;
 
 import java.util.Map;
-import java.util.UUID;
 
 public class StringUtil {
 
@@ -33,12 +32,5 @@ public class StringUtil {
 		}
 		result.append(str.substring(prevpos));
 		return result.toString();
-	}
-	
-	//This method is used for generating RequestID for SAML request
-	public static String generateUUID(){
-		UUID uuid = UUID.randomUUID();
-		String strUUID = "a"+uuid.toString(); // XML validation requires that the request ID does not start with a number
-		return strUUID;
 	}
 }
