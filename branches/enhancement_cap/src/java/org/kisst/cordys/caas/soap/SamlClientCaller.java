@@ -1,8 +1,8 @@
 package org.kisst.cordys.caas.soap;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -24,16 +24,17 @@ import org.kisst.cordys.caas.support.SamlClient;
 
 public class SamlClientCaller extends BaseCaller {
 
-	private final HttpClient client = new HttpClient();
-	private final String SAML_ART= "SAMLart";
+	//A constant containing the SAML artifact name that need to be set in the query string
+	private final String SAML_ARTIFACT_NAME= "SAMLart";
+	//Contains the Cordys system name which is in turn passed to the SamlClient class
 	private final String systemName;
+	
 	public SamlClientCaller(String systemName){
 		super(systemName);
 		this.systemName = systemName;
 	}
 
 	@Override 
-	
 	/**
 	 * Delegates the incoming SOAP request to sendHttpRequest
 	 */
@@ -50,20 +51,24 @@ public class SamlClientCaller extends BaseCaller {
 	 * @param map - Query string parameters that need to added to the BaseGateway URL.
 	 * @return response - SOAP Response XML string
 	 */
-	public String sendHttpRequest(String url, String inputSoapRequest, LinkedHashMap<String, String> map){
+	public String sendHttpRequest(String url, String inputSoapRequest, HashMap<String, String> map){
 				
 		int statusCode;
 		String response;
+		
+		//Get the SamlClient instance for systemName and get its ArtifactID 
 		String artifactId= SamlClient.getInstance(systemName).getArtifactID();		
+		
+		//Check if the artifactId is null
 		if(artifactId==null) 
 			throw new CaasRuntimeException("Unable to get the SAML ArtifactID for system "+systemName);
 		
-		//Create LinkedHashMap object if the incoming map is null
+		//Create HashMap object to put the SAML ArtifactID name and value, if the incoming map is null
 		if(map==null)
-			map = new LinkedHashMap<String, String>();
+			map = new HashMap<String, String>();
 		
-		//Put the SAML ArtifactID in the map
-		map.put(SAML_ART, artifactId);
+		//Put the SAML Artifact Name and value in the map
+		map.put(SAML_ARTIFACT_NAME, artifactId);
 				
 		Set<Entry<String, String>> set = map.entrySet();
 		Iterator<Entry<String, String>> iterator = set.iterator();
@@ -71,12 +76,13 @@ public class SamlClientCaller extends BaseCaller {
 		
 		NameValuePair[] nvPairArray = new NameValuePair[map.size()]; 
 		
-		//Iterate through the LinkedHashMap and populate the NameValuePair array
+		//Iterate through the HashMap and populate the NameValuePair array
 		for(int i=0;iterator.hasNext();i++) {
 			entry = iterator.next();
 			nvPairArray[i] = new NameValuePair(entry.getKey(), entry.getValue());
 		} 
 	    
+		//Create a PostMethod by passing the Cordys Gateway URL to its constructor
 		PostMethod method=new PostMethod(url);
 		method.setDoAuthentication(true);
 		
@@ -85,13 +91,14 @@ public class SamlClientCaller extends BaseCaller {
 				
 		try {
 			method.setRequestEntity(new StringRequestEntity(inputSoapRequest, "text/xml", "UTF-8"));
+			HttpClient client = new HttpClient();
 			statusCode = client.executeMethod(method);
 			response=method.getResponseBodyAsString();
 		}
-		catch (HttpException e) { throw new RuntimeException(e);}
-		catch (IOException e) { throw new RuntimeException(e);}
+		catch (HttpException e) { throw new CaasRuntimeException(e);}
+		catch (IOException e) { throw new CaasRuntimeException(e);}
 		if (statusCode != HttpStatus.SC_OK) {
-			throw new RuntimeException("Method failed: " + method.getStatusLine()+"\n"+response);
+			throw new CaasRuntimeException("Method failed: " + method.getStatusLine()+"\n"+response);
 		}
 		return response;
 	}

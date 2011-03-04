@@ -11,6 +11,7 @@ import java.util.TimeZone;
 
 public class DateUtil {
 
+	//A String constant that contains the Cordys date format
 	private static final String STANDARD_DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	
 	// Gets current UTC date in this format: 2004-12-05T09:21:59Z"
@@ -25,7 +26,7 @@ public class DateUtil {
 	
 	/**
 	 * Gets the difference between 2 dates in Seconds or Minutes or Hours or Days based on the choice given.
-	 * If no choice is given, it returns the time difference in Milliseconds
+	 * If no choice is given, by default, it returns the time difference in Milliseconds
 	 */
 	public static long getDifference(String dateStr1, String dateStr2, char choice)
 	{		
