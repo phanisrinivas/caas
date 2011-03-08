@@ -7,6 +7,7 @@ import java.util.Map;
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.Configuration;
 import org.kisst.cordys.caas.ConnectionPoint;
+import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Isvp;
 import org.kisst.cordys.caas.MethodSet;
 import org.kisst.cordys.caas.Organization;
@@ -26,6 +27,7 @@ public class Template {
 	
 	public Template(Organization org, String targetIsvpName) {
 		XmlNode result=new XmlNode("org");
+
 		//result.setAttribute("isvp", isvpName);
 		result.setAttribute("org", org.getName());
 		for (SoapNode sn : org.soapNodes) {
@@ -141,7 +143,6 @@ public class Template {
 			sn=org.soapNodes.getByName(name);
 		}
 		else {
-			
 			String updateFlag = node.getAttribute("update");
 			if ((updateFlag==null) || (updateFlag.equalsIgnoreCase("false")))
 			{
@@ -149,25 +150,19 @@ public class Template {
 				return;
 			}
 			
-			// update the methodsets all at once
 			env.info("updating methodsets of soapnode "+name);
 			MethodSet[] newMethodSets = getMs(org,node);
-			sn.ms.update(newMethodSets);
-			ArrayList<String> namepsaces = new ArrayList<String>();
-			for (MethodSet methodSet : newMethodSets) {				
-				for (String ns : methodSet.namespaces.get()) {
-					namepsaces.add(ns);
-				}	
+			if ((newMethodSets!=null)&&(newMethodSets.length > 0))
+			{
+				sn.ms.update(newMethodSets);
+				ArrayList<String> namepsaces = new ArrayList<String>();
+				for (MethodSet methodSet : newMethodSets) {				
+					for (String ns : methodSet.namespaces.get()) {
+						namepsaces.add(ns);
+					}
+				}			
+				sn.namespaces.update(namepsaces);	
 			}
-			// update the namespaces all at once
-			sn.namespaces.update(namepsaces);	
-			
-			/*for (MethodSet ms : getMs(org,node)){
-				env.info("  adding methodset "+ms.getName());
-				sn.ms.add(ms);
-				for (String ns: ms.namespaces.get())
-					sn.namespaces.add(ns);
-			}*/
 		}
 		for (XmlNode child:node.getChildren()) {
 			if ((child.getName().equals("ms")))
@@ -178,7 +173,7 @@ public class Template {
 				SoapProcessor sp = sn.soapProcessors.getByName(spname);
 				if (sp!=null) 
 				{
-					env.info("updating existing soap processor "+spname);
+					env.info("updating existing soap processor "+spname);					
 					String machine=org.getSystem().machines.get(0).getName();
 					boolean automatic="true".equals(child.getAttribute("automatic"));
 					XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
