@@ -132,6 +132,31 @@ public abstract class LdapObject extends CordysObject {
 			}
 			updateLdap(newEntry);
 		}
+		
+		/**
+		 * update the existing entry with the new list of values
+		 * This will clear the existing child elements and add 
+		 * the new entries to the parent. 
+		 * 
+		 * @param values
+		 */
+		public void update(List<String> values)
+		{
+			checkIfMayBeModified(); 
+			XmlNode newEntry=getEntry().clone();
+			XmlNode n=newEntry.getChild(path);
+			if (n==null)
+				n=newEntry.add(path);
+			
+			List<XmlNode> children = n.getChildren();
+			for (XmlNode xmlNode : children) {
+				n.remove(xmlNode);
+			}
+			for (String value : values) {
+				n.add("string").setText(value);	
+			}			
+			updateLdap(newEntry);
+		}
 	}
 
 	public final StringProperty description = new StringProperty("description");
