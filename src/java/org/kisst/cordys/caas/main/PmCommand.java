@@ -19,6 +19,8 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas.main;
 
+import java.util.HashMap;
+
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
@@ -36,7 +38,7 @@ public class PmCommand extends CompositeCommand {
 
 		protected CordysSystem getSystem() { return Caas.getSystem(Caas.defaultSystem); }
 		protected Organization getOrg(String defaultOrg) {
-			if (org.isSet())
+			if (org.isSet())				
 				return getSystem().org.getByName(org.get());
 			else
 				return getSystem().org.getByName(defaultOrg);
@@ -83,11 +85,16 @@ public class PmCommand extends CompositeCommand {
 		}
 	};
 
+	/**
+	 * Implement the apply method
+	 * 
+	 * TODO : Read the properties file and pass the hashmap
+	 */
 	private Command create=new HostCommand("[options] <template file>", "create elements in an organization based on the given template") {
 		@Override public void run(String[] args) { 
 			args=checkArgs(args);
 			Template templ=new Template(FileUtil.loadString(args[0]));
-			//TODO: templ.apply(getOrg(null), null);
+			templ.apply(getOrg(null), new HashMap<String, String>());
 		}
 	};
 	

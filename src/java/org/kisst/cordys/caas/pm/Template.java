@@ -111,7 +111,7 @@ public class Template {
 	public void apply(Organization org, Map<String, String> vars) {
 		XmlNode template=xml(vars);
 		for (XmlNode node : template.getChildren()){
-			if (node.getName().equals("soapnode"))
+			if ((node.getName().equals("soapnode"))|| (node.getName().equals("servicegroup")))
 				processSoapNode(org, node);
 			else if (node.getName().equals("user"))
 				processUser(org, node);
@@ -122,6 +122,15 @@ public class Template {
 		}
 	}
 
+	/**
+	 * 
+	 * If the update attribute is set to true on the element, 
+	 * then it will update the respective configuration.
+	 * Update the methodsets and namespace all at once.  
+	 * 
+	 * @param org
+	 * @param node
+	 */
 	private void processSoapNode(Organization org, XmlNode node) {
 		String name=node.getAttribute("name");
 		SoapNode sn=org.soapNodes.getByName(name);
@@ -132,36 +141,63 @@ public class Template {
 			sn=org.soapNodes.getByName(name);
 		}
 		else {
-			env.info("configuring soapnode "+name);
-			for (MethodSet ms : getMs(org,node)){
+			
+			String updateFlag = node.getAttribute("update");
+			if ((updateFlag==null) || (updateFlag.equalsIgnoreCase("false")))
+			{
+				env.error("Skipping updating service group '"+name+"'.Set 'update' attribute to true to overwrite");
+				return;
+			}
+			
+			// update the methodsets all at once
+			env.info("updating methodsets of soapnode "+name);
+			MethodSet[] newMethodSets = getMs(org,node);
+			sn.ms.update(newMethodSets);
+			ArrayList<String> namepsaces = new ArrayList<String>();
+			for (MethodSet methodSet : newMethodSets) {				
+				for (String ns : methodSet.namespaces.get()) {
+					namepsaces.add(ns);
+				}	
+			}
+			// update the namespaces all at once
+			sn.namespaces.update(namepsaces);	
+			
+			/*for (MethodSet ms : getMs(org,node)){
 				env.info("  adding methodset "+ms.getName());
 				sn.ms.add(ms);
 				for (String ns: ms.namespaces.get())
 					sn.namespaces.add(ns);
-			}
+			}*/
 		}
 		for (XmlNode child:node.getChildren()) {
-			if (child.getName().equals("ms"))
+			if ((child.getName().equals("ms")))
 				continue;
-			else if (child.getName().equals("sp")) {
+			else if ((child.getName().equals("sp"))||(child.getName().equals("sc"))) 
+			{
 				String spname=child.getAttribute("name");
-				if (sn.soapProcessors.getByName(spname)!=null) {
-					env.info("  skipping existing soap processor "+spname);
+				SoapProcessor sp = sn.soapProcessors.getByName(spname);
+				if (sp!=null) 
+				{
+					env.info("updating existing soap processor "+spname);
+					String machine=org.getSystem().machines.get(0).getName();
+					boolean automatic="true".equals(child.getAttribute("automatic"));
+					XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
+					sn.updateSoapProcessor(spname, machine, automatic, config.clone(),sp);
 					continue;
 				}
-				else
-					env.info("  creating soap processor "+spname);
-
-				String machine=org.getSystem().machines.get(0).getName();
-				boolean automatic="true".equals(child.getAttribute("automatic"));
-				XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
-				sn.createSoapProcessor(spname, machine, automatic, config.clone());
-				for (XmlNode subchild:child.getChildren()) {
-					if (subchild.getName().equals("cp")) {
-						SoapProcessor sp=sn.sp.getByName(spname);
-						sp.createConnectionPoint(subchild.getAttribute("name"));
+				else				 
+				{
+					env.info("creating soap processor "+spname);
+					String machine=org.getSystem().machines.get(0).getName();
+					boolean automatic="true".equals(child.getAttribute("automatic"));
+					XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
+					sn.createSoapProcessor(spname, machine, automatic, config.clone());
+					for (XmlNode subchild:child.getChildren()) {
+						if (subchild.getName().equals("cp")) {
+							SoapProcessor newSP=sn.sp.getByName(spname);
+							newSP.createConnectionPoint(subchild.getAttribute("name"));
+						}	
 					}
-						
 				}
 			}
 			else if (child.getName().equals("bussoapnodeconfiguration")) {}
@@ -173,7 +209,7 @@ public class Template {
 	private MethodSet[] getMs(Organization org, XmlNode node) {
 		ArrayList<MethodSet> result=new ArrayList<MethodSet>();
 		for (XmlNode child:node.getChildren()) {
-			if (child.getName().equals("ms")) {
+			if ((child.getName().equals("ms")) ) {
 				MethodSet newms=null;
 				String isvpName=child.getAttribute("isvp");
 				String msName=child.getAttribute("name");

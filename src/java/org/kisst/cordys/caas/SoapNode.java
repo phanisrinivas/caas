@@ -97,12 +97,7 @@ public class SoapNode extends LdapObjectBase {
 	 &lt;/configurations&gt;
 	 */
 	public void createSoapProcessor(String name, String machine, boolean automatic, XmlNode config) {
-		XmlNode newEntry=newEntryXml("", name,"bussoapprocessor");
-		newEntry.add("description").add("string").setText(name);
-		newEntry.add("computer").add("string").setText(machine); // TODO
-		newEntry.add("busosprocesshost");
-		newEntry.add("automaticstart").add("string").setText(""+automatic);
-		newEntry.add("bussoapprocessorconfiguration").add("string").setText(config.compact());
+		XmlNode newEntry=createSoapProcessorEntryNode(name,machine,automatic,config);
 		createInLdap(newEntry);
 		soapProcessors.clear();
 	}
@@ -119,4 +114,32 @@ public class SoapNode extends LdapObjectBase {
 		config2.add(conn.getData().getChild("step/classpath").clone());
 		createSoapProcessor(name, getSystem().machines.get(0).getName(), false, config);
 	}	
+	
+	/**
+	 * Update the soap node with the new Soap processor details
+	 * It will also accept the old soap processor to form the update request
+	 * 
+	 * @param name
+	 * @param machine
+	 * @param automatic
+	 * @param config
+	 * @param oldSoapProcessor
+	 */
+	public void updateSoapProcessor(String name, String machine, boolean automatic, XmlNode config,SoapProcessor oldSoapProcessor)
+	{
+		XmlNode newEntry=createSoapProcessorEntryNode(name,machine,automatic,config);
+		XmlNode oldEntry = oldSoapProcessor.getEntry();
+		updateLdap(oldEntry,newEntry);
+	}
+	
+	private XmlNode createSoapProcessorEntryNode(String name, String machine, boolean automatic, XmlNode config)
+	{
+		XmlNode newEntry=newEntryXml("", name,"bussoapprocessor");
+		newEntry.add("description").add("string").setText(name);
+		newEntry.add("computer").add("string").setText(machine); // TODO
+		newEntry.add("busosprocesshost");
+		newEntry.add("automaticstart").add("string").setText(""+automatic);
+		newEntry.add("bussoapprocessorconfiguration").add("string").setText(config.compact());
+		return newEntry;
+	}
 }
