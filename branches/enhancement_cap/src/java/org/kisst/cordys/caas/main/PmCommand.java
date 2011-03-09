@@ -80,7 +80,10 @@ public class PmCommand extends CompositeCommand {
 		private final Cli.StringOption isvpName= cli.stringOption("i", "isvpName", "the isvpName to use for custom content", null);
 		@Override public void run(String[] args) { 
 			args=checkArgs(args);
-			Template templ = new Template(getOrg(null), isvpName.get());
+			
+			String orgz = System.getProperty("template.org");
+			//Template templ = new Template(getOrg(null), isvpName.get());
+			Template templ = new Template(getOrg(orgz), isvpName.get());
 			templ.save(args[0]);
 		}
 	};
@@ -94,7 +97,10 @@ public class PmCommand extends CompositeCommand {
 		@Override public void run(String[] args) { 
 			args=checkArgs(args);
 			Template templ=new Template(FileUtil.loadString(args[0]));
-			templ.apply(getOrg(null), new HashMap<String, String>());
+			
+			String orgz = System.getProperty("create.org");
+			//templ.apply(getOrg(null), new HashMap<String, String>());
+			templ.apply(getOrg(orgz), new HashMap<String, String>());
 		}
 	};
 	

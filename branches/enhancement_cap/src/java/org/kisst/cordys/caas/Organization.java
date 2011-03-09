@@ -66,6 +66,7 @@ public class Organization extends LdapObjectBase {
 			@Override public String getKey() { return "SoapProcessors:"+getDn(); }
 		}; 
 		sp = soapProcessors;
+
 	}
 
 	@Override protected String prefix() { return "org"; }

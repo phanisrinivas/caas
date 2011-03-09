@@ -38,7 +38,7 @@ public class SamlClient{
 	protected SamlClient() {}
 	
 	/**
-	 *This method is returns the SamlClient object of the given system from the Saml cache.
+	 *This method returns the SamlClient object of the given system from the Saml cache.
 	 *If the SamlClient object for the given system is not present in the cache, then it 
 	 *creates a new SamlClient for the given system and stores it in the cache for further use 
 	 * 

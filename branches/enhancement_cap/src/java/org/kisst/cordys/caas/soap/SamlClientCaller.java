@@ -54,40 +54,41 @@ public class SamlClientCaller extends BaseCaller {
 	public String sendHttpRequest(String url, String inputSoapRequest, HashMap<String, String> map){
 				
 		int statusCode;
-		String response;
+		String response,baseurl,queryStr=null;
 		
 		//Get the SamlClient instance for systemName and get its ArtifactID 
 		String artifactId= SamlClient.getInstance(systemName).getArtifactID();		
-		
 		//Check if the artifactId is null
 		if(artifactId==null) 
-			throw new CaasRuntimeException("Unable to get the SAML ArtifactID for system "+systemName);
+			throw new CaasRuntimeException("Unable to get the SAML ArtifactID for system '"+systemName+"'");
 		
-		//Create HashMap object to put the SAML ArtifactID name and value, if the incoming map is null
-		if(map==null)
-			map = new HashMap<String, String>();
+		//Check if the url already contains any query string parameters
+		baseurl = url;
+		int pos=url.indexOf("?");
+		if (pos>0){
+			baseurl = url.substring(0, pos);
+			queryStr = url.substring(pos+1);
+		}
+		if(queryStr==null)
+			queryStr = SAML_ARTIFACT_NAME+"="+artifactId;
+		else
+			queryStr = queryStr+"&"+SAML_ARTIFACT_NAME+"="+artifactId;
 		
-		//Put the SAML Artifact Name and value in the map
-		map.put(SAML_ARTIFACT_NAME, artifactId);
-				
-		Set<Entry<String, String>> set = map.entrySet();
-		Iterator<Entry<String, String>> iterator = set.iterator();
-		Map.Entry<String, String> entry;
+		if(map!=null){
+			Set<Entry<String, String>> set = map.entrySet();
+			Iterator<Entry<String, String>> iterator = set.iterator();
+			Map.Entry<String, String> entry;		
+			for(int i=0;iterator.hasNext();i++) {
+				entry = iterator.next();
+				queryStr=queryStr+"&"+entry.getKey()+"="+entry.getValue();
+			}
+		}
 		
-		NameValuePair[] nvPairArray = new NameValuePair[map.size()]; 
-		
-		//Iterate through the HashMap and populate the NameValuePair array
-		for(int i=0;iterator.hasNext();i++) {
-			entry = iterator.next();
-			nvPairArray[i] = new NameValuePair(entry.getKey(), entry.getValue());
-		} 
-	    
 		//Create a PostMethod by passing the Cordys Gateway URL to its constructor
-		PostMethod method=new PostMethod(url);
+		PostMethod method=new PostMethod(baseurl);
 		method.setDoAuthentication(true);
-		
 		//Set the Query String
-		method.setQueryString(nvPairArray);
+		method.setQueryString(queryStr);
 				
 		try {
 			method.setRequestEntity(new StringRequestEntity(inputSoapRequest, "text/xml", "UTF-8"));
