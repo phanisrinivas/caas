@@ -23,8 +23,12 @@ public class StringUtil {
 			String key=str.substring(pos+2,pos2);
 			result.append(str.substring(prevpos,pos));
 			String value=vars.get(key);
+
 			if (value==null && key.equals("dollar"))
 				value="$";
+			//This will be replaced later in Template.java, as we don't know its value at this point of time
+			if(value==null && key.equals("CORDYS_INSTALL_DIR"))
+				value="CORDYS_INSTALL_DIR";
 			if (value==null)
 				throw new RuntimeException("Unknown variable ${"+key+"}");
 			result.append(value);

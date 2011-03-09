@@ -149,6 +149,10 @@ public class CordysSystem extends LdapObject {
 	public String call(String input, String org, String processor) {
 		return caller.call(input, org, processor); 
 	}
+	//Added this method to call the cordys services from XMLStoreObject class
+	public XmlNode call(XmlNode method, String org, String processor) {
+		return caller.call(method, org, processor); 
+	}	
 	public String call(String soap) { return caller.call(soap); }
 	@Override public XmlNode call(XmlNode method) { return caller.call(method); }
 

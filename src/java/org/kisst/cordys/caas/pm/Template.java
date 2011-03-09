@@ -7,15 +7,17 @@ import java.util.Map;
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.Configuration;
 import org.kisst.cordys.caas.ConnectionPoint;
-import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Isvp;
+import org.kisst.cordys.caas.Machine;
 import org.kisst.cordys.caas.MethodSet;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.Role;
 import org.kisst.cordys.caas.SoapNode;
 import org.kisst.cordys.caas.SoapProcessor;
 import org.kisst.cordys.caas.User;
+import org.kisst.cordys.caas.XMLStoreObject;
 import org.kisst.cordys.caas.main.Environment;
+import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
@@ -97,7 +99,7 @@ public class Template {
 		}
 		String str=result.getPretty();
 		this.template=str.replace("$", "${dollar}");
-	}
+	}//End of Template constructor
 
 	public void save(String filename) { FileUtil.saveString(new File(filename), template);}
 
@@ -119,11 +121,29 @@ public class Template {
 				processUser(org, node);
 			else if (node.getName().equals("role"))
 				processRole(org, node);
+			//Check if the template has XMLStore content in it
+			else if (node.getName().equals("xmlstoreobject"))
+				processXMLStoreObject(org, node);
 			else
 				System.out.println("Unknown organization element "+node.getPretty());
 		}
 	}
 
+	/**
+	 * Processes the XMLStore operations 
+	 * 
+	 * @param org
+	 * @param node
+	 */
+	private void processXMLStoreObject(Organization org, XmlNode node) {
+			boolean updateFlag = Boolean.valueOf(node.getAttribute("update"));
+			String key = node.getAttribute("key");
+			String version = node.getAttribute("version");
+			XmlNode newXml = node.getChildren().get(0);
+			XMLStoreObject obj = new XMLStoreObject(key,version,org);
+			obj.updateXML(newXml.clone(), updateFlag);
+	}
+	
 	/**
 	 * 
 	 * If the update attribute is set to true on the element, 
@@ -134,15 +154,23 @@ public class Template {
 	 * @param node
 	 */
 	private void processSoapNode(Organization org, XmlNode node) {
+		
+		//Read the SG name from the configuration
 		String name=node.getAttribute("name");
+		
+		//Check if the SG is already existing by comparing its name
 		SoapNode sn=org.soapNodes.getByName(name);
+		
+		//Create a new SG if it's not existing
 		if (sn==null) {
 			env.info("creating soapnode "+name);
 			XmlNode config=node.getChild("bussoapnodeconfiguration").getChildren().get(0).clone();
 			org.createSoapNode(name, config, getMs(org,node));
 			sn=org.soapNodes.getByName(name);
 		}
+		//Update the existing SG with new configuration
 		else {
+			//Check the 'update' flag in the configuration 
 			String updateFlag = node.getAttribute("update");
 			if ((updateFlag==null) || (updateFlag.equalsIgnoreCase("false")))
 			{
@@ -150,6 +178,7 @@ public class Template {
 				return;
 			}
 			
+			//Update the method sets of the SG
 			env.info("updating methodsets of soapnode "+name);
 			MethodSet[] newMethodSets = getMs(org,node);
 			if ((newMethodSets!=null)&&(newMethodSets.length > 0))
@@ -164,36 +193,73 @@ public class Template {
 				sn.namespaces.update(namepsaces);	
 			}
 		}
-		for (XmlNode child:node.getChildren()) {
+		//Proceed with the SC creation or updation
+		for (XmlNode child:node.getChildren()) 
+		{
+			//TODO: Need to add another condition to check for the 'wsi' string to keep it align with BOP-4 terminology
 			if ((child.getName().equals("ms")))
 				continue;
 			else if ((child.getName().equals("sp"))||(child.getName().equals("sc"))) 
-			{
-				String spname=child.getAttribute("name");
-				SoapProcessor sp = sn.soapProcessors.getByName(spname);
-				if (sp!=null) 
+			{				
+				//Get the machine objects
+				CordysObjectList<Machine> machines = org.getSystem().machines;	
+				//Check if it is Cordys clustered installation
+				boolean isClustered = machines.getSize()>1;
+				//Iterate over the machines objects
+				for(int i=0;i<machines.getSize();i++)
 				{
-					env.info("updating existing soap processor "+spname);					
-					String machine=org.getSystem().machines.get(0).getName();
-					boolean automatic="true".equals(child.getAttribute("automatic"));
-					XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
-					sn.updateSoapProcessor(spname, machine, automatic, config.clone(),sp);
-					continue;
-				}
-				else				 
-				{
-					env.info("creating soap processor "+spname);
-					String machine=org.getSystem().machines.get(0).getName();
-					boolean automatic="true".equals(child.getAttribute("automatic"));
-					XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
-					sn.createSoapProcessor(spname, machine, automatic, config.clone());
-					for (XmlNode subchild:child.getChildren()) {
-						if (subchild.getName().equals("cp")) {
-							SoapProcessor newSP=sn.sp.getByName(spname);
-							newSP.createConnectionPoint(subchild.getAttribute("name"));
-						}	
+					//Read the SC name
+					String spname=child.getAttribute("name");
+					//Read the machine name
+					String machineName = machines.get(i).getName();
+					//Read the Cordys installation directory path
+					String cordysInstallDir = machines.get(i).getCordysInstallDir(); 
+					/*
+					 * NOTE: 
+					 * It is assumed that the following naming convention is followed for SC
+					 * Stand alone - SC Name - RMG BPM SC 
+					 * Clustered - SC Name_machineName - RMG BPM SC_dev-int-cordys (and) RMG BPM SC_dev-int-aux
+					 */
+					//Construct the SC name as per the above naming convention, in case of clustered installation
+					if(isClustered)
+						spname = spname.concat("_").concat(machineName);
+					
+					//Check if the SC is already existing by comparing its name  
+					SoapProcessor sp = sn.soapProcessors.getByName(spname);
+					//Update the existing SC with new configuration
+					if (sp!=null) 
+					{
+						env.info("updating existing soap processor "+spname);
+						boolean automatic="true".equals(child.getAttribute("automatic"));
+						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
+						
+						//Replace the CORDYS_INSTALL_DIR with the corresponding value
+						replaceCordysInstallDir(config, cordysInstallDir);
+						
+						sn.updateSoapProcessor(spname, machineName, automatic, config.clone(),sp);
+						spname=null;
+						continue;
 					}
-				}
+					//Create a new SC
+					else				 
+					{
+						env.info("creating soap processor "+spname);
+						boolean automatic="true".equals(child.getAttribute("automatic"));
+						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
+
+						//Replace the CORDYS_INSTALL_DIR with the corresponding value
+						replaceCordysInstallDir(config, cordysInstallDir);
+						
+						sn.createSoapProcessor(spname, machineName, automatic, config.clone());
+						for (XmlNode subchild:child.getChildren()) {
+							if (subchild.getName().equals("cp")) {
+								SoapProcessor newSP=sn.sp.getByName(spname);
+								newSP.createConnectionPoint(subchild.getAttribute("name"),machineName);
+							}	
+						}
+						spname=null;
+					}
+				}//end of for loop
 			}
 			else if (child.getName().equals("bussoapnodeconfiguration")) {}
 			else
@@ -204,6 +270,7 @@ public class Template {
 	private MethodSet[] getMs(Organization org, XmlNode node) {
 		ArrayList<MethodSet> result=new ArrayList<MethodSet>();
 		for (XmlNode child:node.getChildren()) {
+			//TODO: Need to add another condition to check for the 'wsi' string to keep it align with BOP-4 terminology
 			if ((child.getName().equals("ms")) ) {
 				MethodSet newms=null;
 				String isvpName=child.getAttribute("isvp");
@@ -220,7 +287,7 @@ public class Template {
 					result.add(newms);
 				}
 				else {
-					env.error("  skipping unknownn methodset "+msName);
+					env.error("Skipping unknownn methodset "+msName);
 				}
 			}
 		}
@@ -476,6 +543,17 @@ public class Template {
 			else
 				env.error("Unknown role subelement "+child.getPretty());
 		}
+	}
+	
+	//NOTE: Please suggest a better way of doing it
+	private void replaceCordysInstallDir(XmlNode configNode, String cordysInstallDir){
+		
+		XmlNode jreConfigNode = configNode.getChild("jreconfig");
+		configNode.remove(jreConfigNode);
+		String str = jreConfigNode.toString();
+		str = str.replaceAll("CORDYS_INSTALL_DIR", cordysInstallDir);
+		jreConfigNode = new XmlNode(str);
+		configNode.add(jreConfigNode.clone());
 	}
 
 }

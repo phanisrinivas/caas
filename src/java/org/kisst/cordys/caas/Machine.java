@@ -28,11 +28,16 @@ import org.kisst.cordys.caas.util.XmlNode;
 public class Machine extends CordysObject {
 	private final SoapProcessor monitor;
 	private final String hostname;
+	//Contains the value of CORDYS_INSTALL_DIR variable
+	private final String cordysInstallDir;
 	
 	protected Machine(SoapProcessor monitor) {
 		this.monitor=monitor;
 		String tmp=monitor.getName();
 		this.hostname=tmp.substring(tmp.indexOf("monitor@")+8);
+		//Read the value of CORDYS_INSTALL_DIR variable and assign it to cordysInstallDir
+		this.cordysInstallDir=readEIBProperty("CORDYS_INSTALL_DIR");
+
 	}
 
 	@Override public String toString() { return getVarName();}
@@ -94,5 +99,18 @@ public class Machine extends CordysObject {
 			result.add(url.substring(url.lastIndexOf("/")+1));
 		}
 		return result;
+	}
+	
+	public String getCordysInstallDir(){
+		return cordysInstallDir;
+	}
+	
+	//Gets the value of given EIB property by sending 'GetProperty' web service request to the monitor service container
+	public String readEIBProperty(String propertyName){
+		XmlNode method=new XmlNode("GetProperty", xmlns_monitor);
+		method.add("property").setAttribute("name", propertyName);
+		XmlNode response = monitor.call(method);
+		XmlNode propertyNode = response.getChild("tuple/old/property");
+		return propertyNode.getAttribute("value", null);
 	}
 }

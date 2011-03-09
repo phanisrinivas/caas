@@ -114,13 +114,29 @@ public class SoapProcessor extends LdapObjectBase {
 		method.add("dn").setText(getDn());
 		call(method);
 	}
+	
 
 	public void createConnectionPoint(String name) {
-		createConnectionPoint(name, "socket");
+		createConnectionPoint(name, "socket", getMachine().getName());
 	}
 
+	/*
 	public void createConnectionPoint(String name, String type) {
 		String uri=type+"://"+getMachine().getName()+":"+getAvailablePort();
+		XmlNode newEntry=newEntryXml("", name,"busconnectionpoint");
+		newEntry.add("description").add("string").setText(name);
+		newEntry.add("labeleduri").add("string").setText(uri); // TODO
+		createInLdap(newEntry);
+		connectionPoints.clear();
+	}*/
+	
+	//Following 2 methods are changed to pass the machineName as a parameter, which is needed in case of clustered installation
+	public void createConnectionPoint(String name, String machineName) {
+		createConnectionPoint(name, "socket", machineName);
+	}
+
+	public void createConnectionPoint(String name, String type, String machineName) {
+		String uri=type+"://"+machineName+":"+getAvailablePort();
 		XmlNode newEntry=newEntryXml("", name,"busconnectionpoint");
 		newEntry.add("description").add("string").setText(name);
 		newEntry.add("labeleduri").add("string").setText(uri); // TODO
