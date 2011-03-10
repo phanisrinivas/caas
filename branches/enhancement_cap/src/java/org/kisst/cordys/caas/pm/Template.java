@@ -145,13 +145,12 @@ public class Template {
 	}
 	
 	/**
-	 * 
-	 * If the update attribute is set to true on the element, 
-	 * then it will update the respective configuration.
-	 * Update the methodsets and namespace all at once.  
-	 * 
-	 * @param org
-	 * @param node
+	 * This method creates/updates the Service Group and the Service Containers
+	 * in both Stand alone and Clustered installation. 'update' flag must be set to true 
+	 * on the <soapnode> element to update the SG. Updates the methodsets and namespace all at once. 
+	 *    
+	 * @param org Organization object
+	 * @param node Reference to <soapnode> element
 	 */
 	private void processSoapNode(Organization org, XmlNode node) {
 		
@@ -214,41 +213,44 @@ public class Template {
 					String machineName = machines.get(i).getName();
 					//Read the Cordys installation directory path
 					String cordysInstallDir = machines.get(i).getCordysInstallDir(); 
+					
 					/*
 					 * NOTE: 
 					 * It is assumed that the following naming convention is followed for SC
 					 * Stand alone - SC Name - RMG BPM SC 
 					 * Clustered - SC Name_machineName - RMG BPM SC_dev-int-cordys (and) RMG BPM SC_dev-int-aux
+					 * So while extracting the template, using 'template' command, DO NOT include the machine name
+					 * in the .caaspm file
 					 */
+					
 					//Construct the SC name as per the above naming convention, in case of clustered installation
 					if(isClustered)
 						spname = spname.concat("_").concat(machineName);
-					
+										
 					//Check if the SC is already existing by comparing its name  
 					SoapProcessor sp = sn.soapProcessors.getByName(spname);
 					//Update the existing SC with new configuration
 					if (sp!=null) 
 					{
-						env.info("updating existing soap processor "+spname);
+						env.info("updating existing soap processor '"+spname+"' for machine '"+machineName+"'");
 						boolean automatic="true".equals(child.getAttribute("automatic"));
 						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
 						
-						//Replace the CORDYS_INSTALL_DIR with the corresponding value
-						replaceCordysInstallDir(config, cordysInstallDir);
+						//Replace the CORDYS_INSTALL_DIR with its corresponding value
+						resolveVariables(config, cordysInstallDir);
 						
 						sn.updateSoapProcessor(spname, machineName, automatic, config.clone(),sp);
-						spname=null;
 						continue;
 					}
 					//Create a new SC
 					else				 
 					{
-						env.info("creating soap processor "+spname);
+						env.info("creating soap processor "+spname+"' for machine '"+machineName+"'");
 						boolean automatic="true".equals(child.getAttribute("automatic"));
 						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
 
-						//Replace the CORDYS_INSTALL_DIR with the corresponding value
-						replaceCordysInstallDir(config, cordysInstallDir);
+						//Replace the CORDYS_INSTALL_DIR with its corresponding value
+						resolveVariables(config, cordysInstallDir);
 						
 						sn.createSoapProcessor(spname, machineName, automatic, config.clone());
 						for (XmlNode subchild:child.getChildren()) {
@@ -257,7 +259,6 @@ public class Template {
 								newSP.createConnectionPoint(subchild.getAttribute("name"),machineName);
 							}	
 						}
-						spname=null;
 					}
 				}//end of for loop
 			}
@@ -546,14 +547,29 @@ public class Template {
 	}
 	
 	//NOTE: Please suggest a better way of doing it
-	private void replaceCordysInstallDir(XmlNode configNode, String cordysInstallDir){
+	/**
+	 * This method replaces the string 'CORDYS_INSTALL_DIR' from the classpath <param> node in <jreconfig>
+					<jreconfig>
+                        <param value="-cp ${CORDYS_INSTALL_DIR}\Immediate\immediate.jar" />
+                    </jreconfig>
+	 * with its corresponding value. It also converts the file paths to Unix format by replacing \ with /
+	 * 
+	 * @param configNode The <configurations> node of the <sc>
+	 * @param cordysInstallDir Path of the Cordys installation directory
+	 */
+	private void resolveVariables(XmlNode configNode, String cordysInstallDir){
 		
 		XmlNode jreConfigNode = configNode.getChild("jreconfig");
-		configNode.remove(jreConfigNode);
-		String str = jreConfigNode.toString();
-		str = str.replaceAll("CORDYS_INSTALL_DIR", cordysInstallDir);
-		jreConfigNode = new XmlNode(str);
-		configNode.add(jreConfigNode.clone());
+		for(XmlNode param:jreConfigNode.getChildren()){
+			String attrValue = param.getAttribute("value");
+			if(attrValue.contains("-cp")){
+				attrValue = attrValue.replace('\\', '/');
+				cordysInstallDir = cordysInstallDir.replace("\\", "/");
+				attrValue = attrValue.replaceAll("CORDYS_INSTALL_DIR", cordysInstallDir);
+				//Overwrite the existing value with the replaced one
+				param.setAttribute("value", attrValue);
+			}				
+		}
 	}
 
 }
