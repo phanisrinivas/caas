@@ -6,6 +6,13 @@ import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.util.XmlNode;
 
+/**
+ *  Class to represent an item in Cordys XMLStore
+ *  It provides operations to read, create and update the xml
+ *  
+ *  @author galoori
+ */
+
 public class XMLStoreObject extends CordysObject{
 
 	//Location of the XMLStoreObject content in Cordys XMLStore
@@ -20,18 +27,21 @@ public class XMLStoreObject extends CordysObject{
 	public static ArrayList<String> versionList;
 	
 	@Override
+	//Returns the Path of the XMLStoreObject
 	public String getKey() {
 		return key;
 	}
 	@Override
+	//Returns the name of the XMLStoreObject
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		int pos = key.lastIndexOf("/");
+		if(pos>0)
+			return key.substring(pos);
+		return key;
 	}
 	@Override
 	public String getVarName() {
-		// TODO Auto-generated method stub
-		return null;
+		return getName();
 	}
 	
 	@Override
@@ -90,8 +100,7 @@ public class XMLStoreObject extends CordysObject{
 		//Check if the key or version is empty 
 		if(key.length()==0 || version.length()==0)
 			throw new CaasRuntimeException("key or version of the XMLStoreObject is empty. key:: "+key+" version:: "+version);
-		
-		//Check for version type
+		//Check for invalid version type
 		if(!versionList.contains(version))
 			throw new CaasRuntimeException("Invalid XMLStore version '"+version+"'. Please change it to either 'organization' or 'user'");
 		

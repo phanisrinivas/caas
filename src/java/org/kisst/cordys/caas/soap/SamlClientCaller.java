@@ -1,20 +1,15 @@
 package org.kisst.cordys.caas.soap;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
+import java.util.HashMap;
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
+import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.SamlClient;
+import org.kisst.cordys.caas.util.StringUtil;
 
 /**
  * Responsible for executing the SOAP requests when Cordys is running in SSO mode
@@ -54,50 +49,45 @@ public class SamlClientCaller extends BaseCaller {
 	public String sendHttpRequest(String url, String inputSoapRequest, HashMap<String, String> map){
 				
 		int statusCode;
-		String response,baseurl,queryStr=null;
+		String response,baseURL,queryString, aString=null;
 		
 		//Get the SamlClient instance for systemName and get its ArtifactID 
-		String artifactId= SamlClient.getInstance(systemName).getArtifactID();		
+		String artifactID= SamlClient.getInstance(systemName).getArtifactID();		
 		//Check if the artifactId is null
-		if(artifactId==null) 
+		if(artifactID==null) 
 			throw new CaasRuntimeException("Unable to get the SAML ArtifactID for system '"+systemName+"'");
 		
 		//Check if the url already contains any query string parameters
-		baseurl = url;
+		baseURL = url;
 		int pos=url.indexOf("?");
 		if (pos>0){
-			baseurl = url.substring(0, pos);
-			queryStr = url.substring(pos+1);
+			baseURL = url.substring(0, pos);
+			aString = url.substring(pos+1);
 		}
-		if(queryStr==null)
-			queryStr = SAML_ARTIFACT_NAME+"="+artifactId;
-		else
-			queryStr = queryStr+"&"+SAML_ARTIFACT_NAME+"="+artifactId;
+		if(map==null) 
+			map = new HashMap<String, String>();
 		
-		if(map!=null){
-			Set<Entry<String, String>> set = map.entrySet();
-			Iterator<Entry<String, String>> iterator = set.iterator();
-			Map.Entry<String, String> entry;		
-			for(int i=0;iterator.hasNext();i++) {
-				entry = iterator.next();
-				queryStr=queryStr+"&"+entry.getKey()+"="+entry.getValue();
-			}
-		}
+		map.put(SAML_ARTIFACT_NAME, artifactID);
+
+		if(aString==null)
+			queryString = StringUtil.mapToString(map);
+		else
+			queryString = StringUtil.mapToString(map)+"&"+aString;
 		
 		//Create a PostMethod by passing the Cordys Gateway URL to its constructor
-		PostMethod method=new PostMethod(baseurl);
+		PostMethod method=new PostMethod(baseURL);
 		method.setDoAuthentication(true);
 		//Set the Query String
-		method.setQueryString(queryStr);
-				
+		method.setQueryString(queryString);
+		
 		try {
+			Environment.get().info("URL:: "+method.getURI().getURI().toString());
 			method.setRequestEntity(new StringRequestEntity(inputSoapRequest, "text/xml", "UTF-8"));
 			HttpClient client = new HttpClient();
 			statusCode = client.executeMethod(method);
 			response=method.getResponseBodyAsString();
 		}
-		catch (HttpException e) { throw new CaasRuntimeException(e);}
-		catch (IOException e) { throw new CaasRuntimeException(e);}
+		catch (Exception e) { throw new CaasRuntimeException(e);}
 		if (statusCode != HttpStatus.SC_OK) {
 			throw new CaasRuntimeException("Method failed: " + method.getStatusLine()+"\n"+response);
 		}
