@@ -20,6 +20,8 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 package org.kisst.cordys.caas.main;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
@@ -99,8 +101,11 @@ public class PmCommand extends CompositeCommand {
 			Template templ=new Template(FileUtil.loadString(args[0]));
 			
 			String orgz = System.getProperty("create.org");
-			//templ.apply(getOrg(null), new HashMap<String, String>());
-			templ.apply(getOrg(orgz), new HashMap<String, String>());
+			//templ.apply(getOrg(null), new HashMap<String, String>());		
+			Properties props = new Properties();
+			FileUtil.load(props, "caas.properties");
+			Map<String, String> map = new HashMap<String, String>((Map) props);
+			templ.apply(getOrg(orgz), map);
 		}
 	};
 	
