@@ -3,6 +3,7 @@ package org.kisst.cordys.caas.pm;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Properties;
 
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.Configuration;
@@ -16,6 +17,7 @@ import org.kisst.cordys.caas.SoapNode;
 import org.kisst.cordys.caas.SoapProcessor;
 import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.XMLStoreObject;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.FileUtil;
@@ -58,7 +60,8 @@ public class Template {
 				}
 			}
 		}
-		for (User u : org.users) {
+		//Commenting users part to test the 'template' command
+		/*for (User u : org.users) {
 			if ("SYSTEM".equals(u.getName().toUpperCase()))
 				continue; // SYSTEM user should not be part of the template
 			XmlNode node=result.add("user");
@@ -78,7 +81,7 @@ public class Template {
 				if (isvpName!=null)
 					child.setAttribute("isvp", isvpName);
 			}
-		}
+		}*/
 		for (Role rr : org.roles) {
 			XmlNode node=result.add("role");
 			node.setAttribute("name", rr.getName());
@@ -138,7 +141,7 @@ public class Template {
 	private void processXMLStoreObject(Organization org, XmlNode node) {
 			boolean updateFlag = Boolean.valueOf(node.getAttribute("update"));
 			String key = node.getAttribute("key");
-			String version = node.getAttribute("version");
+			String version = node.getAttribute("version");		
 			XmlNode newXml = node.getChildren().get(0);
 			XMLStoreObject obj = new XMLStoreObject(key,version,org);
 			obj.updateXML(newXml.clone(), updateFlag);
@@ -237,7 +240,7 @@ public class Template {
 						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
 						
 						//Replace the CORDYS_INSTALL_DIR with its corresponding value
-						resolveVariables(config, cordysInstallDir);
+						resolveCordysInstallDir(config, cordysInstallDir);
 						
 						sn.updateSoapProcessor(spname, machineName, automatic, config.clone(),sp);
 						continue;
@@ -250,7 +253,7 @@ public class Template {
 						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
 
 						//Replace the CORDYS_INSTALL_DIR with its corresponding value
-						resolveVariables(config, cordysInstallDir);
+						resolveCordysInstallDir(config, cordysInstallDir);
 						
 						sn.createSoapProcessor(spname, machineName, automatic, config.clone());
 						for (XmlNode subchild:child.getChildren()) {
@@ -557,8 +560,8 @@ public class Template {
 	 * @param configNode The <configurations> node of the <sc>
 	 * @param cordysInstallDir Path of the Cordys installation directory
 	 */
-	private void resolveVariables(XmlNode configNode, String cordysInstallDir){
-		
+	private void resolveCordysInstallDir(XmlNode configNode, String cordysInstallDir){
+				
 		XmlNode jreConfigNode = configNode.getChild("jreconfig");
 		for(XmlNode param:jreConfigNode.getChildren()){
 			String attrValue = param.getAttribute("value");
