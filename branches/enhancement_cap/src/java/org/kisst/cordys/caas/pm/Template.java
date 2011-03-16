@@ -3,8 +3,6 @@ package org.kisst.cordys.caas.pm;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Properties;
-
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.Configuration;
 import org.kisst.cordys.caas.ConnectionPoint;
@@ -17,7 +15,6 @@ import org.kisst.cordys.caas.SoapNode;
 import org.kisst.cordys.caas.SoapProcessor;
 import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.XMLStoreObject;
-import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.FileUtil;
@@ -53,16 +50,7 @@ public class Template {
 				XmlNode child=node.add("sp");
 				child.setAttribute("name", sp.getName());
 				child.setAttribute("automatic", ""+sp.automatic.getBool());
-				
-				CordysObjectList<Machine> machines = org.getSystem().machines;
-				XmlNode config = sp.config.getXml();
-				for(int i=0;i<machines.getSize();i++)
-				{
-					String cordysInstallDir = machines.get(i).getCordysInstallDir();
-					resolveCordysInstallDir(config, cordysInstallDir, false);
-				}
-				
-				child.add("bussoapprocessorconfiguration").add(config.clone());
+				child.add("bussoapprocessorconfiguration").add(sp.config.getXml().clone());
 				for (ConnectionPoint cp: sp.connectionPoints) {
 					XmlNode cpNode=node.add("cp");
 					cpNode.setAttribute("name", cp.getName());
@@ -249,7 +237,7 @@ public class Template {
 						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
 						
 						//Replace the CORDYS_INSTALL_DIR with its corresponding value
-						resolveCordysInstallDir(config, cordysInstallDir, true);
+						resolveCordysInstallDir(config, cordysInstallDir);
 						
 						sn.updateSoapProcessor(spname, machineName, automatic, config.clone(),sp);
 						continue;
@@ -262,7 +250,7 @@ public class Template {
 						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
 
 						//Replace the CORDYS_INSTALL_DIR with its corresponding value
-						resolveCordysInstallDir(config, cordysInstallDir, true);
+						resolveCordysInstallDir(config, cordysInstallDir);
 						
 						sn.createSoapProcessor(spname, machineName, automatic, config.clone());
 						for (XmlNode subchild:child.getChildren()) {
@@ -569,7 +557,7 @@ public class Template {
 	 * @param configNode The <configurations> node of the <sc>
 	 * @param cordysInstallDir Path of the Cordys installation directory
 	 */
-	private void resolveCordysInstallDir(XmlNode configNode, String cordysInstallDir, boolean flag){
+	private void resolveCordysInstallDir(XmlNode configNode, String cordysInstallDir){
 				
 		XmlNode jreConfigNode = configNode.getChild("jreconfig");
 		for(XmlNode param:jreConfigNode.getChildren()){
@@ -577,10 +565,7 @@ public class Template {
 			if(attrValue.contains("-cp")){
 				attrValue = attrValue.replace('\\', '/');
 				cordysInstallDir = cordysInstallDir.replace("\\", "/");
-				if(flag)
-					attrValue = attrValue.replaceAll("CORDYS_INSTALL_DIR", cordysInstallDir);
-				else
-					attrValue = attrValue.replaceAll(cordysInstallDir, "${CORDYS_INSTALL_DIR}");
+				attrValue = attrValue.replaceAll("CORDYS_INSTALL_DIR", cordysInstallDir);
 				//Overwrite the existing value with the replaced one
 				param.setAttribute("value", attrValue);
 			}
