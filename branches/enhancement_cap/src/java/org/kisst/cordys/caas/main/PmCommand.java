@@ -19,6 +19,7 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas.main;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -26,6 +27,7 @@ import java.util.Properties;
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.pm.CaasPackage;
 import org.kisst.cordys.caas.pm.Template;
 import org.kisst.cordys.caas.util.FileUtil;
@@ -37,7 +39,7 @@ public class PmCommand extends CompositeCommand {
 		protected final Cli cli=new Cli();
 		private final Cli.StringOption system= cli.stringOption("s", "system", "the system to use", null);
 		private final Cli.StringOption org= cli.stringOption("o", "organization", "the organization to use", null);
-
+				
 		protected CordysSystem getSystem() { return Caas.getSystem(Caas.defaultSystem); }
 		protected Organization getOrg(String defaultOrg) {
 			if (org.isSet())				
@@ -49,6 +51,7 @@ public class PmCommand extends CompositeCommand {
 			args=cli.parse(args);
 			if (system.isSet())
 				Caas.defaultSystem=system.get();
+				
 			return args;
 		}
 		@Override public String getHelp() {
@@ -98,13 +101,9 @@ public class PmCommand extends CompositeCommand {
 	private Command create=new HostCommand("[options] <template file>", "create elements in an organization based on the given template") {
 		@Override public void run(String[] args) { 
 			args=checkArgs(args);
-			Template templ=new Template(FileUtil.loadString(args[0]));
-			
+			Template templ=new Template(FileUtil.loadString(args[0]));			
 			String orgz = System.getProperty("create.org");
-			//templ.apply(getOrg(null), new HashMap<String, String>());		
-			Properties props = new Properties();
-			FileUtil.load(props, "caas.properties");
-			Map<String, String> map = new HashMap<String, String>((Map) props);
+			Map<String,String> map = loadSystemProperties(this.getSystem().getName());
 			templ.apply(getOrg(orgz), map);
 		}
 	};
@@ -117,5 +116,38 @@ public class PmCommand extends CompositeCommand {
 		commands.put("purge", purge);
 		commands.put("template", template);
 		commands.put("create", create);
+	}
+	
+	private Map<String, String> loadSystemProperties(String systemName){
+
+		String fileName=null; 
+		Map<String, String> map=null;
+		String fileName1 = Environment.get().getProp("system."+systemName+".properties.file", null);
+		String fileName2 = "caas.properties";
+		String fileName3 = System.getProperty("user.home")+"/config/caas/caas.properties";
+		Properties props = new Properties();
+		fileName1 = fileName1.replace("\\", "/");
+		fileName3 = fileName3.replace("\\", "/");
+		
+		String[] fileNames = new String[]{fileName1, fileName2, fileName3};
+		for(String  aFileName:fileNames){
+			if(isFileExists(aFileName)){
+				fileName = aFileName;
+				break;
+			}
+		}
+		if(fileName!=null){
+			FileUtil.load(props, fileName);
+			map = new HashMap<String, String>((Map) props);	
+		}else
+			Environment.get().warn("No file is configured for property 'system."+systemName+".properties.file' in caas.conf. Make sure there are no variables to be resolved in template file.");
+		
+		return map;
+	}
+	private boolean isFileExists(String fileName){
+		if(fileName==null)
+			return false;
+		File file = new File(fileName);
+		return file.exists();
 	}
 }
