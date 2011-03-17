@@ -136,12 +136,15 @@ public class Template {
 	 * @param node
 	 */
 	private void processXMLStoreObject(Organization org, XmlNode node) {
-			boolean updateFlag = Boolean.valueOf(node.getAttribute("update"));
+			String operationFlag = node.getAttribute("operation");
 			String key = node.getAttribute("key");
 			String version = node.getAttribute("version");		
 			XmlNode newXml = node.getChildren().get(0);
 			XMLStoreObject obj = new XMLStoreObject(key,version,org);
-			obj.updateXML(newXml.clone(), updateFlag);
+			if(operationFlag.equals("overwrite"))
+				obj.overwriteXML(newXml.clone());
+			else if(operationFlag.equals("append"))
+				obj.appendXML(newXml.clone());
 	}
 	
 	/**
@@ -552,7 +555,7 @@ public class Template {
 					<jreconfig>
                         <param value="-cp ${CORDYS_INSTALL_DIR}\Immediate\immediate.jar" />
                     </jreconfig>
-	 * with its corresponding value. It also converts the file paths to Unix format by replacing \ with /
+	 * with its corresponding value.
 	 * 
 	 * @param configNode The <configurations> node of the <sc>
 	 * @param cordysInstallDir Path of the Cordys installation directory
@@ -563,8 +566,8 @@ public class Template {
 		for(XmlNode param:jreConfigNode.getChildren()){
 			String attrValue = param.getAttribute("value");
 			if(attrValue.contains("-cp")){
-				attrValue = attrValue.replace('\\', '/');
-				cordysInstallDir = cordysInstallDir.replace("\\", "/");
+				attrValue = StringUtil.getUnixStyleFilePath(attrValue);
+				cordysInstallDir = StringUtil.getUnixStyleFilePath(cordysInstallDir);
 				attrValue = attrValue.replaceAll("CORDYS_INSTALL_DIR", cordysInstallDir);
 				//Overwrite the existing value with the replaced one
 				param.setAttribute("value", attrValue);

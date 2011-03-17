@@ -85,4 +85,17 @@ public class FileUtil {
 		}
 	}
 
+	/**
+	 * Checks for the existence of the given file
+	 * 
+	 * @param fileName 
+	 * @return boolean returns true if the file exists, false if it doesn't or if the fileName is null
+	 */
+	public static boolean isFileExists(String fileName){
+		if(fileName==null)
+			return false;
+		File file = new File(fileName);
+		return file.exists();
+	}
+
 }
