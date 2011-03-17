@@ -20,6 +20,8 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 package org.kisst.cordys.caas.main;
 
 import org.kisst.cordys.caas.Caas;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
+import org.kisst.cordys.caas.util.FileUtil;
 
 public class CaasMainCommand extends CompositeCommand {
 	private class GroovyCommand extends CompositeCommand {
@@ -94,8 +96,29 @@ public class CaasMainCommand extends CompositeCommand {
 	}
 
 	private void initEnvironment() {
-		String homedir=System.getProperty("user.home");
-		String filename=homedir+"/config/caas/caas.conf";
-		Environment.get().loadProperties(filename);
+		
+		String fileName=null;
+		//caas.conf file present in the current directory - Highest Precedence
+		String confFileInPWD="caas.conf";
+		//caas.conf file present in the user's home directory - Lowest Precedence
+		String confFileInHomeDir=System.getProperty("user.home")+"/config/caas/caas.conf";
+		//Convert the file paths to Unix file path format
+		confFileInHomeDir = confFileInHomeDir.replace("\\", "/");
+		
+		String[] fileNames = new String[]{confFileInPWD, confFileInHomeDir};
+		//Determine caas.file that need to be considered for loading
+		//To do so, Loop over the files as per their precedence and check for their existence
+		for(String  aFileName:fileNames){
+			if(FileUtil.isFileExists(aFileName)){
+				fileName = aFileName;
+				break;
+			}
+		}
+		//Load the caas.conf file
+		if(fileName!=null)		
+			Environment.get().loadProperties(fileName);
+		else
+			//Throw an exception if the caas.conf file is not present either in current directory or in user's home directory
+			throw new CaasRuntimeException("caas.conf file not present in neither current directory nor "+confFileInHomeDir);				
 	}
 }

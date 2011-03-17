@@ -8,7 +8,7 @@ import org.kisst.cordys.caas.util.XmlNode;
 
 /**
  *  Class to represent an item in Cordys XMLStore
- *  It provides operations to read, create and update the xml
+ *  It provides operations to read, create and update the XML
  *  
  *  @author galoori
  */
@@ -19,7 +19,7 @@ public class XMLStoreObject extends CordysObject{
 	private String key;
 	//Version of the XMLStoreObject. Either "organization" or "user"
 	private String version;
-	//Xml content of the XMLStoreObject
+	//XML content of the XMLStoreObject
 	private XmlNode xml;
 	//Represents the organization to which this XMLStore object belongs
 	private Organization org;
@@ -68,7 +68,7 @@ public class XMLStoreObject extends CordysObject{
 	}
 	
 	/**
-	 *  Sets the key, version and xml of the XMLStoreObject
+	 *  Sets the key, version and XML of the XMLStoreObject
 	 *  
 	 * @param key  Complete path to the XMLStoreObject
 	 * @param version Version of the XMLStoreObject
@@ -82,12 +82,12 @@ public class XMLStoreObject extends CordysObject{
 	}
 	
 	/**
-	 *  Fetches the Xml content of the XMLStoreObject from Cordys
+	 *  Fetches the XML content of the XMLStoreObject from Cordys
 	 *  XMLStore using GetXMLObject service
 	 *  
 	 * @param key  Complete path to the XMLStoreObject
 	 * @param version Version of the XMLStoreObject
-	 * @return Xml content
+	 * @return XML content
 	 */
 	public XmlNode readXMLStoreObject(String key, String version) 
 	{	
@@ -111,55 +111,59 @@ public class XMLStoreObject extends CordysObject{
 	}
 	
 	/**
-	 * Gets the Xml content of the XMLStoreObject
+	 * Gets the XML content of the XMLStoreObject
 	 * 
-	 * @return Xml content of the XMLStoreObject 
+	 * @return XML content of the XMLStoreObject 
 	 */
 	public XmlNode getXML()
 	{	
 		return xml;
 	}
 	
+	public void appendXML(XmlNode node)
+	{
+		XmlNode request=new XmlNode("AppendXMLObject", xmlns_xmlstore);
+		XmlNode tuple=request.add("tuple");
+		tuple.setAttribute("key", key);
+		tuple.setAttribute("version", version);		
+		if (node!=null)
+			tuple.add("new").add(node);
+		call(request);
+		//Refresh the XML content of the XMLStoreObject after append operation	
+		this.xml = readXMLStoreObject(key, version);
+	}
+	
 	/**
-	 * Updates the Xml content of the XMLStoreObject using UpdateXMLObject service
-	 * If 'update' flag is set to true, then the Xml content is overwritten unconditionally
+	 * Updates the XML content of the XMLStoreObject using UpdateXMLObject service
+	 * If 'update' flag is set to true, then the XML content is overwritten unconditionally
 	 * If 'update' flag is set to false and the XMLStore object is already existing in
 	 * Cordys XMLStore then exception is thrown
 	 * 
-	 * @param newXml - Xml content to be updated
+	 * @param newXml - XML content to be updated
 	 * @param update - true/false
 	 */
-	public void updateXML(XmlNode newXml, boolean update)
+	public void overwriteXML(XmlNode newXml)
 	{
 		XmlNode request=new XmlNode("UpdateXMLObject", xmlns_xmlstore);
 		XmlNode tuple=request.add("tuple");
 		tuple.setAttribute("key", key);
 		tuple.setAttribute("version", version);
-		tuple.setAttribute("unconditional", String.valueOf(update));
-		
+		//Set 'unconditional' flag to true to overwrite the existing XML 
+		tuple.setAttribute("unconditional", "true");
 		if (newXml!=null)
 			tuple.add("new").add(newXml);
 		call(request);
+		//Refresh the XML content of the XMLStoreObject after the update operation
 		this.xml = newXml;
 	}
 	
-	/**
-	 * Creates the XMLStoreObject with given Xml content
-	 * It throws an exception if the XMLStoreObject is already existing
-	 * 
-	 * @param newXml Xml content
-	 */
-	public void updateXML(XmlNode newXml)
-	{
-		updateXML(newXml,false);
-	}
 
 	/**
 	 * Executes the XMLStore web services. It specifies the organization name under which context
 	 * the web services will be executed
 	 * 
-	 * @param method Web service request xml
-	 * @return
+	 * @param method Web service request XML
+	 * @return XmlNode representing the web service response
 	 */
 	public XmlNode call(XmlNode method) { 
 		return getSystem().call(method,org.getDn(),null); 
