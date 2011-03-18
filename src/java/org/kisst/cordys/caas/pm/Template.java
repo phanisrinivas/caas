@@ -27,8 +27,8 @@ public class Template {
 	public Template(String template) {this.template=template; }
 	
 	public Template(Organization org, String targetIsvpName) {
+		
 		XmlNode result=new XmlNode("org");
-
 		//result.setAttribute("isvp", isvpName);
 		result.setAttribute("org", org.getName());
 		for (SoapNode sn : org.soapNodes) {
@@ -52,7 +52,7 @@ public class Template {
 				child.setAttribute("automatic", ""+sp.automatic.getBool());
 				child.add("bussoapprocessorconfiguration").add(sp.config.getXml().clone());
 				for (ConnectionPoint cp: sp.connectionPoints) {
-					XmlNode cpNode=node.add("cp");
+					XmlNode cpNode=child.add("cp");
 					cpNode.setAttribute("name", cp.getName());
 				}
 			}
@@ -156,13 +156,11 @@ public class Template {
 	 * @param node Reference to <soapnode> element
 	 */
 	private void processSoapNode(Organization org, XmlNode node) {
-		
+				
 		//Read the SG name from the configuration
 		String name=node.getAttribute("name");
-		
 		//Check if the SG is already existing by comparing its name
 		SoapNode sn=org.soapNodes.getByName(name);
-		
 		//Create a new SG if it's not existing
 		if (sn==null) {
 			env.info("creating soapnode "+name);
@@ -179,7 +177,6 @@ public class Template {
 				env.error("Skipping updating service group '"+name+"'.Set 'update' attribute to true to overwrite");
 				return;
 			}
-			
 			//Update the method sets of the SG
 			env.info("updating methodsets of soapnode "+name);
 			MethodSet[] newMethodSets = getMs(org,node);
@@ -209,14 +206,27 @@ public class Template {
 				boolean isClustered = machines.getSize()>1;
 				//Iterate over the machines objects
 				for(int i=0;i<machines.getSize();i++)
-				{
+				{		
 					//Read the SC name
 					String spname=child.getAttribute("name");
 					//Read the machine name
 					String machineName = machines.get(i).getName();
 					//Read the Cordys installation directory path
-					String cordysInstallDir = machines.get(i).getCordysInstallDir(); 
-					
+					String cordysInstallDir = machines.get(i).getCordysInstallDir(); 		
+					//If the SC is of type BPM then set its notificationService to System organization's Notification service container
+					XmlNode configsNode = child.getChild("bussoapprocessorconfiguration/configurations");
+					XmlNode configNode = configsNode.getChild("configuration");
+					if(configNode.getAttribute("implementation").equals("com.cordys.bpm.service.BPMApplicationConnector")){
+						for(XmlNode aNode: configNode.getChildren()){
+							String attrVal = aNode.getAttribute("name");
+							if(attrVal!=null &&	attrVal.equalsIgnoreCase("Business Process Engine")){
+								String dn = "cn=Notification,cn=soap nodes,o=system,"+org.getSystem().getDn();
+								aNode.getChild("notificationService").setText(dn);
+							}
+						}
+					}
+					//Replace the CORDYS_INSTALL_DIR with its corresponding value
+					resolveCordysInstallDir(configsNode, cordysInstallDir);
 					/*
 					 * NOTE: 
 					 * It is assumed that the following naming convention is followed for SC
@@ -225,37 +235,25 @@ public class Template {
 					 * So while extracting the template, using 'template' command, DO NOT include the machine name
 					 * in the .caaspm file
 					 */
-					
 					//Construct the SC name as per the above naming convention, in case of clustered installation
 					if(isClustered)
-						spname = spname.concat("_").concat(machineName);
-										
+						spname = spname.concat("_").concat(machineName);				
 					//Check if the SC is already existing by comparing its name  
 					SoapProcessor sp = sn.soapProcessors.getByName(spname);
 					//Update the existing SC with new configuration
 					if (sp!=null) 
 					{
 						env.info("updating existing soap processor '"+spname+"' for machine '"+machineName+"'");
-						boolean automatic="true".equals(child.getAttribute("automatic"));
-						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
-						
-						//Replace the CORDYS_INSTALL_DIR with its corresponding value
-						resolveCordysInstallDir(config, cordysInstallDir);
-						
-						sn.updateSoapProcessor(spname, machineName, automatic, config.clone(),sp);
+						boolean automatic="true".equals(child.getAttribute("automatic"));						
+						sn.updateSoapProcessor(spname, machineName, automatic, configsNode.clone(),sp);
 						continue;
 					}
 					//Create a new SC
 					else				 
 					{
 						env.info("creating soap processor "+spname+"' for machine '"+machineName+"'");
-						boolean automatic="true".equals(child.getAttribute("automatic"));
-						XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
-
-						//Replace the CORDYS_INSTALL_DIR with its corresponding value
-						resolveCordysInstallDir(config, cordysInstallDir);
-						
-						sn.createSoapProcessor(spname, machineName, automatic, config.clone());
+						boolean automatic="true".equals(child.getAttribute("automatic"));						
+						sn.createSoapProcessor(spname, machineName, automatic, configsNode.clone());
 						for (XmlNode subchild:child.getChildren()) {
 							if (subchild.getName().equals("cp")) {
 								SoapProcessor newSP=sn.sp.getByName(spname);
@@ -560,9 +558,11 @@ public class Template {
 	 * @param configNode The <configurations> node of the <sc>
 	 * @param cordysInstallDir Path of the Cordys installation directory
 	 */
-	private void resolveCordysInstallDir(XmlNode configNode, String cordysInstallDir){
+	private boolean resolveCordysInstallDir(XmlNode configNode, String cordysInstallDir){
 				
 		XmlNode jreConfigNode = configNode.getChild("jreconfig");
+		//Check if the node is null or not to avoid NullPointerException
+		if(jreConfigNode==null) return false;
 		for(XmlNode param:jreConfigNode.getChildren()){
 			String attrValue = param.getAttribute("value");
 			if(attrValue.contains("-cp")){
@@ -573,6 +573,7 @@ public class Template {
 				param.setAttribute("value", attrValue);
 			}
 		}
+		return true;
 	}
 
 }
