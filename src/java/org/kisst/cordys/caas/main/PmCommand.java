@@ -84,7 +84,6 @@ public class PmCommand extends CompositeCommand {
 		private final Cli.StringOption isvpName= cli.stringOption("i", "isvpName", "the isvpName to use for custom content", null);
 		@Override public void run(String[] args) { 
 			args=checkArgs(args);
-			
 			String orgz = System.getProperty("template.org");
 			Template templ = new Template(getOrg(orgz), isvpName.get());
 			templ.save(args[0]);

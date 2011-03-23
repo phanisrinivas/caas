@@ -251,6 +251,18 @@ public abstract class LdapObject extends CordysObject {
 		newEntry.add("cn").add("string").setText(name);
 		return newEntry;
 	}
+	//Added to create Authenticated User XML
+	protected XmlNode newAuthenticatedUserEntryXml(String prefix, String name, String ... types) {
+		XmlNode newEntry = new XmlNode("entry",xmlns_ldap);
+		newEntry.setAttribute("dn", "cn="+name+","+prefix+getSystem().getDn());
+		XmlNode child = newEntry.add("objectclass");
+		child.add("string").setText("top");
+		for (String t: types)
+			child.add("string").setText(t);
+		newEntry.add("cn").add("string").setText(name);
+		return newEntry;
+	}
+	
 	protected void createInLdap(XmlNode newEntry) { updateLdap(null, newEntry); }
 	protected void updateLdap(XmlNode newEntry) { updateLdap(entry.clone(), newEntry); }
 	protected void updateLdap(XmlNode oldEntry, XmlNode newEntry) {

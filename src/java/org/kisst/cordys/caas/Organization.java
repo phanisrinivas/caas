@@ -19,6 +19,7 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas;
 
+import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.pm.Template;
 import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.CordysObjectList;
@@ -87,6 +88,13 @@ public class Organization extends LdapObjectBase {
 	}
 
 	public void createUser(String name, AuthenticatedUser au) {
+		//Check if an authenticated user is already existing existing with the given user name. If not create the same
+		if(au==null){
+			Environment.get().info("Cound not find authenticated user for '"+name+"'. Hence creating it");
+			getSystem().createAuthenticatedUser(name);
+			au=getSystem().authenticatedUsers.getByName(name);
+		}
+		//Create organizational user with the given user name
 		XmlNode newEntry=newEntryXml("cn=organizational users,", name,"busorganizationaluser","busorganizationalobject");
 		newEntry.add("authenticationuser").add("string").setText(au.getDn());
 		newEntry.add("menu");
@@ -95,7 +103,7 @@ public class Organization extends LdapObjectBase {
 		createInLdap(newEntry);
 		users.clear();
 	}
-
+	
 	public void createRole(String name) {
 		XmlNode newEntry=newEntryXml("cn=organizational roles,", name,"busorganizationalrole","busorganizationalobject");
 		newEntry.add("description").add("string").setText(name);
