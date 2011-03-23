@@ -109,4 +109,11 @@ public class StringUtil {
 		    }
 		    return path;
 	  }
+	public static boolean isEmpty(String str) 
+	{
+		if ((str == null) || str.matches("^\\s*$"))
+			return true;
+		else
+			return false;
+	}
 }

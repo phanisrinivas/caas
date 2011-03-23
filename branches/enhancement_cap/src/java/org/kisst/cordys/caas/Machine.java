@@ -19,10 +19,11 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.kisst.cordys.caas.support.CordysObject;
+import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 public class Machine extends CordysObject {
@@ -59,20 +60,20 @@ public class Machine extends CordysObject {
 		}
 	}
 
-	public void loadIsvp(String filename) {
-		filename=filename.trim();
-		if (filename.endsWith(".isvp"))
-			filename=filename.substring(0,filename.length()-5);
+	public void loadIsvp(String isvpName) {
+		isvpName=isvpName.trim();
+		if (isvpName.endsWith(".isvp"))
+			isvpName=isvpName.substring(0,isvpName.length()-5);
 		XmlNode method=new XmlNode("GetISVPackageDefinition", xmlns_isv);
 		XmlNode file=method.add("file");
-		file.setText(filename);
+		file.setText(isvpName);
 		file.setAttribute("type", "isvpackage");
 		file.setAttribute("detail", "false");
 		file.setAttribute("wizardsteps", "true");
 		XmlNode details=monitor.call(method);
 		
 		method=new XmlNode("LoadISVPackage", xmlns_isv);
-		method.add("url").setText("http://"+hostname+"/cordys/wcp/isvcontent/packages/"+filename+".isvp");
+		method.add("url").setText("http://"+hostname+"/cordys/wcp/isvcontent/packages/"+isvpName+".isvp");
 		method.add(details.getChild("ISVPackage").detach());
 		monitor.call(method);
 	}
@@ -112,5 +113,17 @@ public class Machine extends CordysObject {
 		XmlNode response = monitor.call(method);
 		XmlNode propertyNode = response.getChild("tuple/old/property");
 		return propertyNode.getAttribute("value", null);
+	}
+	
+	//Uploads ISVP to the <CORDYS_INSTALL_DIR>/isvcontent/packages location
+	public void uploadIsvp(String isvpFilePath)
+	{	
+		File isvpFile = new File(isvpFilePath);
+		String isvpName = isvpFile.getName();
+		String isvpEncodedContent = FileUtil.encodeFile(isvpFilePath);
+		XmlNode request = new XmlNode("UploadISVPackage",xmlns_isv);
+		request.add("name").setText(isvpName);
+		request.add("content").setText(isvpEncodedContent);
+		monitor.call(request);
 	}
 }

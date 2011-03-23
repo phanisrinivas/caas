@@ -20,6 +20,7 @@ import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
+import org.kisst.cordys.caas.support.CordysObject;
 
 public class Template {
 	private static final Environment env=Environment.get();
@@ -57,8 +58,7 @@ public class Template {
 				}
 			}
 		}
-		//Commenting users part to test the 'template' command
-		/*for (User u : org.users) {
+		for (User u : org.users) {
 			if ("SYSTEM".equals(u.getName().toUpperCase()))
 				continue; // SYSTEM user should not be part of the template
 			XmlNode node=result.add("user");
@@ -78,7 +78,7 @@ public class Template {
 				if (isvpName!=null)
 					child.setAttribute("isvp", isvpName);
 			}
-		}*/
+		}
 		for (Role rr : org.roles) {
 			XmlNode node=result.add("role");
 			node.setAttribute("name", rr.getName());
@@ -155,42 +155,44 @@ public class Template {
 	 * @param org Organization object
 	 * @param node Reference to <soapnode> element
 	 */
-	private void processSoapNode(Organization org, XmlNode node) {
-				
+	private void processSoapNode(Organization org, XmlNode node) 
+	{			
 		//Read the SG name from the configuration
 		String name=node.getAttribute("name");
 		//Check if the SG is already existing by comparing its name
 		SoapNode sn=org.soapNodes.getByName(name);
 		//Create a new SG if it's not existing
-		if (sn==null) {
-			env.info("creating soapnode "+name);
-			XmlNode config=node.getChild("bussoapnodeconfiguration").getChildren().get(0).clone();
-			org.createSoapNode(name, config, getMs(org,node));
-			sn=org.soapNodes.getByName(name);
+		if (sn==null) 
+		{
+				env.info("creating soapnode "+name);
+				XmlNode config=node.getChild("bussoapnodeconfiguration").getChildren().get(0).clone();
+				org.createSoapNode(name, config, getMs(org,node));
+				sn=org.soapNodes.getByName(name);
 		}
 		//Update the existing SG with new configuration
-		else {
-			//Check the 'update' flag in the configuration 
-			String updateFlag = node.getAttribute("update");
-			if ((updateFlag==null) || (updateFlag.equalsIgnoreCase("false")))
-			{
-				env.error("Skipping updating service group '"+name+"'.Set 'update' attribute to true to overwrite");
-				return;
-			}
-			//Update the method sets of the SG
-			env.info("updating methodsets of soapnode "+name);
-			MethodSet[] newMethodSets = getMs(org,node);
-			if ((newMethodSets!=null)&&(newMethodSets.length > 0))
-			{
-				sn.ms.update(newMethodSets);
-				ArrayList<String> namepsaces = new ArrayList<String>();
-				for (MethodSet methodSet : newMethodSets) {				
-					for (String ns : methodSet.namespaces.get()) {
-						namepsaces.add(ns);
-					}
-				}			
-				sn.namespaces.update(namepsaces);	
-			}
+		else 
+		{
+				//Check the 'update' flag in the configuration 
+				String updateFlag = node.getAttribute("update");
+				if ((updateFlag==null) || (updateFlag.equalsIgnoreCase("false")))
+				{
+					env.error("Skipping updating service group '"+name+"'.Set 'update' attribute to true to overwrite");
+					return;
+				}
+				//Update the method sets of the SG
+				env.info("updating methodsets of soapnode "+name);
+				MethodSet[] newMethodSets = getMs(org,node);
+				if ((newMethodSets!=null)&&(newMethodSets.length > 0))
+				{
+					sn.ms.update(newMethodSets);
+					ArrayList<String> namepsaces = new ArrayList<String>();
+					for (MethodSet methodSet : newMethodSets) {				
+						for (String ns : methodSet.namespaces.get()) {
+							namepsaces.add(ns);
+						}
+					}			
+					sn.namespaces.update(namepsaces);	
+				}
 		}
 		//Proceed with the SC creation or updation
 		for (XmlNode child:node.getChildren()) 
@@ -216,12 +218,17 @@ public class Template {
 					//If the SC is of type BPM then set its notificationService to System organization's Notification service container
 					XmlNode configsNode = child.getChild("bussoapprocessorconfiguration/configurations");
 					XmlNode configNode = configsNode.getChild("configuration");
-					if(configNode.getAttribute("implementation").equals("com.cordys.bpm.service.BPMApplicationConnector")){
+					if(configNode!=null && configNode.getAttribute("implementation").equals("com.cordys.bpm.service.BPMApplicationConnector")){
 						for(XmlNode aNode: configNode.getChildren()){
 							String attrVal = aNode.getAttribute("name");
-							if(attrVal!=null &&	attrVal.equalsIgnoreCase("Business Process Engine")){
-								String dn = "cn=Notification,cn=soap nodes,o=system,"+org.getSystem().getDn();
-								aNode.getChild("notificationService").setText(dn);
+							if(attrVal!=null &&	attrVal.equalsIgnoreCase("Business Process Engine")){								
+								XmlNode request = new XmlNode("GetSoapNodes",CordysObject.xmlns_ldap);
+								request.add("dn").setText("o=system,"+org.getSystem().getDn());
+								request.add("namespace").setText(CordysObject.xmlns_notification);
+								request.add("sort").setText("ascending");
+								XmlNode response = org.getSystem().call(request);
+								if(response.getChild("tuple/old/entry")!=null)
+									aNode.getChild("notificationService").setText(response.getChild("tuple/old/entry").getAttribute("dn"));	
 							}
 						}
 					}
@@ -295,29 +302,28 @@ public class Template {
 		}
 		return result.toArray(new MethodSet[result.size()]);
 	}
-	private void processUser(Organization org, XmlNode node) {
+	private void processUser(Organization org, XmlNode node) 
+	{
 		String name=node.getAttribute("name");
 		if ("SYSTEM".equals(name.toUpperCase())) {
-			// Whenever I had a SYSTEM user in my template, Cordys would crash pretty hard.
-			// It would not be possible to start the monitor anymore.
-			// I had to use the CMC to remove the organization before the Monitor would start again.
+			/*Whenever I had a SYSTEM user in my template, Cordys would crash pretty hard.
+			It would not be possible to start the monitor anymore.
+			I had to use the CMC to remove the organization before the Monitor would start again.*/
 			env.error("Ignoring user "+name+" because the SYSTEM user should not be modified from a template");
 			return;
 		}
+		//Check if the user is already existing. Create the user if not existing
 		if (org.users.getByName(name)==null) {
+			//Find if an authenticated user is already existing for the given user 
 			AuthenticatedUser au=org.getSystem().authenticatedUsers.getByName(node.getAttribute("au"));
-			if (au==null) {
-				env.error("could not create user "+name+" could not find authenticated user "+node.getAttribute("au"));
-				//continue;
-			}
-			else {
-				env.info("creating user "+name+" with authenticated user "+au.getName());
-				org.createUser(name, au);
-			}
+			env.info("creating user '"+name+"'");
+			//Create an authenticated user if not existing and organizational user
+			org.createUser(name, au);
 		}
 		else
-			env.info("configuring user "+name);
+			env.info("User '"+name+"' is already existing. Configuring user with roles");
 		User u=org.users.getByName(name);
+		//Configure roles for the user
 		for (XmlNode child:node.getChildren()) {
 			if (child.getName().equals("role")) {
 				Role r=null;
