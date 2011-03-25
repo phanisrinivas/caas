@@ -177,8 +177,56 @@ public class CordysSystem extends LdapObject {
 		for (Machine m: machines)
 			m.refreshSoapProcessors();
 	}
-
-	public void loadIsvp(String isvpFilePath) 
+	
+	//TODO: There should be a single method for both load/upgrade of ISVP
+	public void loadIsvp(String isvpFilePath){
+		//By default timeout value is set to 10 minutes
+		loadIsvp(isvpFilePath,10);
+	}
+	public void loadIsvp(String isvpFilePath, long timeOut) 
+	{
+		//Validate the input
+		String isvpName = validateInput(isvpFilePath);
+		//Convert the timeout value to seconds
+		timeOut = timeOut*60*1000;
+		//Iterate over the machines
+		for (Machine m: machines){
+			//Upload the ISVP on to the machine
+			//TODO: Upload the ISVP only when it is not present on the machine
+			System.out.println("Uploading Application '"+isvpName+"' to '"+m.getName()+"' Node....");
+			m.uploadIsvp(isvpFilePath);
+			//Install the ISVP
+			System.out.println("Installing Application '"+isvpName+"' on '"+m.getName()+"' Node....");
+			String status = m.loadIsvp(isvpName, timeOut);
+			System.out.println("STATUS:: "+status);
+		}
+		isvp.clear();
+	}
+	public void upgradeIsvp(String isvpFilePath){
+		//By default timeout value is set to 10 minutes and deleteReferences flag is set to false
+		upgradeIsvp(isvpFilePath,false,10);
+	}
+	//TODO: While upgrading, First upgrade the primary node and after that the secondary nodes. 
+	//The reason for this is that the isvp's for primary and distributed nodes differ.
+	public void upgradeIsvp(String isvpFilePath, boolean deleteReferences, long timeOut)
+	{
+		//Validate the input
+		String isvpName = validateInput(isvpFilePath);
+		//Convert the timeout value to seconds
+		timeOut = timeOut*60*1000;
+		//Iterate over the machines
+		for (Machine m: machines){
+			//TODO: Upload the ISVP only when it is not present on the machine
+			System.out.println("Uploading Application '"+isvpName+"' to '"+m.getName()+"' Node....");
+			m.uploadIsvp(isvpFilePath);
+			//Upgrade the ISVP
+			System.out.println("Upgrading Application '"+isvpName+"' on '"+m.getName()+"' Node....");
+			String status = m.upgradeIsvp(isvpName, deleteReferences, timeOut);
+			System.out.println("STATUS:: "+status);
+		}
+		isvp.clear();
+	}
+	private String validateInput(String isvpFilePath)
 	{
 		//Check if the ISVP file path is empty or null
 		if(StringUtil.isEmpty(isvpFilePath))
@@ -188,18 +236,13 @@ public class CordysSystem extends LdapObject {
 		File isvpFile = new File(isvpFilePath);
 		//Check if the ISVP file exists at the given location
 		if (!isvpFile.exists())
-			throw new RuntimeException(isvpFilePath + " doesn't exist");
+			throw new CaasRuntimeException(isvpFilePath + " doesn't exist");
 		//Extract the ISVP name from the complete path of the ISVP
 		String isvpName = isvpFile.getName();
-		//Iterate over the machines
-		for (Machine m: machines){
-			//Upload the ISVP on to the machine
-			//TODO: Upload the ISVP only when it is not present on the machine
-			m.uploadIsvp(isvpFilePath);
-			//Install the ISVP
-			m.loadIsvp(isvpName);
-		}
-		isvp.clear();
+		//Check the extension of the file
+		if (!isvpName.endsWith(".isvp"))
+			throw new CaasRuntimeException("Invalid ISVP file "+isvpName);
+		return isvpName;
 	}
 	
 	@Override public int compareTo(CordysObject o) { return dn.compareTo(o.getKey()); }
