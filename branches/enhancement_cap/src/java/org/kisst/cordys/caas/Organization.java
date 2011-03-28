@@ -91,7 +91,7 @@ public class Organization extends LdapObjectBase {
 		//Check if an authenticated user is already existing existing with the given user name. If not create the same
 		if(au==null){
 			Environment.get().info("Cound not find authenticated user for '"+name+"'. Hence creating it");
-			getSystem().createAuthenticatedUser(name);
+			getSystem().createAuthenticatedUser(name, this.getDn()); 
 			au=getSystem().authenticatedUsers.getByName(name);
 		}
 		//Create organizational user with the given user name

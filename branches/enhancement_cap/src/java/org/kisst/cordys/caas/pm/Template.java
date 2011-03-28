@@ -324,34 +324,40 @@ public class Template {
 			env.info("User '"+name+"' is already existing. Configuring user with roles");
 		User u=org.users.getByName(name);
 		//Configure roles for the user
+		ArrayList<String> newRoles = new ArrayList<String>();
 		for (XmlNode child:node.getChildren()) {
 			if (child.getName().equals("role")) {
 				Role r=null;
 				String isvpName=child.getAttribute("isvp");
 				String roleName=child.getAttribute("name");
-				env.info("  adding role "+roleName);
+				env.info("Adding role '"+roleName+"' to the user '"+u.getName()+"'");
+				//Assign organizational role if the isvp name is not mentioned
 				String dnRole=null;
 				if (isvpName==null) {
 					r=org.roles.getByName(roleName);
 					dnRole="cn="+roleName+",cn=organizational roles,"+org.getDn();
 				}
+				//Assign ISVP role
 				else {
 					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
 						r=isvp.roles.getByName(roleName);
-					else
-						dnRole="cn="+roleName+",cn="+isvpName+","+org.getSystem().getDn();
+					dnRole="cn="+roleName+",cn="+isvpName+","+org.getSystem().getDn(); 
 				}
 				if (r!=null)
-					u.roles.add(r);
+					newRoles.add(r.getDn());
 				else
-					u.roles.add(dnRole);
+					newRoles.add(dnRole);
 			}
 			else
 				System.out.println("Unknown user subelement "+child.getPretty());
 		}
+		//Assign all the roles to the user at once
+		if(newRoles!=null && newRoles.size()>0)
+			u.roles.add(newRoles.toArray(new String[newRoles.size()]));
 	}
-
+	
+		
 	private void processRole(Organization org, XmlNode node) {
 		String name=node.getAttribute("name");
 		if (org.roles.getByName(name)==null) {
