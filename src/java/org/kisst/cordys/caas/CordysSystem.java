@@ -31,6 +31,7 @@ import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.support.XmlObjectList;
+import org.kisst.cordys.caas.util.PasswordHasher;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -90,15 +91,17 @@ public class CordysSystem extends LdapObject {
 	
 	/*
 	 *  This method creates an AuthenticatedUser entry in LDAP
-	 *  TODO: Password should be added in the entry xml
+	 *  NOTE: The password of the authenticated user is same as the provided name
 	 *  
 	 */
-	public void createAuthenticatedUser(String name){
+	public void createAuthenticatedUser(String name, String defaultOrgContext){
 		XmlNode newEntry=newAuthenticatedUserEntryXml("cn=authenticated users,", name,"busauthenticationuser");
-		newEntry.add("defaultcontext").add("string").setText("o=system,"+getSystem().getDn());
+		newEntry.add("defaultcontext").add("string").setText(defaultOrgContext);
 		newEntry.add("description").add("string").setText(name);
 		newEntry.add("osidentity").add("string").setText(name);
 		newEntry.add("cn").add("string").setText(name);
+		//Set the userPassword same as the osidentity
+		newEntry.add("userPassword").add("string").setText(PasswordHasher.encryptPassword(name));
 		System.out.println("AuthUser Entry:: "+newEntry.getPretty());
 		createInLdap(newEntry);
 		authenticatedUsers.clear();
