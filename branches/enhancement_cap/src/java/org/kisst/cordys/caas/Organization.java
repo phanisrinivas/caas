@@ -86,7 +86,12 @@ public class Organization extends LdapObjectBase {
 		createInLdap(newEntry);
 		methodSets.clear();
 	}
-
+	
+	public void createUser(String name){
+		AuthenticatedUser au=getSystem().authenticatedUsers.getByName(name);
+		createUser(name,au);
+	}
+	
 	public void createUser(String name, AuthenticatedUser au) {
 		//Check if an authenticated user is already existing existing with the given user name. If not create the same
 		if(au==null){

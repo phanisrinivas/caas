@@ -45,6 +45,7 @@ public class CordysSystem extends LdapObject {
 
 	public final String version;
 	public final String build;
+	public final String os; 
 	public boolean useCache=true;
 	//public int displayFormat=0;
 	
@@ -102,7 +103,6 @@ public class CordysSystem extends LdapObject {
 		newEntry.add("cn").add("string").setText(name);
 		//Set the userPassword same as the osidentity
 		newEntry.add("userPassword").add("string").setText(PasswordHasher.encryptPassword(name));
-		System.out.println("AuthUser Entry:: "+newEntry.getPretty());
 		createInLdap(newEntry);
 		authenticatedUsers.clear();
 	}
@@ -118,6 +118,7 @@ public class CordysSystem extends LdapObject {
 		this.dn=tmp.substring(tmp.indexOf(key)+key.length());
 		this.version=response.getChildText("tuple/old/buildinfo/version");
 		this.build=response.getChildText("tuple/old/buildinfo/build");
+		this.os=response.getChildText("tuple/old/osinfo/version");
 		rememberLdap(this);
 	}
 
