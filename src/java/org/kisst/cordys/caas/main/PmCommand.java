@@ -89,12 +89,6 @@ public class PmCommand extends CompositeCommand {
 			templ.save(args[0]);
 		}
 	};
-
-	/**
-	 * Implement the apply method
-	 * 
-	 * TODO : Read the properties file and pass the hashmap
-	 */
 	private Command create=new HostCommand("[options] <template file>", "create elements in an organization based on the given template") {
 		@Override public void run(String[] args) { 
 			args=checkArgs(args);
