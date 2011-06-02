@@ -81,7 +81,7 @@ public class SamlClientCaller extends BaseCaller {
 		method.setQueryString(queryString);
 		
 		try {
-			Environment.get().info("URL:: "+method.getURI().getURI().toString());
+			//Environment.get().debug("URL:: "+method.getURI().getURI().toString());
 			method.setRequestEntity(new StringRequestEntity(inputSoapRequest, "text/xml", "UTF-8"));
 			HttpClient client = new HttpClient();
 			statusCode = client.executeMethod(method);
