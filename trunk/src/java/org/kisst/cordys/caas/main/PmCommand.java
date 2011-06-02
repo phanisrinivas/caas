@@ -19,24 +19,30 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas.main;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.pm.CaasPackage;
 import org.kisst.cordys.caas.pm.Template;
 import org.kisst.cordys.caas.util.FileUtil;
+import org.kisst.cordys.caas.util.StringUtil;
 
 
 public class PmCommand extends CompositeCommand {
+	
 	private abstract class HostCommand extends CommandBase {
 		public HostCommand(String usage, String summary) { super(usage, summary); }
 		protected final Cli cli=new Cli();
 		private final Cli.StringOption system= cli.stringOption("s", "system", "the system to use", null);
 		private final Cli.StringOption org= cli.stringOption("o", "organization", "the organization to use", null);
-
+				
 		protected CordysSystem getSystem() { return Caas.getSystem(Caas.defaultSystem); }
 		protected Organization getOrg(String defaultOrg) {
-			if (org.isSet())
+			if (org.isSet())				
 				return getSystem().org.getByName(org.get());
 			else
 				return getSystem().org.getByName(defaultOrg);
@@ -78,16 +84,18 @@ public class PmCommand extends CompositeCommand {
 		private final Cli.StringOption isvpName= cli.stringOption("i", "isvpName", "the isvpName to use for custom content", null);
 		@Override public void run(String[] args) { 
 			args=checkArgs(args);
-			Template templ = new Template(getOrg(null), isvpName.get());
+			String orgz = System.getProperty("template.org");
+			Template templ = new Template(getOrg(orgz), isvpName.get());
 			templ.save(args[0]);
 		}
 	};
-
 	private Command create=new HostCommand("[options] <template file>", "create elements in an organization based on the given template") {
 		@Override public void run(String[] args) { 
 			args=checkArgs(args);
-			Template templ=new Template(FileUtil.loadString(args[0]));
-			//TODO: templ.apply(getOrg(null), null);
+			Template templ=new Template(FileUtil.loadString(args[0]));			
+			String orgz = System.getProperty("create.org");
+			Map<String,String> map = loadSystemProperties(this.getSystem().getName());
+			templ.apply(getOrg(orgz), map);
 		}
 	};
 	
@@ -100,4 +108,54 @@ public class PmCommand extends CompositeCommand {
 		commands.put("template", template);
 		commands.put("create", create);
 	}
+	
+	/**
+	 * This method looks up for the properties file and loads it after finding it.
+	 * It first looks up at the location mentioned in 'system.<<systemName>>.properties.file' property in caas.conf
+	 * If not then looks up for the '<<systemName>>.properties' file in the current directory
+	 * If not then look up for the '<<systemName>>.properties' in logged in user's home directory
+	 * 
+	 * @param systemName - Cordys system name as mentioned in the caas.conf file
+	 * @return map - A Map object containing all the properties of the given system
+	 */
+	private Map<String, String> loadSystemProperties(String systemName){
+
+		String fileName=null; 
+		Map<String, String> map=null;
+		if(systemName==null)
+			throw new CaasRuntimeException("Unable to load the properties as the Cordys system name is null");
+		
+		//File name of the properties file mentioned in caas.conf file - Highest Precedence
+		String propsFileInConf = Environment.get().getProp("system."+systemName+".properties.file", null);
+		//File name of the properties file in current directory - Second Highest Precedence
+		String propsFileInPWD = systemName+".properties";
+		//File name of the properties file in user's home directory - Lowest Precedence
+		String propsFileInHomeDir = System.getProperty("user.home")+"/config/caas/"+systemName+".properties";
+		Properties props = new Properties();
+		//Convert the file paths to Unix file path format
+		propsFileInConf = StringUtil.getUnixStyleFilePath(propsFileInConf);
+		propsFileInHomeDir = StringUtil.getUnixStyleFilePath(propsFileInHomeDir);
+		
+		String[] fileNames = new String[]{propsFileInConf, propsFileInPWD, propsFileInHomeDir};
+		//Determine the file that need to be considered for loading
+		//To do so, Loop over the files as per their precedence and check for their existence  
+		for(String  aFileName:fileNames){ 
+			if(FileUtil.isFileExists(aFileName)){ 
+				fileName = aFileName;
+				break;
+			}
+		}
+		
+		//Load the properties file and convert it to a HashMap
+		if(fileName!=null){
+			FileUtil.load(props, fileName);
+			map = new HashMap<String, String>((Map) props);	
+		}else{
+			//Throw a warning if none of the files in the precedence list are existing
+			Environment.get().warn("No file is configured for property 'system."+systemName+".properties.file' in caas.conf. Make sure there are no variables to be resolved in template file.");
+		}
+		
+		return map;
+	}
+
 }
