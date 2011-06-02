@@ -129,6 +129,15 @@ public class Organization extends LdapObjectBase {
 			for (String ns:ms.namespaces.get())
 				luri.add("string").setText(ns);
 		}
+		
+		//remove soapnode_keystore node		
+		XmlNode soapNodeKeystore = config.getChild("soapnode_keystore");	
+		if (soapNodeKeystore!=null)
+		{
+			config.remove(soapNodeKeystore);
+		}
+		
+		
 		newEntry.add("bussoapnodeconfiguration").add("string").setText(config.compact());
 		createInLdap(newEntry);
 		soapNodes.clear();
