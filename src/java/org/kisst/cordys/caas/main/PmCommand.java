@@ -120,32 +120,9 @@ public class PmCommand extends CompositeCommand {
 	 */
 	private Map<String, String> loadSystemProperties(String systemName){
 
-		String fileName=null; 
-		Map<String, String> map=null;
-		if(systemName==null)
-			throw new CaasRuntimeException("Unable to load the properties as the Cordys system name is null");
-		
-		//File name of the properties file mentioned in caas.conf file - Highest Precedence
-		String propsFileInConf = Environment.get().getProp("system."+systemName+".properties.file", null);
-		//File name of the properties file in current directory - Second Highest Precedence
-		String propsFileInPWD = systemName+".properties";
-		//File name of the properties file in user's home directory - Lowest Precedence
-		String propsFileInHomeDir = System.getProperty("user.home")+"/config/caas/"+systemName+".properties";
+		String fileName=FileUtil.getSystemPropertiesFilePath(systemName); 
+		Map<String, String> map=null;		
 		Properties props = new Properties();
-		//Convert the file paths to Unix file path format
-		propsFileInConf = StringUtil.getUnixStyleFilePath(propsFileInConf);
-		propsFileInHomeDir = StringUtil.getUnixStyleFilePath(propsFileInHomeDir);
-		
-		String[] fileNames = new String[]{propsFileInConf, propsFileInPWD, propsFileInHomeDir};
-		//Determine the file that need to be considered for loading
-		//To do so, Loop over the files as per their precedence and check for their existence  
-		for(String  aFileName:fileNames){ 
-			if(FileUtil.isFileExists(aFileName)){ 
-				fileName = aFileName;
-				break;
-			}
-		}
-		
 		//Load the properties file and convert it to a HashMap
 		if(fileName!=null){
 			FileUtil.load(props, fileName);

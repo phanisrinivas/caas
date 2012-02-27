@@ -75,21 +75,45 @@ public class Machine extends CordysObject {
 	 * @param isvpName
 	 * @return
 	 */
-	public String loadIsvp(String isvpName, long timeOut) 
+	public String loadIsvp(String isvpName,long timeOut) 
+	{
+		return loadIsvp(isvpName,null,timeOut);
+	}
+	
+	
+	/**
+	 * Loads the ISVP
+	 * 
+	 * @param isvpName
+	 * @return
+	 */
+	public String loadIsvp(String isvpName, XmlNode prompSetsXMLNode,long timeOut) 
 	{
 		//Get the ISVP definition details
 		XmlNode details=getIsvpDefinition(isvpName);
 		XmlNode request=new XmlNode(LOAD_ISVP, xmlns_isv);
 		//Set the timeout
 		request.setAttribute("timeOut", String.valueOf(timeOut));
-		request.add("url").setText("http://"+hostname+"/cordys/wcp/isvcontent/packages/"+isvpName);
-		request.add(details.getChild("ISVPackage").detach());
+		request.add("url").setText("http://"+hostname+"/cordys/wcp/isvcontent/packages/"+isvpName);		
+		XmlNode isvpPackageNode = details.getChild("ISVPackage");
+		if (prompSetsXMLNode!=null)
+		{
+			isvpPackageNode.add(prompSetsXMLNode.detach());
+		}
+		request.add(isvpPackageNode.detach());		
+		
+		if(getSystem().getEnv().debug)
+		{
+			getSystem().getEnv().debug("LoadISVP Request "+request.toString());
+		}
+		
 		//Load the ISVP
 		XmlNode response = monitor.call(request);
 		//Read the status message		
 		return response.getChildText("status");
 	}
 	
+
 	/**
 	 * Upgrades ISVP
 	 * 
@@ -101,23 +125,51 @@ public class Machine extends CordysObject {
 	 */	
 	public String upgradeIsvp(String isvpName, boolean deleteReferences, long timeOut)
 	{
+		return upgradeIsvp(isvpName,null,deleteReferences,timeOut);
+	}
+	
+	/**
+	 * Upgrades ISVP
+	 * 
+	 * It needs to consider the rules and other runtime content as well
+	 * Currently It overwrites the BPM content in the previous ISVP
+	 * 
+	 * @param isvpName
+	 * @return
+	 */	
+	public String upgradeIsvp(String isvpName,XmlNode prompSetsXMLNode, boolean deleteReferences, long timeOut)
+	{
 		//Get the provided ISVP details
 		XmlNode details=getIsvpDefinition(isvpName);
 		XmlNode isvPackageNode = details.getChild("ISVPackage");
 		isvPackageNode.setAttribute("canUpgrade", "true");
 		isvPackageNode.setAttribute("deleteReferences", String.valueOf(deleteReferences));
-		XmlNode promptsetNode = isvPackageNode.add("promptset", xmlns_isv);
-		//Add a prompt node and set its value as true to overwrite the BPM content in the previous ISV
-		XmlNode promptNode = promptsetNode.add("BusinessProcessEngine").add("prompt");
-		promptNode.setText("yes");
-		promptNode.setAttribute("id", "overwrite");
-		promptNode.setAttribute("value", "yes");
-		promptNode.setAttribute("description", "This value indicates whether or not the ISV has overwritten the contents of a previous ISV.");		
+		
+		if (prompSetsXMLNode!=null)
+		{
+			isvPackageNode.add(prompSetsXMLNode.detach());
+		}
+		else // add default BPM Promptsets 
+		{		
+			XmlNode promptsetNode = isvPackageNode.add("promptset", xmlns_isv);
+			//Add a prompt node and set its value as true to overwrite the BPM content in the previous ISV
+			XmlNode promptNode = promptsetNode.add("BusinessProcessEngine").add("prompt");
+			promptNode.setText("yes");
+			promptNode.setAttribute("id", "overwrite");
+			promptNode.setAttribute("value", "yes");
+			promptNode.setAttribute("description", "This value indicates whether or not the ISV has overwritten the contents of a previous ISV.");
+		}
 		XmlNode request=new XmlNode(UPGRADE_ISVP, xmlns_isv);
 		//Set the timeout value
 		request.setAttribute("timeOut", String.valueOf(timeOut));
-		request.add("url").setText("http://"+hostname+"/cordys/wcp/isvcontent/packages/"+isvpName);
+		request.add("url").setText("http://"+hostname+"/cordys/wcp/isvcontent/packages/"+isvpName);		
 		request.add(isvPackageNode.detach());
+
+		if(getSystem().getEnv().debug)
+		{
+			getSystem().getEnv().debug("UpgradeISVP Request "+request.toString());
+		}
+		
 		//Upgrade the ISVP		
 		XmlNode response = monitor.call(request);
 		//Read the status message

@@ -21,6 +21,8 @@ package org.kisst.cordys.caas;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
@@ -31,6 +33,7 @@ import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.support.XmlObjectList;
+import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.PasswordHasher;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
@@ -42,6 +45,7 @@ public class CordysSystem extends LdapObject {
 	private final String name;
 	private final String dn; 
 	private final Environment env;
+	private Properties properties = new Properties();
 
 	public final String version;
 	public final String build;
@@ -64,6 +68,7 @@ public class CordysSystem extends LdapObject {
 	public final XmlObjectList<Connector> connectors= new XmlObjectList<Connector>(this, "/Cordys/WCP/Application Connector", null);
 	public final XmlObjectList<Connector> connector = connectors;
 	public final XmlObjectList<Connector> conn = connectors;
+	
 	
 	@SuppressWarnings("unchecked")
 	public final CordysObjectList<SoapProcessor> soapProcessors = new CordysObjectList(this) {
@@ -120,6 +125,25 @@ public class CordysSystem extends LdapObject {
 		this.build=response.getChildText("tuple/old/buildinfo/build");
 		this.os=response.getChildText("tuple/old/osinfo/version");
 		rememberLdap(this);
+		
+		loadProperties();
+	}
+
+	private void loadProperties() {
+		String propertyFile = FileUtil.getSystemPropertiesFilePath(name);
+		env.info("Using "+propertyFile+" as property file");		
+		if (propertyFile==null)
+		{
+			env.debug("Property file for system " + name+" is missing.");
+			return;
+		}
+		setDefaultProperties();
+		FileUtil.load(properties, propertyFile);
+	}
+	
+	private void setDefaultProperties()
+	{
+		properties.setProperty("LDAP_ROOT",this.getDn());
 	}
 
 	@Override public String toString() { return "CordysSystem("+name+")"; }
@@ -182,6 +206,23 @@ public class CordysSystem extends LdapObject {
 			m.refreshSoapProcessors();
 	}
 	
+	public void deployIsvp(String isvpFilePath) {
+		deployIsvp(isvpFilePath,10);
+	}
+	
+	public void deployIsvp(String isvpFilePath,long timeOut){
+			deployIsvp(isvpFilePath,null,timeOut);
+	}
+	
+	public void deployIsvp(String isvpFilePath,String isvpPromptsetsFilePath){
+			deployIsvp(isvpFilePath,isvpPromptsetsFilePath,10);
+	}
+	
+	public void deployIsvp(String isvpFilePath,String isvpPromptsetsFilePath,long timeOut){
+		
+		
+	}
+	
 	//TODO: There should be a single method for both load/upgrade of ISVP
 	public void loadIsvp(String isvpFilePath){
 		//By default timeout value is set to 10 minutes
@@ -189,10 +230,25 @@ public class CordysSystem extends LdapObject {
 	}
 	public void loadIsvp(String isvpFilePath, long timeOut) 
 	{
+		loadIsvp(isvpFilePath,null,timeOut);
+	}	
+	
+	public void loadIsvp(String isvpFilePath,String isvpPromptsetsFilePath){
+		//By default timeout value is set to 10 minutes
+		loadIsvp(isvpFilePath,isvpPromptsetsFilePath,10);
+	}
+
+	public void loadIsvp(String isvpFilePath,String isvpPromptsetsFilePath,long timeOut){
 		//Validate the input
 		String isvpName = validateInput(isvpFilePath);
 		//Convert the timeout value to seconds
 		timeOut = timeOut*60*1000;
+		
+		XmlNode prompSetsXMLNode = null;
+		if (isvpPromptsetsFilePath!=null)
+		{
+			prompSetsXMLNode =  validatePromptSetFile(isvpPromptsetsFilePath);
+		}
 		//Iterate over the machines
 		for (Machine m: machines){
 			//Upload the ISVP on to the machine
@@ -201,23 +257,45 @@ public class CordysSystem extends LdapObject {
 			m.uploadIsvp(isvpFilePath);
 			//Install the ISVP
 			System.out.println("Installing Application '"+isvpName+"' on '"+m.getName()+"' Node....");
-			String status = m.loadIsvp(isvpName, timeOut);
+			String status = m.loadIsvp(isvpName,prompSetsXMLNode, timeOut);
 			System.out.println("STATUS:: "+status);
 		}
 		isvp.clear();
-	}
+	}	
+	
+	
 	public void upgradeIsvp(String isvpFilePath){
 		//By default timeout value is set to 10 minutes and deleteReferences flag is set to false
 		upgradeIsvp(isvpFilePath,false,10);
 	}
+	
 	//TODO: While upgrading, First upgrade the primary node and after that the secondary nodes. 
 	//The reason for this is that the isvp's for primary and distributed nodes differ.
 	public void upgradeIsvp(String isvpFilePath, boolean deleteReferences, long timeOut)
+	{
+		upgradeIsvp(isvpFilePath,null,deleteReferences,timeOut);
+	}
+
+	public void upgradeIsvp(String isvpFilePath,String prompsetsFilePath){
+		//By default timeout value is set to 10 minutes and deleteReferences flag is set to false
+		upgradeIsvp(isvpFilePath,prompsetsFilePath,false,10);
+	}
+	
+	//TODO: While upgrading, First upgrade the primary node and after that the secondary nodes. 
+	//The reason for this is that the isvp's for primary and distributed nodes differ.
+	public void upgradeIsvp(String isvpFilePath,String isvpPromptsetsFilePath, boolean deleteReferences, long timeOut)
 	{
 		//Validate the input
 		String isvpName = validateInput(isvpFilePath);
 		//Convert the timeout value to seconds
 		timeOut = timeOut*60*1000;
+		
+		XmlNode prompSetsXMLNode = null;
+		if (isvpPromptsetsFilePath!=null)
+		{
+			prompSetsXMLNode =  validatePromptSetFile(isvpPromptsetsFilePath);
+		}
+		
 		//Iterate over the machines
 		for (Machine m: machines){
 			//TODO: Upload the ISVP only when it is not present on the machine
@@ -225,11 +303,13 @@ public class CordysSystem extends LdapObject {
 			m.uploadIsvp(isvpFilePath);
 			//Upgrade the ISVP
 			System.out.println("Upgrading Application '"+isvpName+"' on '"+m.getName()+"' Node....");
-			String status = m.upgradeIsvp(isvpName, deleteReferences, timeOut);
+			String status = m.upgradeIsvp(isvpName,prompSetsXMLNode, deleteReferences, timeOut);
 			System.out.println("STATUS:: "+status);
 		}
 		isvp.clear();
 	}
+	
+	
 	private String validateInput(String isvpFilePath)
 	{
 		//Check if the ISVP file path is empty or null
@@ -247,6 +327,26 @@ public class CordysSystem extends LdapObject {
 		if (!isvpName.endsWith(".isvp"))
 			throw new CaasRuntimeException("Invalid ISVP file "+isvpName);
 		return isvpName;
+	}
+	
+	private XmlNode validatePromptSetFile(String isvpPromptSetFilePath)
+	{
+		//Check if the ISVP promptset file path is empty or null
+		if(StringUtil.isEmpty(isvpPromptSetFilePath))
+			throw new CaasRuntimeException("ISVP promptsets file path is empty or null");
+		isvpPromptSetFilePath = isvpPromptSetFilePath.trim();
+		isvpPromptSetFilePath = StringUtil.getUnixStyleFilePath(isvpPromptSetFilePath);
+		File isvpPromptSetFile = new File(isvpPromptSetFilePath);
+		//Check if the ISVP file exists at the given location
+		if (!isvpPromptSetFile.exists())
+			throw new CaasRuntimeException(isvpPromptSetFile + " doesn't exist");
+		
+		String pomptsetsXML = FileUtil.loadString(isvpPromptSetFilePath);
+		
+		HashMap<String, String> map = new HashMap<String, String>((Map) properties);
+		pomptsetsXML = StringUtil.substitute(pomptsetsXML, map);		
+		XmlNode promposetsXMLNode = new XmlNode(pomptsetsXML);
+		return promposetsXMLNode;
 	}
 	
 	@Override public int compareTo(CordysObject o) { return dn.compareTo(o.getKey()); }
@@ -287,4 +387,6 @@ public class CordysSystem extends LdapObject {
 			@Override public String getKey() { return CordysSystem.this.getKey()+":seek("+target+")";}
 		};
 	}
+	
+	
 }
