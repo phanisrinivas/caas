@@ -35,7 +35,10 @@ public class Template {
 		for (SoapNode sn : org.soapNodes) {
 			XmlNode node=result.add("soapnode");
 			node.setAttribute("name", sn.getName());
-			node.add("bussoapnodeconfiguration").add(sn.config.getXml().clone());
+			XmlNode configNode = sn.config.getXml().clone();
+			XmlNode keyStoreNode = configNode.getChild("soapnode_keystore");
+			configNode.remove(keyStoreNode);
+			node.add("bussoapnodeconfiguration").add(configNode);
 			for (MethodSet ms: sn.methodSets) {
 				XmlNode child=node.add("ms");
 				child.setAttribute("name", ms.getName());
@@ -176,7 +179,7 @@ public class Template {
 				String updateFlag = node.getAttribute("update");
 				if ((updateFlag==null) || (updateFlag.equalsIgnoreCase("false")))
 				{
-					env.error("Skipping updating service group '"+name+"'.Set 'update' attribute to true to overwrite");
+					env.error("Skipping updating soap node '"+name+"'.Set 'update' attribute to true to overwrite");
 					return;
 				}
 				//Update the method sets of the SG
