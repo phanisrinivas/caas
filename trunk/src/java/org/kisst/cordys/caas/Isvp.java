@@ -88,5 +88,6 @@ public class Isvp extends LdapObjectBase {
 	public String getWcpversion() { return getDescription().getChildText("wcpversion"); }
 	public String getEula() { return getDescription().getChildText("eula"); }
 	public String getSidebar() { return getDescription().getChildText("sidebar"); }
+	public String getBuildnumber() { return getDescription().getChildText("build"); }
 			
 }
