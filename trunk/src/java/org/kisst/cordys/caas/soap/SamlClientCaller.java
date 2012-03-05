@@ -4,6 +4,8 @@ package org.kisst.cordys.caas.soap;
 import java.util.HashMap;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
@@ -84,6 +86,14 @@ public class SamlClientCaller extends BaseCaller {
 			//Environment.get().debug("URL:: "+method.getURI().getURI().toString());
 			method.setRequestEntity(new StringRequestEntity(inputSoapRequest, "text/xml", "UTF-8"));
 			HttpClient client = new HttpClient();
+			if (this.proxyPort!=null)
+			{
+				client.getHostConfiguration().setProxy(proxyHost, Integer.parseInt(proxyPort));
+				if (this.proxyUser!=null)
+				{
+					client.getState().setProxyCredentials(new AuthScope(proxyHost, Integer.parseInt(proxyPort)), new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
+				}
+			}
 			statusCode = client.executeMethod(method);
 			response=method.getResponseBodyAsString();
 		}
