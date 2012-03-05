@@ -56,6 +56,14 @@ public class HttpClientCaller extends BaseCaller {
 		String response;
 		try {
 			method.setRequestEntity(new StringRequestEntity(input, "text/xml", "UTF-8"));
+			if (this.proxyPort!=null)
+			{
+				client.getHostConfiguration().setProxy(proxyHost, Integer.parseInt(proxyPort));
+				if (this.proxyUser!=null)
+				{
+					client.getState().setProxyCredentials(new AuthScope(proxyHost, Integer.parseInt(proxyPort)), new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
+				}
+			}
 			statusCode = client.executeMethod(method);
 			response=method.getResponseBodyAsString();
 		}

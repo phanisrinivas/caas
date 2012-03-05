@@ -26,7 +26,12 @@ public abstract class BaseCaller implements SoapCaller {
 	protected final String baseurl;
 	protected final String username;
 	protected final String password;
-
+	protected final String proxyHost;
+	protected final String proxyPort;
+	protected final String proxyUser;
+	protected final String proxyPassword;
+	
+	
 	public abstract String httpCall(String url, String input);
 
 	public BaseCaller(String name)
@@ -41,6 +46,10 @@ public abstract class BaseCaller implements SoapCaller {
 			baseurl=url;
 		username   = Environment.get().getProp("system."+name+".gateway.username", null);
 		password   = Environment.get().getProp("system."+name+".gateway.password", null);
+		proxyHost	= Environment.get().getProp("system."+name+".gateway.proxyhost", null);	
+		proxyPort	= Environment.get().getProp("system."+name+".gateway.proxyport", null);
+		proxyUser	= Environment.get().getProp("system."+name+".gateway.proxyuser", null);	
+		proxyPassword	= Environment.get().getProp("system."+name+".gateway.proxypassword", null);
 	}
 
 	private String httpCall(String input, String org, String processor) {
