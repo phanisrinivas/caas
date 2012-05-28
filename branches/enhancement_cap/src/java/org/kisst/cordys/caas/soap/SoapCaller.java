@@ -19,11 +19,15 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas.soap;
 
+import java.util.HashMap;
+
 import org.kisst.cordys.caas.util.XmlNode;
 
 public interface SoapCaller {
-	public String call(String input, String org, String processor);
-	public String call(String input);
-	public XmlNode call(XmlNode method, String org, String processor);
-	public XmlNode call(XmlNode method); 
+	//public String call(String input, String org, String processor);
+	public String call(String request);
+	public String call(String request, HashMap<String, String> queryParams);
+	//public XmlNode call(XmlNode webService, String org, String processor);
+	public XmlNode call(XmlNode request);
+	public XmlNode call(XmlNode request, HashMap<String, String> queryParams);
 }

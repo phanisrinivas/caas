@@ -23,10 +23,10 @@ import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
 
-public class MethodSet extends LdapObjectBase {
-	public final ChildList<Method> methods= new ChildList<Method>(this, Method.class);
-	public final ChildList<Method> method = methods;
-	public final ChildList<Method> m      = methods;
+public class WebServiceInterface extends LdapObjectBase {
+	public final ChildList<WebService> webServices= new ChildList<WebService>(this, WebService.class);
+	public final ChildList<WebService> webService = webServices;
+	public final ChildList<WebService> ws = webServices;
 
 	public final ChildList<Xsd> xsds= new ChildList<Xsd>(this, Xsd.class);
 	public final ChildList<Xsd> xsd = xsds;
@@ -36,13 +36,13 @@ public class MethodSet extends LdapObjectBase {
 
 	public final StringProperty implementationclass=new StringProperty("implementationclass");
 	
-	protected MethodSet(LdapObject parent, String dn) {
+	protected WebServiceInterface(LdapObject parent, String dn) {
 		super(parent, dn);
 	}
-	@Override protected String prefix() { return "ms"; }
+	@Override protected String prefix() { return "wsi"; }
 
-	public void createMethod(String name) {
+	public void createWebService(String name) {
 		createInLdap(newEntryXml("", name,"busmethod"));
-		methods.clear();
+		webServices.clear();
 	}
 }

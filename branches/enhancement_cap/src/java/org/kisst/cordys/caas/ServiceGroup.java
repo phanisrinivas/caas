@@ -27,11 +27,11 @@ import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.util.XmlNode;
 
 
-public class SoapNode extends LdapObjectBase {
-	public final ChildList<SoapProcessor> soapProcessors= new ChildList<SoapProcessor>(this, SoapProcessor.class);
-	public final ChildList<SoapProcessor> sp = soapProcessors;
-	public final EntryObjectList<MethodSet> methodSets = new EntryObjectList<MethodSet>(this, "busmethodsets","ms");
-	public final EntryObjectList<MethodSet> ms = methodSets;
+public class ServiceGroup extends LdapObjectBase {
+	public final ChildList<ServiceContainer> serviceContainers= new ChildList<ServiceContainer>(this, ServiceContainer.class);
+	public final ChildList<ServiceContainer> sc = serviceContainers;
+	public final EntryObjectList<WebServiceInterface> webServiceInterfaces = new EntryObjectList<WebServiceInterface>(this, "busmethodsets","wsi");
+	public final EntryObjectList<WebServiceInterface> wsi = webServiceInterfaces;
 	public final StringList namespaces= new StringList("labeleduri"); 
 	public final StringList ns = namespaces;
 	public final XmlProperty config = new XmlProperty("bussoapnodeconfiguration");
@@ -43,17 +43,17 @@ public class SoapNode extends LdapObjectBase {
 	public final XmlBoolProperty payloadValidation = new XmlBoolProperty(config, "validation/payload",false);
 	public final XmlBoolProperty payloadTrim = new XmlBoolProperty(config, "IgnoreWhiteSpaces",false);
 		
-	protected SoapNode(LdapObject parent, String dn) {
+	protected ServiceGroup(LdapObject parent, String dn) {
 		super(parent, dn);
 	}
-	@Override protected String prefix() { return "sn"; }
+	@Override protected String prefix() { return "sg"; }
 
 	public void recalcNamespaces() {
 		LinkedHashMap<String, String> all=new LinkedHashMap<String, String>();
-		for (MethodSet ms : methodSets) {
-			if (ms!=null) {
-				for (String s : ms.namespaces.get())
-					all.put(s,s);
+		for (WebServiceInterface wsi : webServiceInterfaces) {
+			if (wsi!=null) {
+				for (String namespace : wsi.namespaces.get())
+					all.put(namespace,namespace);
 			}
 		}
 		XmlNode newEntry=getEntry().clone();
@@ -62,8 +62,8 @@ public class SoapNode extends LdapObjectBase {
 			msNode=newEntry.add("labeleduri");
 		for (XmlNode child: msNode.getChildren())
 			msNode.remove(child);
-		for (String s: all.keySet())
-			msNode.add("string").setText(s);
+		for (String namespace: all.keySet())
+			msNode.add("string").setText(namespace);
 		updateLdap(newEntry);
 	}
 	
@@ -91,12 +91,12 @@ public class SoapNode extends LdapObjectBase {
 	   &lt;/configuration&gt;
 	 &lt;/configurations&gt;
 	 */
-	public void createSoapProcessor(String name, String machine, boolean automatic, XmlNode config) {
-		XmlNode newEntry=createSoapProcessorEntryNode(name,machine,automatic,config);
+	public void createServiceContainer(String name, String machineName, boolean automatic, XmlNode config) {
+		XmlNode newEntry=createServiceContainerEntryNode(name,machineName,automatic,config);
 		createInLdap(newEntry);
-		soapProcessors.clear();
+		serviceContainers.clear();
 	}
-	public void createSoapProcessor(String name, Connector conn) {
+	public void createServiceContainer(String name, Connector connector) {
 		XmlNode config=new XmlNode("configurations"); 
 		config.add("cancelReplyInterval").setText("30000");
 		config.add("gracefulCompleteTime").setText("15");
@@ -104,10 +104,10 @@ public class SoapNode extends LdapObjectBase {
 		config.add("jreconfig").add("param").setAttribute("value","-Xmx64M");
 		config.add("loggerconfiguration");
 		XmlNode config2=config.add("configuration");
-		config2.setAttribute("implementation", conn.getData().getChildText(("step/implementation")));
-		config2.setAttribute("htmfile", conn.getData().getChildText(("step/url")));
-		config2.add(conn.getData().getChild("step/classpath").clone());
-		createSoapProcessor(name, getSystem().machines.get(0).getName(), false, config);
+		config2.setAttribute("implementation", connector.getData().getChildText(("step/implementation")));
+		config2.setAttribute("htmfile", connector.getData().getChildText(("step/url")));
+		config2.add(connector.getData().getChild("step/classpath").clone());
+		createServiceContainer(name, getSystem().machines.get(0).getName(), false, config);
 	}	
 	
 	/**
@@ -115,23 +115,21 @@ public class SoapNode extends LdapObjectBase {
 	 * It will also accept the old soap processor to form the update request
 	 * 
 	 * @param name
-	 * @param machine
+	 * @param machineName
 	 * @param automatic
 	 * @param config
-	 * @param oldSoapProcessor
+	 * @param oldServiceContainer
 	 */
-	public void updateSoapProcessor(String name, String machine, boolean automatic, XmlNode config,SoapProcessor oldSoapProcessor)
-	{
-		XmlNode newEntry=createSoapProcessorEntryNode(name,machine,automatic,config);
-		XmlNode oldEntry = oldSoapProcessor.getEntry();
+	public void updateServiceContainer(String name, String machineName, boolean automatic, XmlNode config,ServiceContainer oldServiceContainer){
+		XmlNode newEntry=createServiceContainerEntryNode(name,machineName,automatic,config);
+		XmlNode oldEntry = oldServiceContainer.getEntry();
 		updateLdap(oldEntry,newEntry);
 	}
 	
-	private XmlNode createSoapProcessorEntryNode(String name, String machine, boolean automatic, XmlNode config)
-	{
+	private XmlNode createServiceContainerEntryNode(String name, String machineName, boolean automatic, XmlNode config){
 		XmlNode newEntry=newEntryXml("", name,"bussoapprocessor");
 		newEntry.add("description").add("string").setText(name);
-		newEntry.add("computer").add("string").setText(machine); // TODO
+		newEntry.add("computer").add("string").setText(machineName); 
 		newEntry.add("busosprocesshost");
 		newEntry.add("automaticstart").add("string").setText(""+automatic);
 		newEntry.add("bussoapprocessorconfiguration").add("string").setText(config.compact());

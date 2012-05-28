@@ -24,14 +24,6 @@ import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.util.FileUtil;
 
 public class CaasMainCommand extends CompositeCommand {
-	private class GroovyCommand extends CompositeCommand {
-		public GroovyCommand() {
-			super("caas groovy","run either a interactive groovy shell or a groovy script");
-			this.commands.put("run", new GroovyRunScript());
-			this.commands.put("shell", new GroovyShell());
-		}
-	}
-	
 	
 	Cli cli=new Cli();
 	Cli.Flag quiet= cli.flag("q", "quiet", "don't output anything unless errors happen");
@@ -40,7 +32,15 @@ public class CaasMainCommand extends CompositeCommand {
 	Cli.StringOption config=cli.stringOption("c", "config",  "location of config file with connection properties", null);
 	Cli.Flag showhelp=cli.flag("h", "help", "show this help information");
 	Cli.Flag version = cli.flag(null, "version", "show the version information");
-
+	
+	private class GroovyCommand extends CompositeCommand {
+		public GroovyCommand() {
+			super("caas groovy","run either a interactive groovy shell or a groovy script");
+			this.commands.put("run", new GroovyRunScript());
+			this.commands.put("shell", new GroovyShell());
+		}
+	}
+	
 	public CaasMainCommand() {
 		super("caas","run any of the caas subcommands"); 
 		commands.put("shell", new GroovyShell());
@@ -68,57 +68,31 @@ public class CaasMainCommand extends CompositeCommand {
 	@Override public void run(String[] args) {
 		args=cli.parse(args);
 		Environment env=Environment.get();
-		//env.setSystem(cmdline.getOptionValue("cop"));
+		if (debug.isSet()){env.debug=true;}
+		if (verbose.isSet()){env.verbose=true;}
+		if (quiet.isSet()){env.quiet=true;}
+		if (version.isSet()) {System.out.println(Caas.getVersion());return;}
+		if (!env.quiet) {System.out.println("CAAS: Cordys Administration Automation Scripting, version "+Caas.getVersion());}
+		if (showhelp.isSet()) { help.run(args); return;	}
+		//Lookup and load caas.conf file
 		if (config.isSet())
-			Environment.get().loadProperties(config.get());
+			env.loadProperties(config.get());
 		else
-			initEnvironment();
-		
-		if (debug.isSet())
-			env.debug=true;
-		if (verbose.isSet())
-			env.verbose=true;
-		if (quiet.isSet())
-			env.quiet=true;
-		if (version.isSet()) {
-			System.out.println(Caas.getVersion());
-			return;
-		}
-
-		if (! env.quiet)
-			System.out.println("caas: Cordys Administration Automation Scripting, version "+Caas.getVersion());
-
-		if (showhelp.isSet()) {
-			help.run(args);
-			return;
-		}
+			env.loadProperties(getConfFile());		
 		super.run(args);
 	}
 
-	private void initEnvironment() {
-		
-		String fileName=null;
-		//caas.conf file present in the current directory - Highest Precedence
+	private String getConfFile() {
 		String confFileInPWD="caas.conf";
-		//caas.conf file present in the user's home directory - Lowest Precedence
 		String confFileInHomeDir=System.getProperty("user.home")+"/config/caas/caas.conf";
-		//Convert the file paths to Unix file path format
 		confFileInHomeDir = confFileInHomeDir.replace("\\", "/");
-		
 		String[] fileNames = new String[]{confFileInPWD, confFileInHomeDir};
-		//Determine caas.file that need to be considered for loading
-		//To do so, Loop over the files as per their precedence and check for their existence
-		for(String  aFileName:fileNames){
-			if(FileUtil.isFileExists(aFileName)){
-				fileName = aFileName;
-				break;
+		for(String fileName:fileNames){
+			if(FileUtil.isFileExists(fileName)){
+				Environment.get().debug("Using "+fileName+" configuration file");
+				return fileName;
 			}
 		}
-		//Load the caas.conf file
-		if(fileName!=null)		
-			Environment.get().loadProperties(fileName);
-		else
-			//Throw an exception if the caas.conf file is not present either in current directory or in user's home directory
-			throw new CaasRuntimeException("caas.conf file not present in neither current directory nor "+confFileInHomeDir);				
+		throw new CaasRuntimeException("caas.conf file not found. please put it either in current directory or in "+confFileInHomeDir);
 	}
 }

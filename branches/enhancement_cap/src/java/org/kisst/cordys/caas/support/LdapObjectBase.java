@@ -25,23 +25,25 @@ import java.util.HashMap;
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.ConnectionPoint;
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.Dso;
 import org.kisst.cordys.caas.Isvp;
-import org.kisst.cordys.caas.Method;
-import org.kisst.cordys.caas.MethodSet;
+import org.kisst.cordys.caas.WebService;
+import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.OsProcess;
 import org.kisst.cordys.caas.Role;
-import org.kisst.cordys.caas.SoapNode;
-import org.kisst.cordys.caas.SoapProcessor;
+import org.kisst.cordys.caas.ServiceGroup;
+import org.kisst.cordys.caas.ServiceContainer;
 import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.Xsd;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.ReflectionUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 
 /**
  * This is the base class for all kinds of Ldap Objects, except for CordysSystem, which is special
- * This basically is just a convenience class provding the getDn() and getSystem() method
+ * This basically is just a convenience class provding the getDn() and getSystem() webService
  * so that not all sublcasses need to implement these again.
  * It is separate from the LdapObject class, because CordysSystem also is a LdapObject, but does
  * can't use the dn and system (itself) at construction time.
@@ -62,7 +64,7 @@ public abstract class LdapObjectBase extends LdapObject {
 
 
 	public static LdapObject createObject(CordysSystem system, String dn) {
-		XmlNode method=new XmlNode("GetLDAPObject", CordysObject.xmlns_ldap);
+		XmlNode method=new XmlNode(Constants.GET_LDAP_OBJECT, Constants.XMLNS_LDAP);
 		method.add("dn").setText(dn);
 		XmlNode response = system.call(method);
 		XmlNode entry=response.getChild("tuple/old/entry");
@@ -94,16 +96,18 @@ public abstract class LdapObjectBase extends LdapObject {
 		ldapObjectTypes.put("busauthenticatedusers", AuthenticatedUser.class);
 		ldapObjectTypes.put("busauthenticationuser", AuthenticatedUser.class);
 		//ldapObjectTypes.put("groupOfNames", Isvp.class); this one is not unique
-		ldapObjectTypes.put("busmethod", Method.class);
-		ldapObjectTypes.put("busmethodset", MethodSet.class);
+		ldapObjectTypes.put("busmethod", WebService.class);
+		ldapObjectTypes.put("busmethodset", WebServiceInterface.class);
 		ldapObjectTypes.put("busmethodtype", Xsd.class);
 		ldapObjectTypes.put("organization", Organization.class);
 		ldapObjectTypes.put("busorganizationalrole", Role.class);
-		ldapObjectTypes.put("bussoapnode", SoapNode.class);
-		ldapObjectTypes.put("bussoapprocessor", SoapProcessor.class);
+		ldapObjectTypes.put("bussoapnode", ServiceGroup.class);
+		ldapObjectTypes.put("bussoapprocessor", ServiceContainer.class);
 		ldapObjectTypes.put("busorganizationaluser", User.class);
 		ldapObjectTypes.put("busconnectionpoint", ConnectionPoint.class);
 		ldapObjectTypes.put("busosprocess", OsProcess.class);
+		ldapObjectTypes.put("datasource", Dso.class);
+		//ldapObjectTypes.put("datasourcetype", DsoType.class); Lets not make it complex
 	}
 	static private Class<?> determineClass(CordysSystem system, XmlNode entry) {
 		if (entry==null)

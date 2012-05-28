@@ -93,6 +93,7 @@ public class Caas {
 		CordysSystem result=systemCache.get(name);
 		if (result!=null)
 			return result;
+		
 		Environment env=Environment.get();
 		String classname=env.getProp("system."+name+".gateway.class", null);
 		try {
@@ -127,5 +128,5 @@ public class Caas {
 		return getSystem(defaultSystem);
 	}
 
-	public final static PackageManager pm=new PackageManager();
+	public final static PackageManager packageManager=new PackageManager();
 }

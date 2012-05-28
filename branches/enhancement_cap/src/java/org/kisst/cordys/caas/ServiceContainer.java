@@ -19,20 +19,15 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas;
 
+import java.util.HashMap;
 import java.util.Random;
-
-import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
-import org.kisst.cordys.caas.util.StringUtil;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
-public class SoapProcessor extends LdapObjectBase {
-	private static final String START = "Start";
-	private static final String STOP = "Stop";
-	private static final String RESTART = "Restart";
-	private static final String LIST = "List";
+public class ServiceContainer extends LdapObjectBase {
 	
 	public final ChildList<ConnectionPoint> connectionPoints = new ChildList<ConnectionPoint>(this, ConnectionPoint.class);
 	public final ChildList<ConnectionPoint> cp = connectionPoints;
@@ -48,17 +43,23 @@ public class SoapProcessor extends LdapObjectBase {
 	public final XmlSubProperty requestTimeout = new XmlSubProperty(config, "cancelReplyInterval");  
 	public final XmlSubProperty implementation = new XmlSubProperty(config, "configuration/@implementation");  
 	public final XmlBoolProperty useSystemLogPolicy = new XmlBoolProperty(config, "loggerconfiguration/systempolicy",true);
+	
+	
 	private XmlNode workerprocess;
 	private static Random random=new Random();
 	
-	protected SoapProcessor(LdapObject parent, String dn) {
+	protected ServiceContainer(LdapObject parent, String dn) {
 		super(parent, dn);
 	}
-	@Override protected String prefix() { return "sp"; }
+	@Override protected String prefix() { return "sc"; }
 
 	@Override public void myclear() { super.myclear(); workerprocess=null; } 
 
-	public String call(String input) { return getSystem().call(input, null, getDn()); }
+	public String call(String request) {
+		HashMap<String, String> queryParams = new HashMap<String, String>();
+		queryParams.put("receiver", getDn());
+		return getSystem().call(request, queryParams);
+	}
 	
 	public void setWorkerprocess(XmlNode workerprocess) {
 		this.workerprocess=workerprocess;
@@ -67,10 +68,10 @@ public class SoapProcessor extends LdapObjectBase {
 	public XmlNode getWorkerprocess() {
 		if (workerprocess!=null && useCache())
 			return this.workerprocess;
-		XmlNode method=new XmlNode(LIST, xmlns_monitor);
-		XmlNode response=call(method);
-		for (XmlNode s: response.getChildren("tuple")) {
-			XmlNode workerprocess=s.getChild("old/workerprocess");
+		XmlNode request=new XmlNode(Constants.LIST, Constants.XMLNS_MONITOR);
+		XmlNode response=call(request);
+		for (XmlNode tuple: response.getChildren("tuple")) {
+			XmlNode workerprocess=tuple.getChild("old/workerprocess");
 			String dn=workerprocess.getChildText("name");
 			if (dn.equals(getDn())) {
 				this.workerprocess=workerprocess;
@@ -82,8 +83,8 @@ public class SoapProcessor extends LdapObjectBase {
 		//throw new RuntimeException("Could not find processor details for "+this.dn);
 	}
 	
-	private int getIntChild(XmlNode x, String name) {
-		String result=x.getChildText(name);
+	private int getIntChild(XmlNode node, String name) {
+		String result=node.getChildText(name);
 		if (result==null || result.length()==0)
 			return -1;
 		else
@@ -103,25 +104,25 @@ public class SoapProcessor extends LdapObjectBase {
 	public int getLastTime()       { return getIntChild(getWorkerprocess(), "last-time"); } 
 
 	public void start() {
-		XmlNode method=new XmlNode (START, xmlns_monitor);
-		method.add("dn").setText(getDn());
-		call(method);
+		XmlNode request=new XmlNode (Constants.START, Constants.XMLNS_MONITOR);
+		request.add("dn").setText(getDn());
+		call(request);
 	}
 	public void stop() {
-		XmlNode method=new XmlNode (STOP, xmlns_monitor);
-		method.add("dn").setText(getDn());
-		call(method);
+		XmlNode request=new XmlNode (Constants.STOP, Constants.XMLNS_MONITOR);
+		request.add("dn").setText(getDn());
+		call(request);
 	}
 	public void restart() {
-		XmlNode method=new XmlNode (RESTART, xmlns_monitor);
-		method.add("dn").setText(getDn());
-		call(method);
+		XmlNode request=new XmlNode (Constants.RESTART, Constants.XMLNS_MONITOR);
+		request.add("dn").setText(getDn());
+		call(request);
 	}
 
 	public void createConnectionPoint(String name) {
 		createConnectionPoint(name, "socket", getMachine().getName());
 	}
-	//Following 2 methods are changed to pass the machineName as a parameter, which is needed in case of clustered installation
+	//Following 2 webServices are changed to pass the machineName as a parameter, which is needed in case of clustered installation
 	public void createConnectionPoint(String name, String machineName) {
 		createConnectionPoint(name, "socket", machineName);
 	}
@@ -142,7 +143,13 @@ public class SoapProcessor extends LdapObjectBase {
 		// TODO This hack only works on single machine installs
 		return getSystem().machines.get(0);
 	}
-	public String getClassPath(){
+	private int getAvailablePort() {
+		// TODO: check all know connection points to avoid some clashes
+		// Note that the official Cordys wizard does not seem to check this either
+		int port=random.nextInt(64*1024-10000)+10000;
+		return port; 
+	}	
+	/*public String getClassPath(){
 		XmlNode oldEntry=getEntry().clone();
 		XmlNode config = new XmlNode(oldEntry.getChildText("bussoapprocessorconfiguration/string"));
 		XmlNode cpNode = getCPNode(config);
@@ -187,11 +194,5 @@ public class SoapProcessor extends LdapObjectBase {
 		newEntry.setChildText("bussoapprocessorconfiguration/string", config.compact());
 		updateEntry(newEntry);
 		return getClassPath();
-	}
-	private int getAvailablePort() {
-		// TODO: check all know connection points to avoid some clashes
-		// Note that the official Cordys wizard does not seem to check this either
-		int port=random.nextInt(64*1024-10000)+10000;
-		return port; 
-	}
+	}*/
 }

@@ -20,6 +20,7 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 package org.kisst.cordys.caas.support;
 
 import org.kisst.cordys.caas.Connector;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
 public class XmlObjectList<T extends CordysXmlObject> extends CordysObjectList<T>  {
@@ -34,7 +35,7 @@ public class XmlObjectList<T extends CordysXmlObject> extends CordysObjectList<T
 
 	@SuppressWarnings("unchecked")
 	@Override protected void retrieveList() {
-		XmlNode method = new XmlNode("GetCollection", xmlns_xmlstore);
+		XmlNode method = new XmlNode(Constants.GET_COLLECTION, Constants.XMLNS_XMLSTORE);
 		method.add("folder").setText(path); // TODO: attribute version=isv, organization, user 
 		XmlNode response=system.call(method);
 		//if (response.getName().equals("Envelope"))
@@ -46,5 +47,6 @@ public class XmlObjectList<T extends CordysXmlObject> extends CordysObjectList<T
 			//System.out.println(dn);
 		}
 	}
+
 	@Override public String getKey() { return "xmlstore:"+getSystem().getDn()+":children:"+path; }
 }

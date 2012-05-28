@@ -12,7 +12,7 @@ public class StringUtil {
 		else
 			return name;
 	}
-
+	
 	public static String substitute(String str, Map<String, String> vars) {
 		StringBuilder result = new StringBuilder();
 		int prevpos=0;
@@ -27,7 +27,7 @@ public class StringUtil {
 
 			if (value==null && key.equals("dollar"))
 				value="$";
-			//This will be replaced later in  resolveVariables() method of Template.java, as we don't know its value at this point of time
+			//This will be replaced later in  resolveVariables() webService of Template.java, as we don't know its value at this point of time
 			if(value==null && key.equals("CORDYS_INSTALL_DIR"))
 				value="CORDYS_INSTALL_DIR";
 			if (value==null)
@@ -40,7 +40,7 @@ public class StringUtil {
 		return result.toString();
 	}
 	
-	//This method is used for generating RequestID for SAML request
+	//This webService is used for generating RequestID for SAML request
 	public static String generateUUID(){
 		UUID uuid = UUID.randomUUID();
 		String strUUID = "a"+uuid.toString(); // XML validation requires that the request ID does not start with a number
@@ -48,7 +48,7 @@ public class StringUtil {
 	}
 	
 	/**
-	 * Converts a Map to Query String. This method forms a query string from the map
+	 * Converts a Map to Query String. This webService forms a query string from the map
 	 *  
 	 * @param map A Map object containing <key, value> which need to be converted to query string
 	 * @return String Query string formed from the map
@@ -70,26 +70,25 @@ public class StringUtil {
 
 	/**
 	 * Converts a Query String to Map
-	 * NOTE: Please do not use this method. Because this code uses '=' symbol to spilt the input.
-	 * It causes an issue if the input contains DN. Because DN has '=' in it.
 	 * 
 	 * @param input Input query string which need to be converted to a map object
 	 * @return map HashMap object loaded with <key,value> pairs
 	 */
-	public static Map<String, String> stringToMap(String input) {  
-		   Map<String, String> map = new HashMap<String, String>();  	  
+	public static HashMap<String, String> stringToMap(String input, HashMap<String, String> map) { 
 		   String[] nameValuePairs = input.split("&");  
 		   for (String nameValuePair : nameValuePairs) 
-		   {  
-		    String[] nameValue = nameValuePair.split("=");  
-		    map.put(nameValue[0], nameValue.length > 1?nameValue[1]:"");  
+		   {
+			int pos = nameValuePair.indexOf("=");
+			if(pos>0)
+			{
+				map.put(nameValuePair.substring(0,pos), nameValuePair.substring(pos+1));
+			}
 		   }  
 		   return map;  
-	} 
-
+	}
 	/**
 	 * Converts a file path to Unix style file path
-	 * NOTE: This method doesn't prefix the path with / if it is not present  
+	 * NOTE: This webService doesn't prefix the path with / if it is not present  
 	 * 
 	 * @param path - Path to be converted into Unix style file path
 	 * @return path - Converted file path
@@ -109,7 +108,7 @@ public class StringUtil {
 		    }
 		    return path;
 	  }
-	public static boolean isEmpty(String str) 
+	public static boolean isEmptyOrNull(String str) 
 	{
 		if ((str == null) || str.matches("^\\s*$"))
 			return true;

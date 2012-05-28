@@ -1,9 +1,9 @@
 package org.kisst.cordys.caas;
 
-import java.util.ArrayList;
-
-import org.kisst.cordys.caas.exception.CaasRuntimeException;
+import java.util.HashMap;
 import org.kisst.cordys.caas.support.CordysObject;
+import org.kisst.cordys.caas.support.CordysObjectList;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
@@ -14,115 +14,65 @@ import org.kisst.cordys.caas.util.XmlNode;
  */
 
 public class XMLStoreObject extends CordysObject{
-
-	//Location of the XMLStoreObject content in Cordys XMLStore
 	private String key;
-	//Version of the XMLStoreObject. Either "organization" or "user"
 	private String version;
-	//XML content of the XMLStoreObject
 	private XmlNode xml;
-	//Represents the organization to which this XMLStore object belongs
 	private Organization org;
-	//Contains the list of XMLStore versions
-	public static ArrayList<String> versionList;
+	private final String name;
+	private final CordysSystem system;
 	
 	@Override
-	//Returns the Path of the XMLStoreObject
 	public String getKey() {
 		return key;
 	}
 	@Override
-	//Returns the name of the XMLStoreObject
 	public String getName() {
 		int pos = key.lastIndexOf("/");
 		if(pos>0)
-			return key.substring(pos);
+			return key.substring(pos+1);
 		return key;
 	}
 	@Override
 	public String getVarName() {
 		return getName();
 	}
-	
-	@Override
-	/**
-	 * Returns the CordysSystem object of XMLStoreObject
-	 */
-	public CordysSystem getSystem() {
+	public XmlNode getXml(){	
+		return xml;
+	}
+	public String getVersion(){
+		return version;
+	}
 		
-		CordysSystem system = org.getSystem();
-		if(system==null)
-			throw new CaasRuntimeException("Cordys system is null for organization '"+org.getName()+"'");
-		return system;
+	@Override
+	public CordysSystem getSystem() {
+		return org.getSystem();
 	}
 	
-	/**
-	 *  Sets the "organization" the as default version
-	 *  
-	 * @param key  Full path of XMLStoreObject in Cordys XMLStore
-	 * @param org Organization object to which the XMLStoteObject belongs
-	 */
-	public XMLStoreObject(String key,Organization org)
-	{
+	public XMLStoreObject(String key,Organization org){
 		this(key, "organization", org);
 	}
 	
-	/**
-	 *  Sets the key, version and XML of the XMLStoreObject
-	 *  
-	 * @param key  Complete path to the XMLStoreObject
-	 * @param version Version of the XMLStoreObject
-	 */
-	public XMLStoreObject(String key,String version, Organization org)
-	{
+	public XMLStoreObject(String key,String version,  Organization org){
 		this.key = key;
 		this.version = version;
 		this.org = org;
 		this.xml = readXMLStoreObject(key, version);
+		this.system=org.getSystem();
+		//this.name=name;
+		this.name=null;
 	}
 	
-	/**
-	 *  Fetches the XML content of the XMLStoreObject from Cordys
-	 *  XMLStore using GetXMLObject service
-	 *  
-	 * @param key  Complete path to the XMLStoreObject
-	 * @param version Version of the XMLStoreObject
-	 * @return XML content
-	 */
-	public XmlNode readXMLStoreObject(String key, String version) 
-	{	
-		//Check if the key or version is null 
-		if(key==null || version==null)
-			throw new CaasRuntimeException("key or version of the XMLStoreObject is null. key:: "+key+" version:: "+version);
-		
-		key = key.trim();
-		version = version.trim();
-		//Check if the key or version is empty 
-		if(key.length()==0 || version.length()==0)
-			throw new CaasRuntimeException("key or version of the XMLStoreObject is empty. key:: "+key+" version:: "+version);
-		//Check for invalid version type
-		if(!versionList.contains(version))
-			throw new CaasRuntimeException("Invalid XMLStore version '"+version+"'. Please change it to either 'organization' or 'user'");
-		
-		XmlNode request = new XmlNode("GetXMLObject",xmlns_xmlstore);
+	public XmlNode readXMLStoreObject(String key, String version) {	
+		XmlNode request = new XmlNode(Constants.GET_XML_OBJECT,Constants.XMLNS_XMLSTORE);
 		request.add("key").setAttribute("version", version).setText(key);
-		XmlNode response = call(request);
-		return response.getChild("tuple/old");
+		XmlNode response = call(request);		
+		if(response.getChild("tuple/old")!=null)
+			return response.getChild("tuple/old").getChildren().get(0);
+		else 
+			return null;
 	}
-	
-	/**
-	 * Gets the XML content of the XMLStoreObject
-	 * 
-	 * @return XML content of the XMLStoreObject 
-	 */
-	public XmlNode getXML()
-	{	
-		return xml;
-	}
-	
-	public void appendXML(XmlNode node)
-	{
-		XmlNode request=new XmlNode("AppendXMLObject", xmlns_xmlstore);
+	public void appendXML(XmlNode node){
+		XmlNode request=new XmlNode(Constants.APPEND_XML_OBJECT, Constants.XMLNS_XMLSTORE);
 		XmlNode tuple=request.add("tuple");
 		tuple.setAttribute("key", key);
 		tuple.setAttribute("version", version);		
@@ -133,18 +83,8 @@ public class XMLStoreObject extends CordysObject{
 		this.xml = readXMLStoreObject(key, version);
 	}
 	
-	/**
-	 * Updates the XML content of the XMLStoreObject using UpdateXMLObject service
-	 * If 'update' flag is set to true, then the XML content is overwritten unconditionally
-	 * If 'update' flag is set to false and the XMLStore object is already existing in
-	 * Cordys XMLStore then exception is thrown
-	 * 
-	 * @param newXml - XML content to be updated
-	 * @param update - true/false
-	 */
-	public void overwriteXML(XmlNode newXml)
-	{
-		XmlNode request=new XmlNode("UpdateXMLObject", xmlns_xmlstore);
+	public void overwriteXML(XmlNode newXml){
+		XmlNode request=new XmlNode(Constants.UPDATE_XML_OBJECT, Constants.XMLNS_XMLSTORE);
 		XmlNode tuple=request.add("tuple");
 		tuple.setAttribute("key", key);
 		tuple.setAttribute("version", version);
@@ -157,22 +97,58 @@ public class XMLStoreObject extends CordysObject{
 		this.xml = newXml;
 	}
 	
-
-	/**
-	 * Executes the XMLStore web services. It specifies the organization name under which context
-	 * the web services will be executed
-	 * 
-	 * @param method Web service request XML
-	 * @return XmlNode representing the web service response
-	 */
-	public XmlNode call(XmlNode method) { 
-		return getSystem().call(method,org.getDn(),null); 
+	public XmlNode call(XmlNode request) { 	
+		HashMap<String, String> queryParams = new HashMap<String, String>();
+		queryParams.put("organization", org.getDn());
+		return getSystem().call(request, queryParams);			
 	}
 
-	//Initialize and load XMLStore versions
-	static{
-		 versionList = new ArrayList<String>();
-		 versionList.add("organization");
-		 versionList.add("user");
+	public static class List extends CordysObjectList<XMLStoreObject> {
+		private final Organization org;
+		public List(Organization org) { 
+			super(org.getSystem());
+			this.org=org;
+		}
+		
+		@Override protected void retrieveList() {
+			XmlNode method = new XmlNode(Constants.GET_COLLECTION, Constants.XMLNS_XMLSTORE);
+			XmlNode folderNode = method.add("folder");
+			folderNode.setAttribute("recursive", "true");
+			folderNode.setAttribute("detail", "false");
+			folderNode.setAttribute("version", "organization");
+			HashMap<String, String> queryParams = new HashMap<String, String>();
+			queryParams.put("timeout", "60000");
+			queryParams.put("organization", org.getDn());
+			XmlNode response=system.call(method,queryParams);
+			for (XmlNode tuple :response.getChildren("tuple")){	
+				//Ignore folders
+				if(Boolean.valueOf(tuple.getAttribute("isFolder")).booleanValue())
+					continue;
+				//Ignore WsApps runtime entries
+				if(tuple.getAttribute("name").endsWith(".cmx"))
+					continue;
+				//Ignore CAF files
+				if(tuple.getAttribute("name").endsWith(".caf"))
+					continue;				
+				XMLStoreObject obj=new XMLStoreObject(tuple.getAttribute("key"), tuple.getAttribute("level"), org);
+				grow(obj);
+			}
+		}
+		@Override public String getKey() { return "XMLStoreObjects:"+org.getKey(); }
+	};
+	
+	public XMLStoreObject(Organization org, XmlNode tuple) {
+		this.org=org;
+		this.system=org.getSystem();
+		this.name=null;
 	}
+
+	public void delete() {
+	/*	if ("isv".equals(modelSpace))
+			throw new RuntimeException("Can not delete isv processModel "+getVarName());
+		XmlNode  webService=new XmlNode("DeleteProcessModel", xmlns_coboc);
+		webService.add("processname").setText(name);
+		org.call(webService);*/
+	}	
+	
 }

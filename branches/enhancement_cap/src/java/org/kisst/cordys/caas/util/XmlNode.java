@@ -35,6 +35,7 @@ import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import org.jdom.xpath.XPath;
 
 public class XmlNode {
 	private final Element element;
@@ -72,6 +73,7 @@ public class XmlNode {
 		else
 			return attr.getValue(); 
 	}
+	
 	public XmlNode getChild(String path) { return (XmlNode) get(path); }
 	public XmlNode getParent() { return new XmlNode(element.getParentElement()); }
 	public Object  propertyMissing(String name) { return get(name); }
@@ -104,7 +106,6 @@ public class XmlNode {
 			result.add(new XmlNode((Element) o));
 		return result;
 	}
-	
 	public Object get(String path) {
 		String[] parts=path.split("/");
 		Element e=element;

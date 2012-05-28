@@ -20,6 +20,7 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 package org.kisst.cordys.caas.support;
 
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
 public class ChildList<T extends LdapObject> extends CordysObjectList<T>  {
@@ -49,7 +50,7 @@ public class ChildList<T extends LdapObject> extends CordysObjectList<T>  {
 
 	@SuppressWarnings("unchecked")
 	@Override protected void retrieveList() {
-		XmlNode method = new XmlNode("GetChildren", xmlns_ldap);
+		XmlNode method = new XmlNode(Constants.GET_CHILDREN, Constants.XMLNS_LDAP);
 		//method.add("dn").setText(prefix+((CordysLdapObject) parent).getDn());
 		String dn;
 		if (parent instanceof CordysSystem)

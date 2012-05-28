@@ -2,19 +2,23 @@ package org.kisst.cordys.caas.pm;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.Configuration;
 import org.kisst.cordys.caas.ConnectionPoint;
+import org.kisst.cordys.caas.Dso;
 import org.kisst.cordys.caas.Isvp;
 import org.kisst.cordys.caas.Machine;
-import org.kisst.cordys.caas.MethodSet;
+import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.Role;
-import org.kisst.cordys.caas.SoapNode;
-import org.kisst.cordys.caas.SoapProcessor;
+import org.kisst.cordys.caas.ServiceGroup;
+import org.kisst.cordys.caas.ServiceContainer;
 import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.XMLStoreObject;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.FileUtil;
@@ -29,14 +33,85 @@ public class Template {
 	
 	public Template(Organization org, String targetIsvpName) {
 		
+		System.out.println("Exporting template for "+org.getName()+" organization");
 		XmlNode result=new XmlNode("org");
 		//result.setAttribute("isvp", isvpName);
 		result.setAttribute("org", org.getName());
-		for (SoapNode sn : org.soapNodes) {
+
+		System.out.print("Exporting "+org.dsos.getSize()+" dso objects ... ");
+		for(Dso dso:org.dsos){
+			XmlNode node=result.add("dso");
+			node.setAttribute("name", dso.getName());
+			node.setAttribute("desc", dso.getProp("desc").toString());
+			node.setAttribute("type", "Relational");
+			XmlNode configNode = dso.config.getXml().clone();
+			node.add("datasourceconfiguration").add(configNode);
+		}
+		System.out.println("OK");
+		System.out.print("Exporting "+org.xmlStoreObjects.getSize()+" xmlstore objects ... ");
+		for(XMLStoreObject xso: org.xmlStoreObjects){
+			XmlNode node=result.add("xmlstoreobject");
+			node.setAttribute("key", xso.getKey());
+			node.setAttribute("version", xso.getVersion());
+			node.setAttribute("name", xso.getName());
+			//XmlNode temp = parameterize(xso,org.getSystem().getProperties());
+			//node.add(temp);
+			node.add(xso.getXml().clone());
+		}
+		System.out.println("OK");
+		System.out.print("Exporting "+org.roles.getSize()+" roles ... ");
+		for (Role role : org.roles) {
+			XmlNode node=result.add("role");
+			node.setAttribute("name", role.getName());
+			for (Role subRole: role.roles) {
+				String isvpName=null;
+				if (subRole.getParent() instanceof Organization) {
+					if (subRole.getName().equals("everyoneIn"+org.getName()))
+						continue;
+					isvpName=targetIsvpName;
+				}
+				else
+					isvpName=subRole.getParent().getName();
+				XmlNode child=node.add("role");
+				child.setAttribute("name", subRole.getName());
+				if (isvpName!=null)
+					child.setAttribute("isvp", isvpName);
+			}
+		}
+		System.out.println("OK");
+		System.out.print("Exporting "+org.users.getSize()+" users ... ");
+		for (User user : org.users) {
+			if ("SYSTEM".equals(user.getName().toUpperCase()))
+				continue; // SYSTEM user should not be part of the template
+			XmlNode node=result.add("user");
+			node.setAttribute("name", user.getName());
+			node.setAttribute("au", user.au.getRef().getName());
+			for (Role role: user.roles) {
+				String isvpName=null;
+				if (role.getParent() instanceof Organization) {
+					if (role.getName().equals("everyoneIn"+org.getName()))
+						continue;
+					isvpName=targetIsvpName;
+				}
+				else
+					isvpName=role.getParent().getName();
+				XmlNode child=node.add("role");
+				child.setAttribute("name", role.getName());
+				if (isvpName!=null)
+					child.setAttribute("isvp", isvpName);
+			}
+		}
+		System.out.println("OK");		
+		System.out.print("Exporting "+org.serviceGroups.getSize()+" service groups ... ");
+		for (ServiceGroup serviceGroup : org.serviceGroups) {
 			XmlNode node=result.add("soapnode");
-			node.setAttribute("name", sn.getName());
-			node.add("bussoapnodeconfiguration").add(sn.config.getXml().clone());
-			for (MethodSet ms: sn.methodSets) {
+			node.setAttribute("name", serviceGroup.getName());
+			XmlNode configNode = serviceGroup.config.getXml().clone();
+			XmlNode keyStoreNode = configNode.getChild("soapnode_keystore");
+			if(keyStoreNode!=null)
+				configNode.remove(keyStoreNode);
+			node.add("bussoapnodeconfiguration").add(configNode);
+			for (WebServiceInterface ms: serviceGroup.webServiceInterfaces) {
 				XmlNode child=node.add("ms");
 				child.setAttribute("name", ms.getName());
 				String isvpName=null;
@@ -47,62 +122,46 @@ public class Template {
 				if (isvpName!=null)
 					child.setAttribute("isvp", isvpName);
 			}
-			for (SoapProcessor sp: sn.soapProcessors) {
+			for (ServiceContainer serviceContainer: serviceGroup.serviceContainers) {
 				XmlNode child=node.add("sp");
-				child.setAttribute("name", sp.getName());
-				child.setAttribute("automatic", ""+sp.automatic.getBool());
-				child.add("bussoapprocessorconfiguration").add(sp.config.getXml().clone());
-				for (ConnectionPoint cp: sp.connectionPoints) {
+				child.setAttribute("name", serviceContainer.getName());
+				child.setAttribute("automatic", ""+serviceContainer.automatic.getBool());
+				child.add("bussoapprocessorconfiguration").add(serviceContainer.config.getXml().clone());
+				for (ConnectionPoint cp: serviceContainer.connectionPoints) {
 					XmlNode cpNode=child.add("cp");
 					cpNode.setAttribute("name", cp.getName());
 				}
 			}
 		}
-		for (User u : org.users) {
-			if ("SYSTEM".equals(u.getName().toUpperCase()))
-				continue; // SYSTEM user should not be part of the template
-			XmlNode node=result.add("user");
-			node.setAttribute("name", u.getName());
-			node.setAttribute("au", u.au.getRef().getName());
-			for (Role r: u.roles) {
-				String isvpName=null;
-				if (r.getParent() instanceof Organization) {
-					if (r.getName().equals("everyoneIn"+org.getName()))
-						continue;
-					isvpName=targetIsvpName;
-				}
-				else
-					isvpName=r.getParent().getName();
-				XmlNode child=node.add("role");
-				child.setAttribute("name", r.getName());
-				if (isvpName!=null)
-					child.setAttribute("isvp", isvpName);
-			}
-		}
-		for (Role rr : org.roles) {
-			XmlNode node=result.add("role");
-			node.setAttribute("name", rr.getName());
-			for (Role r: rr.roles) {
-				String isvpName=null;
-				if (r.getParent() instanceof Organization) {
-					if (r.getName().equals("everyoneIn"+org.getName()))
-						continue;
-					isvpName=targetIsvpName;
-				}
-				else
-					isvpName=r.getParent().getName();
-				XmlNode child=node.add("role");
-				child.setAttribute("name", r.getName());
-				if (isvpName!=null)
-					child.setAttribute("isvp", isvpName);
-			}
-		}
+		System.out.println("OK");
+		
 		String str=result.getPretty();
 		this.template=str.replace("$", "${dollar}");
 	}//End of Template constructor
 
-	public void save(String filename) { FileUtil.saveString(new File(filename), template);}
-
+	/*private XmlNode parameterize(XMLStoreObject xso, Properties props){
+		XmlNode node = xso.getXml().clone();
+		String name = xso.getName();
+		//Web services customizations
+		if(name.equals("webservicecustomization")){
+			List<XmlNode> configs = node.getChildren("accessconfiguration");
+			for(XmlNode config:configs){
+				String dn = config.getAttribute("methodsetdn");
+				if(dn==null) throw  new CaasRuntimeException("Invalid entry in webservicecustomization.xml file");
+				XmlNode urlNode = config.getChild("urlmappings/urlmapping/customizedurl");
+				if(urlNode!=null){
+					props.setProperty(dn.concat("#url").toUpperCase(), urlNode.getText());
+					urlNode.setText("${"+dn.concat("#url").toUpperCase()+"}");
+				}
+			}
+		}
+		return node;
+	}*/
+	
+	public void save(String filename) { 
+		FileUtil.saveString(new File(filename), template);
+		System.out.println("Template successfully exported to "+filename);
+	}
 
 	public XmlNode xml( Map<String, String> vars) {
 		String str=template;
@@ -115,15 +174,16 @@ public class Template {
 	public void apply(Organization org, Map<String, String> vars) {
 		XmlNode template=xml(vars);
 		for (XmlNode node : template.getChildren()){
-			if ((node.getName().equals("soapnode"))|| (node.getName().equals("servicegroup")))
-				processSoapNode(org, node);
-			else if (node.getName().equals("user"))
-				processUser(org, node);
-			else if (node.getName().equals("role"))
-				processRole(org, node);
-			//Check if the template has XMLStore content in it
+			if (node.getName().equals("dso"))
+				processDso(org, node);
 			else if (node.getName().equals("xmlstoreobject"))
 				processXMLStoreObject(org, node);
+			else if (node.getName().equals("role"))
+				processRole(org, node);			
+			else if (node.getName().equals("user"))
+				processUser(org, node);
+			else if ((node.getName().equals("soapnode"))|| (node.getName().equals("servicegroup")))
+				processServiceGroup(org, node);
 			else
 				System.out.println("Unknown organization element "+node.getPretty());
 		}
@@ -138,169 +198,117 @@ public class Template {
 	private void processXMLStoreObject(Organization org, XmlNode node) {
 			String operationFlag = node.getAttribute("operation");
 			String key = node.getAttribute("key");
-			String version = node.getAttribute("version");		
+			String version = node.getAttribute("version");
+			String name = node.getAttribute("name");
+			env.info("Processing "+name+" xmlstore object");
 			XmlNode newXml = node.getChildren().get(0);
 			XMLStoreObject obj = new XMLStoreObject(key,version,org);
-			if(operationFlag.equals("overwrite"))
+			if(operationFlag!=null && operationFlag.equals("overwrite"))
 				obj.overwriteXML(newXml.clone());
-			else if(operationFlag.equals("append"))
+			else if(operationFlag!=null && operationFlag.equals("append"))
 				obj.appendXML(newXml.clone());
+			//By default overwrite the XMStore object
+			else
+				obj.overwriteXML(newXml.clone());
+			env.info("Processing "+name+" xmlstore object is completed");
 	}
 	
-	/**
-	 * This method creates/updates the Service Group and the Service Containers
-	 * in both Stand alone and Clustered installation. 'update' flag must be set to true 
-	 * on the <soapnode> element to update the SG. Updates the methodsets and namespace all at once. 
-	 *    
-	 * @param org Organization object
-	 * @param node Reference to <soapnode> element
-	 */
-	private void processSoapNode(Organization org, XmlNode node) 
-	{			
-		//Read the SG name from the configuration
-		String name=node.getAttribute("name");
-		//Check if the SG is already existing by comparing its name
-		SoapNode sn=org.soapNodes.getByName(name);
-		//Create a new SG if it's not existing
-		if (sn==null) 
-		{
-				env.info("creating soapnode "+name);
-				XmlNode config=node.getChild("bussoapnodeconfiguration").getChildren().get(0).clone();
-				org.createSoapNode(name, config, getMs(org,node));
-				sn=org.soapNodes.getByName(name);
-		}
-		//Update the existing SG with new configuration
-		else 
-		{
-				//Check the 'update' flag in the configuration 
-				String updateFlag = node.getAttribute("update");
-				if ((updateFlag==null) || (updateFlag.equalsIgnoreCase("false")))
-				{
-					env.error("Skipping updating service group '"+name+"'.Set 'update' attribute to true to overwrite");
-					return;
-				}
-				//Update the method sets of the SG
-				env.info("updating methodsets of soapnode "+name);
-				MethodSet[] newMethodSets = getMs(org,node);
-				if ((newMethodSets!=null)&&(newMethodSets.length > 0))
-				{
-					sn.ms.update(newMethodSets);
-					ArrayList<String> namepsaces = new ArrayList<String>();
-					for (MethodSet methodSet : newMethodSets) {				
-						for (String ns : methodSet.namespaces.get()) {
-							namepsaces.add(ns);
-						}
-					}			
-					sn.namespaces.update(namepsaces);	
-				}
-		}
-		//Proceed with the SC creation or updation
-		for (XmlNode child:node.getChildren()) 
-		{
-			//TODO: Need to add another condition to check for the 'wsi' string to keep it align with BOP-4 terminology
-			if ((child.getName().equals("ms")))
-				continue;
-			else if ((child.getName().equals("sp"))||(child.getName().equals("sc"))) 
-			{				
-				//Get the machine objects
-				CordysObjectList<Machine> machines = org.getSystem().machines;	
-				//Check if it is Cordys clustered installation
-				boolean isClustered = machines.getSize()>1;
-				//Iterate over the machines objects
-				for(int i=0;i<machines.getSize();i++)
-				{		
-					//Read the SC name
-					String spname=child.getAttribute("name");
-					//Read the machine name
-					String machineName = machines.get(i).getName();
-					//Read the Cordys installation directory path
-					String cordysInstallDir = machines.get(i).getCordysInstallDir(); 		
-					//If the SC is of type BPM then set its notificationService to System organization's Notification service container
-					XmlNode configsNode = child.getChild("bussoapprocessorconfiguration/configurations");
-					XmlNode configNode = configsNode.getChild("configuration");
-					if(configNode!=null && configNode.getAttribute("implementation").equals("com.cordys.bpm.service.BPMApplicationConnector")){
-						for(XmlNode aNode: configNode.getChildren()){
-							String attrVal = aNode.getAttribute("name");
-							if(attrVal!=null &&	attrVal.equalsIgnoreCase("Business Process Engine")){								
-								XmlNode request = new XmlNode("GetSoapNodes",CordysObject.xmlns_ldap);
-								request.add("dn").setText("o=system,"+org.getSystem().getDn());
-								request.add("namespace").setText(CordysObject.xmlns_notification);
-								request.add("sort").setText("ascending");
-								XmlNode response = org.getSystem().call(request);
-								if(response.getChild("tuple/old/entry")!=null)
-									aNode.getChild("notificationService").setText(response.getChild("tuple/old/entry").getAttribute("dn"));	
-							}
-						}
-					}
-					//Replace the CORDYS_INSTALL_DIR with its corresponding value
-					resolveCordysInstallDir(configsNode, cordysInstallDir);
-					/*
-					 * NOTE: 
-					 * It is assumed that the following naming convention is followed for SC
-					 * Stand alone - SC Name - RMG BPM SC 
-					 * Clustered - SC Name_machineName - RMG BPM SC_dev-int-cordys (and) RMG BPM SC_dev-int-aux
-					 * So while extracting the template, using 'template' command, DO NOT include the machine name
-					 * in the .caaspm file
-					 */
-					//Construct the SC name as per the above naming convention, in case of clustered installation
-					if(isClustered)
-						spname = spname.concat("_").concat(machineName);				
-					//Check if the SC is already existing by comparing its name  
-					SoapProcessor sp = sn.soapProcessors.getByName(spname);
-					//Update the existing SC with new configuration
-					if (sp!=null) 
-					{
-						env.info("updating existing soap processor '"+spname+"' for machine '"+machineName+"'");
-						boolean automatic="true".equals(child.getAttribute("automatic"));						
-						sn.updateSoapProcessor(spname, machineName, automatic, configsNode.clone(),sp);
-						continue;
-					}
-					//Create a new SC
-					else				 
-					{
-						env.info("creating soap processor "+spname+"' for machine '"+machineName+"'");
-						boolean automatic="true".equals(child.getAttribute("automatic"));						
-						sn.createSoapProcessor(spname, machineName, automatic, configsNode.clone());
-						for (XmlNode subchild:child.getChildren()) {
-							if (subchild.getName().equals("cp")) {
-								SoapProcessor newSP=sn.sp.getByName(spname);
-								newSP.createConnectionPoint(subchild.getAttribute("name"),machineName);
-							}	
-						}
-					}
-				}//end of for loop
-			}
-			else if (child.getName().equals("bussoapnodeconfiguration")) {}
-			else
-				System.out.println("Unknown soapnode subelement "+child.getPretty());
+	private void processDso(Organization org, XmlNode dsoNode){
+		String name = dsoNode.getAttribute("name");
+		String desc = dsoNode.getAttribute("desc");
+		String type = dsoNode.getAttribute("type");
+		Dso dso = org.dsos.getByName(name);
+		XmlNode config=dsoNode.getChild("datasourceconfiguration").getChildren().get(0).clone();		
+		if(dso==null){		//Create DSO
+			env.info("creating dso "+name);
+			org.createDso(name, desc, type,config);
+			env.info("dso "+name+" created successfully");
+		}else{				//Update DSO
+			env.info("updating dso "+name);
+			org.updateDso(dso, config);
+			env.info("dso "+name+" updated successfully");
 		}
 	}
 
-	private MethodSet[] getMs(Organization org, XmlNode node) {
-		ArrayList<MethodSet> result=new ArrayList<MethodSet>();
-		for (XmlNode child:node.getChildren()) {
-			//TODO: Need to add another condition to check for the 'wsi' string to keep it align with BOP-4 terminology
+	private void processServiceGroup(Organization org, XmlNode serviceGroupNode) 
+	{	
+		//Process SG
+		String name=serviceGroupNode.getAttribute("name");
+		ServiceGroup serviceGroup=org.serviceGroups.getByName(name);
+		if (serviceGroup==null){	//Create SG
+				env.info("creating servicegroup "+name);
+				XmlNode config=serviceGroupNode.getChild("bussoapnodeconfiguration").getChildren().get(0).clone();
+				org.createServiceGroup(name, config, getWebServiceInterfaces(org,serviceGroupNode));
+				serviceGroup=org.serviceGroups.getByName(name);
+				env.info("servicegroup "+name+" created successfully");
+		}else{						//Update SG
+				env.info("updating servicegroup "+name);
+				WebServiceInterface[] newWebServiceInterfaces = getWebServiceInterfaces(org,serviceGroupNode);
+				if ((newWebServiceInterfaces!=null)&&(newWebServiceInterfaces.length > 0))
+				{
+					serviceGroup.webServiceInterfaces.update(newWebServiceInterfaces);
+					ArrayList<String> namepsaces = new ArrayList<String>();
+					for (WebServiceInterface webServiceInterface : newWebServiceInterfaces) {				
+						for (String namespace : webServiceInterface.namespaces.get()) {
+							namepsaces.add(namespace);
+						}
+					}			
+					serviceGroup.namespaces.update(namepsaces);
+					env.info("servicegroup "+name+" updated successfully");
+				}
+		}
+		//Process SCs
+		CordysObjectList<Machine> machines = org.getSystem().machines; 		int i=0;
+		if(serviceGroupNode.getChildren("sp").size()!=machines.getSize()){
+			env.warn("Template says "+serviceGroupNode.getChildren("sp").size()+" servicecontainers for "+name+" but the no of machines are "+org.getSystem().machines.getSize());
+		}
+		for (XmlNode serviceContainerNode:serviceGroupNode.getChildren("sp")){			
+					String scName=serviceContainerNode.getAttribute("name");
+					String machineName = machines.get(i++).getName();
+					XmlNode configsNode = serviceContainerNode.getChild("bussoapprocessorconfiguration/configurations");
+					ServiceContainer serviceContainer = serviceGroup.serviceContainers.getByName(scName);
+					if (serviceContainer==null) {	//Create SC
+						env.info("creating servicecontainer "+scName+"' for machine '"+machineName+"'");
+						boolean automatic="true".equals(serviceContainerNode.getAttribute("automatic"));						
+						serviceGroup.createServiceContainer(scName, machineName, automatic, configsNode.clone());
+						for (XmlNode subchild:serviceContainerNode.getChildren()) {
+							if (subchild.getName().equals("cp")) {
+								ServiceContainer newSC=serviceGroup.serviceContainers.getByName(scName);
+								newSC.createConnectionPoint(subchild.getAttribute("name"),machineName);
+							}	
+						}						
+					}else{							//Update SC
+						env.info("updating servicecontainer '"+scName+"' for machine '"+machineName+"'");
+						boolean automatic="true".equals(serviceContainerNode.getAttribute("automatic"));						
+						serviceGroup.updateServiceContainer(scName, machineName, automatic, configsNode.clone(),serviceContainer);
+					}
+		}
+	}
+
+	private WebServiceInterface[] getWebServiceInterfaces(Organization org, XmlNode serviceGroupNode) {
+		ArrayList<WebServiceInterface> result=new ArrayList<WebServiceInterface>();
+		for (XmlNode child:serviceGroupNode.getChildren()) {
 			if ((child.getName().equals("ms")) ) {
-				MethodSet newms=null;
+				WebServiceInterface newWSI=null;
 				String isvpName=child.getAttribute("isvp");
-				String msName=child.getAttribute("name");
+				String wsiName=child.getAttribute("name");
 				if (isvpName==null) {
-					newms=org.methodSets.getByName(msName);
+					newWSI=org.webServiceInterfaces.getByName(wsiName);
 				}
 				else {
 					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
-						newms=isvp.methodSets.getByName(msName);
+						newWSI=isvp.webServiceInterfaces.getByName(wsiName);
 				}
-				if (newms!=null) {
-					result.add(newms);
+				if (newWSI!=null) {
+					result.add(newWSI);
 				}
 				else {
-					env.error("Skipping unknownn methodset "+msName);
+					env.error("Skipping unknownn methodset "+wsiName);
 				}
 			}
 		}
-		return result.toArray(new MethodSet[result.size()]);
+		return result.toArray(new WebServiceInterface[result.size()]);
 	}
 	private void processUser(Organization org, XmlNode node) 
 	{
@@ -312,40 +320,35 @@ public class Template {
 			env.error("Ignoring user "+name+" because the SYSTEM user should not be modified from a template");
 			return;
 		}
-		//Check if the user is already existing. Create the user if not existing
-		if (org.users.getByName(name)==null) {
-			//Find if an authenticated user is already existing for the given user 
-			AuthenticatedUser au=org.getSystem().authenticatedUsers.getByName(node.getAttribute("au"));
+		if (org.users.getByName(name)==null) {	//Create User 
+			AuthenticatedUser authUser=org.getSystem().authenticatedUsers.getByName(node.getAttribute("au"));
 			env.info("creating user '"+name+"'");
-			//Create an authenticated user if not existing and organizational user
-			org.createUser(name, au);
+			org.createUser(name, authUser);	//Create Org User
 		}
 		else
 			env.info("User '"+name+"' is already existing. Configuring user with roles");
-		User u=org.users.getByName(name);
-		//Configure roles for the user
+
+		//Assigning roles
+		User user=org.users.getByName(name);
 		ArrayList<String> newRoles = new ArrayList<String>();
 		for (XmlNode child:node.getChildren()) {
 			if (child.getName().equals("role")) {
-				Role r=null;
+				Role role=null;
 				String isvpName=child.getAttribute("isvp");
 				String roleName=child.getAttribute("name");
-				env.info("Adding role '"+roleName+"' to the user '"+u.getName()+"'");
-				//Assign organizational role if the isvp name is not mentioned
+				env.info("Adding role '"+roleName+"' to the user '"+user.getName()+"'");
 				String dnRole=null;
-				if (isvpName==null) {
-					r=org.roles.getByName(roleName);
+				if (isvpName==null) {	//Assign organizational role if the isvp name is not mentioned
+					role=org.roles.getByName(roleName);
 					dnRole="cn="+roleName+",cn=organizational roles,"+org.getDn();
-				}
-				//Assign ISVP role
-				else {
+				}else {					//Assign ISVP role
 					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
-						r=isvp.roles.getByName(roleName);
+						role=isvp.roles.getByName(roleName);
 					dnRole="cn="+roleName+",cn="+isvpName+","+org.getSystem().getDn(); 
 				}
-				if (r!=null)
-					newRoles.add(r.getDn());
+				if (role!=null)
+					newRoles.add(role.getDn());
 				else
 					newRoles.add(dnRole);
 			}
@@ -354,7 +357,7 @@ public class Template {
 		}
 		//Assign all the roles to the user at once
 		if(newRoles!=null && newRoles.size()>0)
-			u.roles.add(newRoles.toArray(new String[newRoles.size()]));
+			user.roles.add(newRoles.toArray(new String[newRoles.size()]));
 	}
 	
 		
@@ -366,30 +369,30 @@ public class Template {
 		}
 		else
 			env.info("configuring role "+name);
-		Role rr=org.roles.getByName(name);
+		Role role=org.roles.getByName(name);
 		for (XmlNode child:node.getChildren()) {
 			if (child.getName().equals("role")) {
-				Role r=null;
+				Role subRole=null;
 				String isvpName=child.getAttribute("isvp");
 				String roleName=child.getAttribute("name");
 				env.info("  adding role "+roleName);
 
 				String dnRole=null;
 				if (isvpName==null) {
-					r=org.roles.getByName(roleName);
+					subRole=org.roles.getByName(roleName);
 					dnRole="cn="+roleName+",cn=organizational roles,"+org.getDn();
 				}
 				else {
 					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
-						r=isvp.roles.getByName(roleName);
+						subRole=isvp.roles.getByName(roleName);
 					else
 						dnRole="cn="+roleName+",cn="+isvpName+","+org.getSystem().getDn();
 				}
-				if (r!=null)
-					rr.roles.add(r);
+				if (subRole!=null)
+					role.roles.add(subRole);
 				else
-					rr.roles.add(dnRole);
+					role.roles.add(dnRole);
 			}
 			else
 				System.out.println("Unknown role subelement "+child.getPretty());
@@ -430,7 +433,7 @@ public class Template {
 		XmlNode template=xml(vars);
 		for (XmlNode node : template.getChildren()){
 			if (node.getName().equals("soapnode"))
-				checkSoapNode(org, node);
+				checkServiceGroup(org, node);
 			else if (node.getName().equals("user"))
 				checkUser(org, node);
 			else if (node.getName().equals("role"))
@@ -440,43 +443,43 @@ public class Template {
 		}
 	}
 
-	private void checkSoapNode(Organization org, XmlNode node) {
+	private void checkServiceGroup(Organization org, XmlNode node) {
 		String name=node.getAttribute("name");
-		SoapNode sn=org.soapNodes.getByName(name);
-		if (sn==null) {
-			env.error("missing soapnode "+name);
+		ServiceGroup serviceGroup=org.serviceGroups.getByName(name);
+		if (serviceGroup==null) {
+			env.error("Missing ServiceGroup "+name);
 			return;
 		}
-		env.info("checking configuration of soapnode "+name);
-		MethodSet[] target = getMs(org,node);
-		for (MethodSet ms : target){
-			if (! sn.methodSets.contains(ms))
-				env.error("SoapNode "+sn+" does not contain method set "+ms);
+		env.info("Checking configuration of ServiceGroup "+name);
+		WebServiceInterface[] target = getWebServiceInterfaces(org,node);
+		for (WebServiceInterface wsi : target){
+			if (! serviceGroup.webServiceInterfaces.contains(wsi))
+				env.error("ServiceGroup "+serviceGroup+" does not contain WebServiceInterface "+wsi);
 		}
-		for (MethodSet ms : sn.methodSets){
+		for (WebServiceInterface wsi : serviceGroup.webServiceInterfaces){
 			boolean found=false;
-			for (MethodSet ms2: target) {
-				if (ms.getDn().equals(ms2.getDn())) 
+			for (WebServiceInterface wsi2: target) {
+				if (wsi.getDn().equals(wsi2.getDn())) 
 					found=true;
 			}
-			if (! found)
-				env.error("SoapNode "+sn+" contains method set "+ms+" that is not in template");
+			if (!found)
+				env.error("ServiceGroup "+serviceGroup+" contains WebServiceInterface "+wsi+" that is not in template");
 		}
 		for (XmlNode child:node.getChildren()) {
 			if (child.getName().equals("ms"))
 				continue;
 			else if (child.getName().equals("sp")) {
-				String spname=child.getAttribute("name");
-				SoapProcessor sp = sn.soapProcessors.getByName(spname);
-				if (sp==null) {
-					env.error("  missing soap processor "+spname);
+				String scName=child.getAttribute("name");
+				ServiceContainer serviceContainer = serviceGroup.serviceContainers.getByName(scName);
+				if (serviceContainer==null) {
+					env.error("Missing ServiceContainer "+scName);
 					continue;
 				}
 				boolean automatic="true".equals(child.getAttribute("automatic"));
-				if (sp.automatic.getBool() != automatic)
-					env.error("  "+sp+" property automatic, template says "+automatic+" while current value is "+sp.automatic.get());
+				if (serviceContainer.automatic.getBool() != automatic)
+					env.error("  "+serviceContainer+" property automatic, template says "+automatic+" while current value is "+serviceContainer.automatic.get());
 				XmlNode config=child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
-				XmlNode configsp=sp.config.getXml();
+				XmlNode configsp=serviceContainer.config.getXml();
 				for (String msg: config.diff(configsp)) 
 					env.error(msg);
 			}
@@ -488,34 +491,33 @@ public class Template {
 
 	private void checkUser(Organization org, XmlNode node) {
 		String name=node.getAttribute("name");
-		User u=org.users.getByName(name);
-		if (u==null) {
-			env.info("unknown user "+name);
+		User user=org.users.getByName(name);
+		if (user==null) {
+			env.info("Unknown user "+name);
 			return;
 		}
-		env.info("checking roles of user "+name);
+		env.info("Checking roles of user "+name);
 		for (XmlNode child:node.getChildren()) {
 			if (child.getName().equals("role")) {
-				Role r=null;
+				Role role=null;
 				String isvpName=child.getAttribute("isvp");
 				String roleName=child.getAttribute("name");
-				env.info("  checking role "+roleName);
+				env.info("Checking role "+roleName);
 				String dnRole=null;
 				if (isvpName==null) {
-					r=org.roles.getByName(roleName);
+					role=org.roles.getByName(roleName);
 					dnRole="cn="+roleName+",cn=organizational roles,"+org.getDn();
-				}
-				else {
+				}else{
 					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
-						r=isvp.roles.getByName(roleName);
+						role=isvp.roles.getByName(roleName);
 					else
 						dnRole="cn="+roleName+",cn="+isvpName+","+org.getSystem().getDn();
 				}
-				if (r==null)
-					env.error("User "+u+" should have unknown role "+dnRole);
-				else if (! u.roles.contains(r))
-					env.error("User "+u+" does not have role "+r);
+				if (role==null)
+					env.error("User "+user+" should have unknown role "+dnRole);
+				else if (! user.roles.contains(role))
+					env.error("User "+user+" does not have role "+role);
 			}
 			else
 				env.error("Unknown user subelement "+child.getPretty());
@@ -524,35 +526,35 @@ public class Template {
 
 	private void checkRole(Organization org, XmlNode node) {
 		String name=node.getAttribute("name");
-		Role rr=org.roles.getByName(name);
-		if (rr==null) {
+		Role role=org.roles.getByName(name);
+		if (role==null) {
 			env.info("Unknowm role "+name);
 			return;
 		}
-		env.info("checking roles of role "+name);
+		env.info("Checking roles of role "+name);
 		for (XmlNode child:node.getChildren()) {
 			if (child.getName().equals("role")) {
-				Role r=null;
+				Role subRole=null;
 				String isvpName=child.getAttribute("isvp");
 				String roleName=child.getAttribute("name");
 				env.info("  adding role "+roleName);
 
 				String dnRole=null;
 				if (isvpName==null) {
-					r=org.roles.getByName(roleName);
+					subRole=org.roles.getByName(roleName);
 					dnRole="cn="+roleName+",cn=organizational roles,"+org.getDn();
 				}
 				else {
 					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
-						r=isvp.roles.getByName(roleName);
+						subRole=isvp.roles.getByName(roleName);
 					else
 						dnRole="cn="+roleName+",cn="+isvpName+","+org.getSystem().getDn();
 				}
-				if (r==null)
-					env.error("Role "+rr+" should have unknown role "+dnRole);
-				else if (! rr.roles.contains(r))
-					env.error("Role "+rr+" does not have role "+r);
+				if (subRole==null)
+					env.error("Role "+role+" should have unknown role "+dnRole);
+				else if (! role.roles.contains(subRole))
+					env.error("Role "+role+" does not have role "+subRole);
 			}
 			else
 				env.error("Unknown role subelement "+child.getPretty());
@@ -561,7 +563,7 @@ public class Template {
 	
 	//NOTE: Please suggest a better way of doing it
 	/**
-	 * This method replaces the string 'CORDYS_INSTALL_DIR' from the classpath <param> node in <jreconfig>
+	 * This webService replaces the string 'CORDYS_INSTALL_DIR' from the classpath <param> node in <jreconfig>
 					<jreconfig>
                         <param value="-cp ${CORDYS_INSTALL_DIR}\Immediate\immediate.jar" />
                     </jreconfig>
