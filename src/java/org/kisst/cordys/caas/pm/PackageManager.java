@@ -21,5 +21,5 @@ package org.kisst.cordys.caas.pm;
 
 
 public class PackageManager {
-	public CaasPackage p(String filename) { return new CaasPackage(filename); }
+	public CaasPackage getCaasPackage(String filename) { return new CaasPackage(filename); }
 }

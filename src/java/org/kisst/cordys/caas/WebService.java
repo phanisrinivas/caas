@@ -22,16 +22,16 @@ package org.kisst.cordys.caas;
 import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.support.LdapObject;
 
-public class Method extends LdapObjectBase {
+public class WebService extends LdapObjectBase {
 	public final XmlProperty implementation = new XmlProperty("busmethodimplementation");
-	public final XmlProperty impl           = implementation;
-	public final XmlProperty signature      = new XmlProperty("busmethodsignature");
-	public final XmlProperty sig            = signature;
-	public final XmlProperty wsdl           = new XmlProperty("busmethodwsdl");
-	public final XmlProperty iface          = new XmlProperty("busmethodinterface");
+	public final XmlProperty impl = implementation;
+	public final XmlProperty signature = new XmlProperty("busmethodsignature");
+	public final XmlProperty sig = signature;
+	public final XmlProperty wsdl = new XmlProperty("busmethodwsdl");
+	public final XmlProperty iface = new XmlProperty("busmethodinterface");
 	
-	protected Method(LdapObject parent, String dn) {
+	protected WebService(LdapObject parent, String dn) {
 		super(parent, dn);
 	}
-	@Override protected String prefix() { return "methods"; }
+	@Override protected String prefix() { return "webservice"; }
 }

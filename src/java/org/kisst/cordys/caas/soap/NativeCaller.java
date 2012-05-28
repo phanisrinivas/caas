@@ -27,8 +27,12 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.util.HashMap;
 
+import org.apache.commons.httpclient.util.URIUtil;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
+import org.kisst.cordys.caas.util.StringUtil;
 
 public class NativeCaller extends BaseCaller {
 	private static class MyAuthenticator extends Authenticator {
@@ -61,13 +65,23 @@ public class NativeCaller extends BaseCaller {
 
 	public NativeCaller(String name) { super(name); }
 
-	@Override public String httpCall(String urlstr, String input) {
+	
+	@Override public String httpCall(String baseGatewayUrl, String input, HashMap<String, String> queryStringMap) {
 		try {
-			URL url=new URL(urlstr);
+
+			String completeGatewayUrl;
+			if(queryStringMap!=null && queryStringMap.size()>0)
+			{
+				completeGatewayUrl = baseGatewayUrl+"?"+StringUtil.mapToString(queryStringMap);
+			}
+			else
+			{
+				completeGatewayUrl = baseGatewayUrl;
+			}
+			URL url=new URL(URIUtil.encodeQuery(completeGatewayUrl));
 			HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-
+			
 			byte[] b = input.getBytes();
-
 			httpConn.setRequestProperty("Content-Length", ""+b.length);
 			httpConn.setRequestProperty("Content-Type","text/xml; charset=utf-8");
 			//httpConn.setRequestProperty("SOAPAction",SOAPAction);
@@ -76,7 +90,7 @@ public class NativeCaller extends BaseCaller {
 			httpConn.setDoInput(true);
 
 			// Dangerous in multithreaded environments
-			myAuthenticator.setCredentials(username, password);
+			myAuthenticator.setCredentials(userName, password);
 			
 			OutputStream out = httpConn.getOutputStream();
 			out.write( b );    
@@ -92,6 +106,6 @@ public class NativeCaller extends BaseCaller {
 			in.close();
 			return result.toString();
 		}
-		catch (IOException e) { throw new RuntimeException(e); }
+		catch (Exception e) { e.printStackTrace(); throw new CaasRuntimeException(e); }
 	}
 }

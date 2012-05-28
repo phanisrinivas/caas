@@ -110,4 +110,16 @@ public class DummyCaller implements SoapCaller {
 		return result;
 	}
 	public String getName() { return dump.getAttribute("name"); }
+
+	@Override
+	public String call(String input, HashMap<String, String> map) {
+		// TODO Auto-generated webService stub
+		return null;
+	}
+
+	@Override
+	public XmlNode call(XmlNode method, HashMap<String, String> map) {
+		// TODO Auto-generated webService stub
+		return null;
+	}
 }

@@ -22,6 +22,7 @@ package org.kisst.cordys.caas;
 import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
 public class Isvp extends LdapObjectBase {
@@ -33,8 +34,8 @@ public class Isvp extends LdapObjectBase {
 	public final ChildList<Role> role= roles;
 	public final ChildList<Role> r   = roles;
 
-	public final ChildList<MethodSet> methodSets= new ChildList<MethodSet>(this, MethodSet.class);
-	public final ChildList<MethodSet> ms = methodSets;
+	public final ChildList<WebServiceInterface> webServiceInterfaces= new ChildList<WebServiceInterface>(this, WebServiceInterface.class);
+	public final ChildList<WebServiceInterface> wsi = webServiceInterfaces;
 
 	public final StringProperty filename = new StringProperty("member", 3);
 	public final StringProperty owner = new StringProperty("owner", 3);
@@ -60,10 +61,11 @@ public class Isvp extends LdapObjectBase {
 		return result;
 	}
 		
-	public void unload(boolean deletereferences) {
-		for (Machine m: getSystem().machines)
+	public void unload(boolean deleteReferences) {
+		for (Machine machine: getSystem().machines){
 			// TODO: check if machine has the ISVP loaded
-			m.unloadIsvp(this, deletereferences);
+			machine.unloadIsvp(this, deleteReferences);
+		}
 		getSystem().removeLdap(getDn());
 		getSystem().isvp.clear();
 	}
@@ -71,12 +73,12 @@ public class Isvp extends LdapObjectBase {
 	public XmlNode getDefinition() {
 		if (definition!=null)
 			return definition;
-		XmlNode method = new XmlNode("GetISVPackageDefinition", xmlns_isv);
-		XmlNode file=method.add("file");
+		XmlNode request = new XmlNode(Constants.GET_ISVP_DEFINITION, Constants.XMLNS_ISV);
+		XmlNode file=request.add("file");
 		file.setText(getBasename());
 		file.setAttribute("type", "isvpackage");
 		file.setAttribute("onlyxml", "true");
-		definition=call(method).getChild("ISVPackage").detach();
+		definition=call(request).getChild("ISVPackage").detach();
 		return definition;
 	}
 	
@@ -88,5 +90,6 @@ public class Isvp extends LdapObjectBase {
 	public String getWcpversion() { return getDescription().getChildText("wcpversion"); }
 	public String getEula() { return getDescription().getChildText("eula"); }
 	public String getSidebar() { return getDescription().getChildText("sidebar"); }
+	public String getBuildnumber() { return getDescription().getChildText("build"); }
 			
 }

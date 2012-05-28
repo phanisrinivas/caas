@@ -20,6 +20,7 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 package org.kisst.cordys.caas.soap;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
@@ -29,7 +30,9 @@ import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.kisst.cordys.caas.main.Environment;
+import org.kisst.cordys.caas.util.StringUtil;
 
 public class HttpClientCaller extends BaseCaller {
 	private final HttpClient client = new HttpClient();
@@ -42,27 +45,41 @@ public class HttpClientCaller extends BaseCaller {
 		ntlmhost   = Environment.get().getProp("system."+name+".gateway.ntlmhost", null);
 		ntlmdomain = Environment.get().getProp("system."+name+".gateway.ntlmdomain", null);
 		if (ntlmdomain==null)
-			client.getState().setCredentials(AuthScope.ANY,	new UsernamePasswordCredentials(username, password));
+			client.getState().setCredentials(AuthScope.ANY,	new UsernamePasswordCredentials(userName, password));
 		else
-			client.getState().setCredentials(AuthScope.ANY,	new NTCredentials(username, password, ntlmhost, ntlmdomain));
+			client.getState().setCredentials(AuthScope.ANY,	new NTCredentials(userName, password, ntlmhost, ntlmdomain));
 
 	}
 
-	@Override public String httpCall(String url, String input) {
-		//System.out.println(url);	
-		PostMethod method=new PostMethod(url);
-		method.setDoAuthentication(true);
+	@Override public String httpCall(String baseGatewayUrl, String input, HashMap<String, String> queryStringMap) 
+	{
 		int statusCode;
 		String response;
+		PostMethod method=new PostMethod(baseGatewayUrl);
 		try {
+			method.setDoAuthentication(true);			
+			
+			if(queryStringMap!=null && queryStringMap.size()>0)
+			{
+				method.setQueryString(URIUtil.encodeQuery(StringUtil.mapToString(queryStringMap)));
+			}
+			
 			method.setRequestEntity(new StringRequestEntity(input, "text/xml", "UTF-8"));
+			if (this.proxyPort!=null)
+			{
+				client.getHostConfiguration().setProxy(proxyHost, Integer.parseInt(proxyPort));
+				if (this.proxyUser!=null)
+				{
+					client.getState().setProxyCredentials(new AuthScope(proxyHost, Integer.parseInt(proxyPort)), new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
+				}
+			}
 			statusCode = client.executeMethod(method);
 			response=method.getResponseBodyAsString();
 		}
 		catch (HttpException e) { throw new RuntimeException(e);}
 		catch (IOException e) { throw new RuntimeException(e);}
 		if (statusCode != HttpStatus.SC_OK) {
-			throw new RuntimeException("Method failed: " + method.getStatusLine()+"\n"+response);
+			throw new RuntimeException("WebService failed: " + method.getStatusLine()+"\n"+response);
 		}
 		return response;
 	}

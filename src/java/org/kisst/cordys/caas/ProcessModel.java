@@ -2,6 +2,7 @@ package org.kisst.cordys.caas;
 
 import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.support.CordysObjectList;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -19,11 +20,11 @@ public class ProcessModel extends CordysObject {
 		}
 		
 		@Override protected void retrieveList() {
-			XmlNode  method=new XmlNode("GetAllProcessModels", xmlns_coboc);
-			XmlNode response = org.call(method);
+			XmlNode  request=new XmlNode(Constants.GET_ALL_PROCESS_MODELS, Constants.XMLNS_COBOC);
+			XmlNode response = org.call(request);
 			for (XmlNode tuple :response.getChild("data").getChildren("tuple")) {
-				ProcessModel p=new ProcessModel(org, tuple);
-				grow(p);
+				ProcessModel processModel=new ProcessModel(org, tuple);
+				grow(processModel);
 			}
 		}
 		@Override public String getKey() { return "processModels:"+org.getKey(); }
@@ -44,8 +45,8 @@ public class ProcessModel extends CordysObject {
 	public void delete() {
 		if ("isv".equals(modelSpace))
 			throw new RuntimeException("Can not delete isv processModel "+getVarName());
-		XmlNode  method=new XmlNode("DeleteProcessModel", xmlns_coboc);
-		method.add("processname").setText(name);
-		org.call(method);
+		XmlNode  request=new XmlNode(Constants.DELETE_PROCESS_MODEL, Constants.XMLNS_COBOC);
+		request.add("processname").setText(name);
+		org.call(request);
 	}
 }

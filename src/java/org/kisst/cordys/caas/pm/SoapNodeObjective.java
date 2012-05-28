@@ -24,14 +24,14 @@ import org.kisst.cordys.caas.support.EntryObjectList;
 import org.kisst.cordys.caas.util.XmlNode;
 
 public class SoapNodeObjective extends ObjectiveBase {
-	public static class MethodSets extends Target {
-		MethodSets(XmlNode node) { super(node); }
-		@Override public String getVarName(Organization org) { return org.getVarName()+".sn."+name; }
-		@Override boolean exists(Organization org) { return org.sn.getByName(name)!=null; }
-		@Override EntryObjectList<?> getList(Organization org) { return org.sn.getByName(name).ms; }
+	public static class WebServiceInterfaces extends Target {
+		WebServiceInterfaces(XmlNode node) { super(node); }
+		@Override public String getVarName(Organization org) { return org.getVarName()+".sg."+name; }
+		@Override boolean exists(Organization org) { return org.serviceGroups.getByName(name)!=null; }
+		@Override EntryObjectList<?> getList(Organization org) { return org.serviceGroups.getByName(name).webServiceInterfaces; }
 	}
 
 	public SoapNodeObjective(XmlNode node) {
-		super("ms", new MethodSets(node), node);
+		super("wsi", new WebServiceInterfaces(node), node);
 	}
 }

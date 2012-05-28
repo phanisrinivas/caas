@@ -19,69 +19,91 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas.soap;
 
+import java.util.HashMap;
+
 import org.kisst.cordys.caas.main.Environment;
+import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
-public abstract class BaseCaller implements SoapCaller {
-	protected final String baseurl;
-	protected final String username;
+public abstract class BaseCaller implements SoapCaller 
+{
+	protected final String baseGatewayUrl;
+	protected final String userName;
 	protected final String password;
-
-	public abstract String httpCall(String url, String input);
+	protected final String proxyHost;
+	protected final String proxyPort;
+	protected final String proxyUser;
+	protected final String proxyPassword;
+	protected final HashMap<String, String> queryStringMap = new HashMap<String, String>();
+	
+	public abstract String httpCall(String baseGatewayUrl, String input, HashMap<String, String> queryStringMap);
 
 	public BaseCaller(String name)
 	{
-		String url =Environment.get().getProp("system."+name+".gateway.url", null);
-		if (url==null)
-			throw new RuntimeException("No url configured in property system."+name+".gateway.url");
-		int pos=url.indexOf("?");
+		String completeGatewayUrl = Environment.get().getProp("system."+name+".gateway.url", null);
+		if (completeGatewayUrl==null)
+			throw new RuntimeException("No gateway URL is configured in the caas.conf file for property system."+name+".gateway.url");
+		int pos=completeGatewayUrl.indexOf("?");
 		if (pos>0)
-			baseurl=url.substring(0,pos);
-		else
-			baseurl=url;
-		username   = Environment.get().getProp("system."+name+".gateway.username", null);
-		password   = Environment.get().getProp("system."+name+".gateway.password", null);
-	}
-
-	private String httpCall(String input, String org, String processor) {
-		String url=baseurl;
-		if (org!=null)
-			url += "?organization="+org;
-		if (processor!=null) {
-			if (org==null)
-				url += "?processor="+processor;
-			else
-				url += "&processor="+processor;
+		{
+			baseGatewayUrl=completeGatewayUrl.substring(0,pos);
+			//Fill up the query string map
+			StringUtil.stringToMap(completeGatewayUrl.substring(pos+1),queryStringMap);
 		}
-		return httpCall(url, input);
+		else
+		{
+			baseGatewayUrl=completeGatewayUrl;
+		}
+		userName = Environment.get().getProp("system."+name+".gateway.username", null);
+		password = Environment.get().getProp("system."+name+".gateway.password", null);
+		proxyHost = Environment.get().getProp("system."+name+".gateway.proxyhost", null);	
+		proxyPort = Environment.get().getProp("system."+name+".gateway.proxyport", null);
+		proxyUser = Environment.get().getProp("system."+name+".gateway.proxyuser", null);	
+		proxyPassword = Environment.get().getProp("system."+name+".gateway.proxypassword", null);
+	}
+	
+	private String httpCall(String input, HashMap<String, String> map)
+	{
+		if(map!=null)
+		{
+			map.putAll(queryStringMap);
+			return httpCall(baseGatewayUrl, input, map);
+		}
+		else
+		{
+			return httpCall(baseGatewayUrl, input,queryStringMap);
+		}
 	}
 
-
-	public String call(String input) {
-		return call(input,null, null); // TODO: use other parameters
+	public String call(String input) 
+	{
+		return call(input,null);
 	}
-
-	public String call(String input, String org, String processor) {
+	
+	public String call(String input, HashMap<String, String> map) 
+	{
 		String soap="<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP:Body>"
-			+ input
-			+ "</SOAP:Body></SOAP:Envelope>";
+					+ input
+					+ "</SOAP:Body></SOAP:Envelope>";
 		Environment.get().debug(soap);
-		String response = httpCall(soap, org, processor);
+		String response = httpCall(soap, map);
 		Environment.get().debug(response);
 		if (response.indexOf("SOAP:Fault")>0)
 			throw new RuntimeException(response);
 		return response;
 	}
 
-	public XmlNode call(XmlNode method) {
-		return call(method, null, null);
+	public XmlNode call(XmlNode method) 
+	{
+		return call(method, null);
 	}
-	public XmlNode call(XmlNode method, String org, String processor) {
+
+	public XmlNode call(XmlNode method, HashMap<String, String> map) 
+	{
 		Environment env=Environment.get();
-		if (env.debug)
-			env.debug(method.getPretty());
+		if (env.debug) { env.debug(method.getPretty()); }
 		String xml = method.toString();
-		String response= call(xml, org, processor);
+		String response= call(xml, map);
 		XmlNode output=new XmlNode(response);
 		if (output.getName().equals("Envelope"))
 			output=output.getChild("Body").getChildren().get(0);
@@ -89,6 +111,4 @@ public abstract class BaseCaller implements SoapCaller {
 			env.debug(output.getPretty());
 		return output;
 	}
-	
-
 }
