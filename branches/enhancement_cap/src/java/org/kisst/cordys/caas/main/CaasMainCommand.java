@@ -23,7 +23,8 @@ import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.util.FileUtil;
 
-public class CaasMainCommand extends CompositeCommand {
+public class CaasMainCommand extends CompositeCommand 
+{
 	
 	Cli cli=new Cli();
 	Cli.Flag quiet= cli.flag("q", "quiet", "don't output anything unless errors happen");
@@ -33,15 +34,18 @@ public class CaasMainCommand extends CompositeCommand {
 	Cli.Flag showhelp=cli.flag("h", "help", "show this help information");
 	Cli.Flag version = cli.flag(null, "version", "show the version information");
 	
-	private class GroovyCommand extends CompositeCommand {
-		public GroovyCommand() {
+	private class GroovyCommand extends CompositeCommand 
+	{
+		public GroovyCommand() 
+		{
 			super("caas groovy","run either a interactive groovy shell or a groovy script");
 			this.commands.put("run", new GroovyRunScript());
 			this.commands.put("shell", new GroovyShell());
 		}
 	}
 	
-	public CaasMainCommand() {
+	public CaasMainCommand() 
+	{
 		super("caas","run any of the caas subcommands"); 
 		commands.put("shell", new GroovyShell());
 		commands.put("run", new GroovyRunScript());
@@ -51,45 +55,82 @@ public class CaasMainCommand extends CompositeCommand {
 		commands.put("setup", new SetupCommand());
 	}
 
-	@Override public String getSyntax() { return "[options] "+super.getSyntax();}
+	@Override public String getSyntax() 
+	{ 
+		return "[options] "+super.getSyntax();
+	}
 
-	protected static String[] subArgs(String[] args, int pos) {
+	protected static String[] subArgs(String[] args, int pos) 
+	{
 		String result[]= new String[args.length-pos];
 		for (int i=pos; i<args.length; i++)
 			result[i-pos]=args[i];
 		return result;
 	}
 
-	@Override public String getHelp() {
+	@Override public String getHelp() 
+	{
 		return super.getHelp()+"\nOPTIONS\n"+cli.getSyntax("\t");
 	}
 	
 
-	@Override public void run(String[] args) {
+	@Override public boolean run(String[] args) 
+	{
 		args=cli.parse(args);
 		Environment env=Environment.get();
-		if (debug.isSet()){env.debug=true;}
-		if (verbose.isSet()){env.verbose=true;}
-		if (quiet.isSet()){env.quiet=true;}
-		if (version.isSet()) {System.out.println(Caas.getVersion());return;}
-		if (!env.quiet) {System.out.println("CAAS: Cordys Administration Automation Scripting, version "+Caas.getVersion());}
-		if (showhelp.isSet()) { help.run(args); return;	}
+		if (debug.isSet())
+		{
+			env.debug=true;
+		}
+		if (verbose.isSet())
+		{
+			env.verbose=true;
+		}
+		if (quiet.isSet())
+		{
+			env.quiet=true;
+		}
+		if (version.isSet()) 
+		{
+			System.out.println(Caas.getVersion());
+			return true;
+		}
+		if (!env.quiet) 
+		{
+			System.out.println("caas: Cordys Administration Automation Scripting, version "+Caas.getVersion());
+		}
+		if (showhelp.isSet()) 
+		{
+			help.run(args); 
+			return true;	
+		}
 		//Lookup and load caas.conf file
+		String confFile=null;
 		if (config.isSet())
-			env.loadProperties(config.get());
+		{
+			confFile = config.get();
+			env.loadProperties(confFile);
+		}
 		else
-			env.loadProperties(getConfFile());		
+		{
+			confFile = getConfFile();
+			env.loadProperties(confFile);
+		}
+		env.info("Using "+confFile+" configuration file");
 		super.run(args);
+		return true;
 	}
 
-	private String getConfFile() {
+	public String getConfFile() 
+	{
 		String confFileInPWD="caas.conf";
 		String confFileInHomeDir=System.getProperty("user.home")+"/config/caas/caas.conf";
 		confFileInHomeDir = confFileInHomeDir.replace("\\", "/");
 		String[] fileNames = new String[]{confFileInPWD, confFileInHomeDir};
-		for(String fileName:fileNames){
-			if(FileUtil.isFileExists(fileName)){
-				Environment.get().debug("Using "+fileName+" configuration file");
+		for(String fileName:fileNames)
+		{
+			if(FileUtil.doesFileExist(fileName))
+			{
 				return fileName;
 			}
 		}

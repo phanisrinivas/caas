@@ -27,7 +27,8 @@ import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.util.XmlNode;
 
 
-public class ServiceGroup extends LdapObjectBase {
+public class ServiceGroup extends LdapObjectBase 
+{
 	public final ChildList<ServiceContainer> serviceContainers= new ChildList<ServiceContainer>(this, ServiceContainer.class);
 	public final ChildList<ServiceContainer> sc = serviceContainers;
 	public final EntryObjectList<WebServiceInterface> webServiceInterfaces = new EntryObjectList<WebServiceInterface>(this, "busmethodsets","wsi");
@@ -43,15 +44,32 @@ public class ServiceGroup extends LdapObjectBase {
 	public final XmlBoolProperty payloadValidation = new XmlBoolProperty(config, "validation/payload",false);
 	public final XmlBoolProperty payloadTrim = new XmlBoolProperty(config, "IgnoreWhiteSpaces",false);
 		
-	protected ServiceGroup(LdapObject parent, String dn) {
+	
+	/**
+	 * Constructs the service group as child of the given parent and with the given dn
+	 * 
+	 * @param parent
+	 * @param dn
+	 */
+	protected ServiceGroup(LdapObject parent, String dn) 
+	{
 		super(parent, dn);
 	}
-	@Override protected String prefix() { return "sg"; }
+	@Override protected String prefix() 
+	{ 
+		return "sg"; 
+	}
 
-	public void recalcNamespaces() {
+	/**
+	 * Re-attaches the web service interfaces to the service group
+	 */
+	public void recalcNamespaces() 
+	{
 		LinkedHashMap<String, String> all=new LinkedHashMap<String, String>();
-		for (WebServiceInterface wsi : webServiceInterfaces) {
-			if (wsi!=null) {
+		for (WebServiceInterface wsi : webServiceInterfaces) 
+		{
+			if (wsi!=null) 
+			{
 				for (String namespace : wsi.namespaces.get())
 					all.put(namespace,namespace);
 			}
@@ -91,12 +109,25 @@ public class ServiceGroup extends LdapObjectBase {
 	   &lt;/configuration&gt;
 	 &lt;/configurations&gt;
 	 */
-	public void createServiceContainer(String name, String machineName, boolean automatic, XmlNode config) {
+	
+	
+	/**
+	 * Creates a service container for this service group
+	 * 
+	 * @param name Service container name
+	 * @param machineName Machine name where the service container needs to be created
+	 * @param automatic Start up type of the service container
+	 * @param config Configuration xml of the service container
+	 */
+	public void createServiceContainer(String name, String machineName, boolean automatic, XmlNode config) 
+	{
 		XmlNode newEntry=createServiceContainerEntryNode(name,machineName,automatic,config);
 		createInLdap(newEntry);
 		serviceContainers.clear();
 	}
-	public void createServiceContainer(String name, Connector connector) {
+	
+	public void createServiceContainer(String name, Connector connector)
+	{
 		XmlNode config=new XmlNode("configurations"); 
 		config.add("cancelReplyInterval").setText("30000");
 		config.add("gracefulCompleteTime").setText("15");
@@ -111,22 +142,32 @@ public class ServiceGroup extends LdapObjectBase {
 	}	
 	
 	/**
-	 * Update the soap node with the new Soap processor details
-	 * It will also accept the old soap processor to form the update request
+	 * Updates the service container of this service group
 	 * 
-	 * @param name
-	 * @param machineName
-	 * @param automatic
-	 * @param config
+	 * @param name Service container name
+	 * @param machineName Machine name
+	 * @param automatic Startup type
+	 * @param config New XML configuration of the service container
 	 * @param oldServiceContainer
 	 */
-	public void updateServiceContainer(String name, String machineName, boolean automatic, XmlNode config,ServiceContainer oldServiceContainer){
+	public void updateServiceContainer(String name, String machineName, boolean automatic, XmlNode config,ServiceContainer oldServiceContainer)
+	{
 		XmlNode newEntry=createServiceContainerEntryNode(name,machineName,automatic,config);
 		XmlNode oldEntry = oldServiceContainer.getEntry();
 		updateLdap(oldEntry,newEntry);
 	}
 	
-	private XmlNode createServiceContainerEntryNode(String name, String machineName, boolean automatic, XmlNode config){
+	/**
+	 * Creates an XmlNode representing the service container entry in the LDAP
+	 * 
+	 * @param name
+	 * @param machineName
+	 * @param automatic
+	 * @param config
+	 * @return
+	 */
+	private XmlNode createServiceContainerEntryNode(String name, String machineName, boolean automatic, XmlNode config)
+	{
 		XmlNode newEntry=newEntryXml("", name,"bussoapprocessor");
 		newEntry.add("description").add("string").setText(name);
 		newEntry.add("computer").add("string").setText(machineName); 

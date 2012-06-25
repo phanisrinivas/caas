@@ -91,11 +91,8 @@ public class SamlClientCaller extends BaseCaller {
 		try 
 		{
 			//Set the query string after encoding it
-			method.setQueryString(URIUtil.encodeQuery(queryString));			
-			if(Environment.get().debug)
-			{
-				Environment.get().debug("URL:: "+method.getURI().getURI().toString());
-			}
+			method.setQueryString(URIUtil.encodeQuery(queryString));
+			Environment.get().debug("URL:: "+method.getURI().getURI().toString());
 			method.setRequestEntity(new StringRequestEntity(inputSoapRequest, "text/xml", "UTF-8"));
 			HttpClient client = new HttpClient();
 			if (this.proxyPort!=null)
@@ -108,15 +105,10 @@ public class SamlClientCaller extends BaseCaller {
 			}
 			statusCode = client.executeMethod(method);
 			response=method.getResponseBodyAsString();
-			
-			if(Environment.get().debug)
-			{
-				Environment.get().debug("SOAPResponse:: "+response);
-			}
 		}
 		catch (Exception e) { throw new CaasRuntimeException(e);}
 		if (statusCode != HttpStatus.SC_OK) {
-			throw new CaasRuntimeException("WebService failed: " + method.getStatusLine()+"\n"+response);
+			throw new CaasRuntimeException("\nWebService failed: " + method.getStatusLine()+"\n"+response);
 		}
 		return response;
 	}

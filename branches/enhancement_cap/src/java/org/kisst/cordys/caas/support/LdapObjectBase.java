@@ -26,6 +26,7 @@ import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.ConnectionPoint;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Dso;
+import org.kisst.cordys.caas.DsoType;
 import org.kisst.cordys.caas.Isvp;
 import org.kisst.cordys.caas.WebService;
 import org.kisst.cordys.caas.WebServiceInterface;
@@ -107,7 +108,7 @@ public abstract class LdapObjectBase extends LdapObject {
 		ldapObjectTypes.put("busconnectionpoint", ConnectionPoint.class);
 		ldapObjectTypes.put("busosprocess", OsProcess.class);
 		ldapObjectTypes.put("datasource", Dso.class);
-		//ldapObjectTypes.put("datasourcetype", DsoType.class); Lets not make it complex
+		ldapObjectTypes.put("datasourcetype", DsoType.class); //Lets not make it complex
 	}
 	static private Class<?> determineClass(CordysSystem system, XmlNode entry) {
 		if (entry==null)
