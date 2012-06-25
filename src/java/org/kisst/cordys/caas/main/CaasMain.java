@@ -19,16 +19,23 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas.main;
 
-public class CaasMain {
-	public static void main(String[] args) {
+public class CaasMain 
+{
+	public static void main(String[] args) 
+	{
 		if (args.length==1 && args[0].equals("setup"))
+		{
 			// skip all option parsing, because cli jar may not be available.
 			new SetupCommand().run(new String[]{});
-		else {
-			try {
+		}
+		else 
+		{
+			try 
+			{
 				new CaasMainCommand().run(args);
 			}
-			catch (NoClassDefFoundError e) {
+			catch (NoClassDefFoundError e) 
+			{
 				System.out.println("not all libraries available");
 				e.printStackTrace();
 				missingJar();
@@ -36,7 +43,8 @@ public class CaasMain {
 		}
 	}
 	
-	private static void missingJar() {
+	private static void missingJar() 
+	{
 		System.out.println("Some kind of error occured, This might be due to not having downloaded the necessary jar files");
 		System.out.println("In order to download the necessary jar files you should execute the following command");
 		System.out.println("\tjava -jar "+System.getProperty("java.class.path")+" setup");

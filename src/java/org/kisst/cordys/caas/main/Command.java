@@ -20,7 +20,7 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 package org.kisst.cordys.caas.main;
 
 public interface Command {
-	public void run(String[] args);
+	public boolean run(String[] args);
 	public String getSyntax();
 	public String getHelp();
 	public String getSummary();

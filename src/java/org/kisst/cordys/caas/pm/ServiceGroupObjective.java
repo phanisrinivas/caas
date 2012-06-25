@@ -23,7 +23,7 @@ import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.support.EntryObjectList;
 import org.kisst.cordys.caas.util.XmlNode;
 
-public class SoapNodeObjective extends ObjectiveBase {
+public class ServiceGroupObjective extends ObjectiveBase {
 	public static class WebServiceInterfaces extends Target {
 		WebServiceInterfaces(XmlNode node) { super(node); }
 		@Override public String getVarName(Organization org) { return org.getVarName()+".sg."+name; }
@@ -31,7 +31,7 @@ public class SoapNodeObjective extends ObjectiveBase {
 		@Override EntryObjectList<?> getList(Organization org) { return org.serviceGroups.getByName(name).webServiceInterfaces; }
 	}
 
-	public SoapNodeObjective(XmlNode node) {
+	public ServiceGroupObjective(XmlNode node) {
 		super("wsi", new WebServiceInterfaces(node), node);
 	}
 }

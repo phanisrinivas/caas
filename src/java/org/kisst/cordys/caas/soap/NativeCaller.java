@@ -21,14 +21,16 @@ package org.kisst.cordys.caas.soap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.HashMap;
-
 import org.apache.commons.httpclient.util.URIUtil;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
@@ -66,46 +68,63 @@ public class NativeCaller extends BaseCaller {
 	public NativeCaller(String name) { super(name); }
 
 	
-	@Override public String httpCall(String baseGatewayUrl, String input, HashMap<String, String> queryStringMap) {
+	@Override public String httpCall(String baseGatewayUrl, String request, HashMap<String, String> queryStringMap) {		
+		String completeGatewayUrl=null,line=null;
+		HttpURLConnection connection=null;
+		OutputStream out=null;
+		InputStream in=null;
+		BufferedReader reader=null;
+		StringBuilder response = new StringBuilder();
+		int statusCode = 0;
 		try {
-
-			String completeGatewayUrl;
-			if(queryStringMap!=null && queryStringMap.size()>0)
-			{
-				completeGatewayUrl = baseGatewayUrl+"?"+StringUtil.mapToString(queryStringMap);
-			}
-			else
-			{
-				completeGatewayUrl = baseGatewayUrl;
-			}
-			URL url=new URL(URIUtil.encodeQuery(completeGatewayUrl));
-			HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+				if(queryStringMap!=null && queryStringMap.size()>0){
+					completeGatewayUrl = baseGatewayUrl+"?"+StringUtil.mapToString(queryStringMap);
+				}else{
+					completeGatewayUrl = baseGatewayUrl;
+				}
+				URL url=new URL(URIUtil.encodeQuery(completeGatewayUrl));
+				connection = (HttpURLConnection) url.openConnection();
+				byte[] requestBytes = request.getBytes();
+				connection.setRequestProperty("Content-Length", ""+requestBytes.length);
+				connection.setRequestProperty("Content-Type","text/xml; charset=utf-8");
+				connection.setRequestMethod("POST");
+				connection.setDoOutput(true);
+				connection.setDoInput(true);
+				//Dangerous in multithreaded environments
+				myAuthenticator.setCredentials(userName, password);
+				//Write request data to server
+				out = connection.getOutputStream();
+				out.write(requestBytes);    
+				//Read response data from server
+				statusCode = connection.getResponseCode();
+				if(statusCode == HttpURLConnection.HTTP_OK){
+					in = connection.getInputStream();
+				}else{
+					in = connection.getErrorStream();
+				}
+				reader = new BufferedReader(new InputStreamReader(in));
+				while ((line = reader.readLine())!=null)
+					response.append(line);
 			
-			byte[] b = input.getBytes();
-			httpConn.setRequestProperty("Content-Length", ""+b.length);
-			httpConn.setRequestProperty("Content-Type","text/xml; charset=utf-8");
-			//httpConn.setRequestProperty("SOAPAction",SOAPAction);
-			httpConn.setRequestMethod("POST");
-			httpConn.setDoOutput(true);
-			httpConn.setDoInput(true);
-
-			// Dangerous in multithreaded environments
-			myAuthenticator.setCredentials(userName, password);
-			
-			OutputStream out = httpConn.getOutputStream();
-			out.write( b );    
-			out.close();
-
-			InputStreamReader isreader = new InputStreamReader(httpConn.getInputStream());
-			BufferedReader in = new BufferedReader(isreader);
-
-			StringBuilder result=new StringBuilder();
-			String inputLine;
-			while ((inputLine = in.readLine()) != null)
-				result.append(inputLine);
-			in.close();
-			return result.toString();
+		}catch(MalformedURLException e) {
+	        e.printStackTrace();
+	    }catch(ProtocolException e) {
+	        e.printStackTrace();
+	    }catch(IOException e) {
+	        e.printStackTrace();
+	    }catch(Exception e){
+	    	e.printStackTrace();
+	    }
+		finally{
+			connection.disconnect();
+			out=null;
+			reader=null;
+			in=null;
+			connection=null;
 		}
-		catch (Exception e) { e.printStackTrace(); throw new CaasRuntimeException(e); }
+		if (statusCode!=HttpURLConnection.HTTP_OK) {
+			throw new CaasRuntimeException("\nWebService failed:: "+response.toString());
+		}
+		return response.toString();
 	}
 }

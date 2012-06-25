@@ -25,15 +25,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.LinkedList;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
+import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
-public class Machine extends CordysObject {
+/**
+ * Class to represent a node of the Cordys cluster 
+ *
+ */
+public class Machine extends CordysObject 
+{
 	private final ServiceContainer monitor;
 	private final String hostname;
 	private final String cordysInstallDir;
+	private Environment env;
 	
 	protected Machine(ServiceContainer monitor) 
 	{
@@ -41,20 +48,46 @@ public class Machine extends CordysObject {
 		String tmp=monitor.getName();
 		this.hostname=tmp.substring(tmp.indexOf("monitor@")+8);
 		this.cordysInstallDir=readEIBProperty("CORDYS_INSTALL_DIR");
+		this.env = getSystem().getEnv();
 	}
 
-	@Override public String toString() { return getVarName();}
-	@Override public String getName() { return hostname;}
-	@Override public String getKey() { return "machine:"+getName();	}
-	@Override public CordysSystem getSystem() { return monitor.getSystem();	}
-	@Override public String getVarName() { return getSystem().getVarName()+".machine."+getName();}
+	@Override public String toString()
+	{ 
+		return getVarName();
+	}
+	@Override public String getName() 
+	{ 
+		return hostname;
+	}
+	@Override public String getKey() 
+	{ 
+		return "machine:"+getName();	
+	}
+	@Override public CordysSystem getSystem() 
+	{ 
+		return monitor.getSystem();	
+	}
+	@Override public String getVarName() 
+	{ 
+		return getSystem().getVarName()+".machine."+getName();
+	}
 
-	public ServiceContainer getMonitor() { return monitor; }
+	public ServiceContainer getMonitor()
+	{ 
+		return monitor; 
+	}
 	
-	public void refreshSoapProcessors() {
+	/**
+	 * 
+	 */
+	public void refreshServiceContainers() 
+	{
 		XmlNode request=new XmlNode(Constants.LIST, Constants.XMLNS_MONITOR);
-		XmlNode response=monitor.call(request);
-		for (XmlNode tuple: response.getChildren("tuple")) {
+		HashMap<String, String> queryParams = new HashMap<String, String>();
+		queryParams.put("receiver", monitor.getDn());		
+		XmlNode response=monitor.call(request,queryParams);
+		for (XmlNode tuple: response.getChildren("tuple")) 
+		{
 			XmlNode workerprocess=tuple.getChild("old/workerprocess");
 			String dn=workerprocess.getChildText("name");
 			ServiceContainer obj= (ServiceContainer) getSystem().getLdap(dn);
@@ -87,49 +120,62 @@ public class Machine extends CordysObject {
 		//Checking if dependent ISVPs are installed
 		checkIfDependentIsvpsInstalled(isvpName,isvpPackageNode);
 		
-		
 		XmlNode request=new XmlNode(Constants.LOAD_ISVP, Constants.XMLNS_ISV);
 		//Set the timeout
 		request.setAttribute("timeOut", String.valueOf(timeOutInMilis));
 		request.add("url").setText("http://"+hostname+"/cordys/wcp/isvcontent/packages/"+isvpName);		
 
-		if (prompSetsXMLNode!=null){
+		if (prompSetsXMLNode!=null)
+		{
 			isvpPackageNode.add(prompSetsXMLNode.detach());
 		}
 		request.add(isvpPackageNode.detach());		
-		if(getSystem().getEnv().debug){
-			getSystem().getEnv().debug("LoadISVP Request "+request.toString());
-		}
+
+		env.debug("LoadISVP Request "+request.toString());
+
 		//Load the ISVP on the specific monitor. Required in case of HA installation
 		HashMap<String, String> queryParams = new HashMap<String, String>();
 		queryParams.put("receiver", monitor.getDn());
 		XmlNode response = monitor.call(request, queryParams);
-		if(getSystem().getEnv().debug){
-			getSystem().getEnv().debug("LoadISVP Response "+response.toString());
-		}
-		//Read the status message		
+		
+		env.debug("LoadISVP Response "+response.toString());
+		
 		return response.getChildText("status");
 	}
 	
-	private void checkIfDependentIsvpsInstalled(String isvpName, XmlNode isvpPackageNode){
-		System.out.print("Checking if dependent ISVPs of '"+isvpName+"' are installed on '"+hostname+"' Node ... ");
+	/**
+	 * @param isvpName
+	 * @param isvpPackageNode
+	 */
+	private void checkIfDependentIsvpsInstalled(String isvpName, XmlNode isvpPackageNode)
+	{
+		//System.out.print("Checking if dependent ISVPs of '"+isvpName+"' are installed on '"+hostname+"' Node ... ");
+		List<XmlNode> dependentIsvps = null;
 		List<XmlNode> installedIsvps = getInstalledIsvps();
-		List<XmlNode> dependentIsvps = isvpPackageNode.getChildren("dependencies");
-		for(XmlNode dependentIsvp: dependentIsvps){
+		XmlNode dependenciesNode = isvpPackageNode.getChild("dependencies");
+		if(dependenciesNode!=null)
+		{
+			dependentIsvps = dependenciesNode.getChildren();
+		}
+		for(XmlNode dependentIsvp: dependentIsvps)
+		{
 			String dependentIsvpName = dependentIsvp.getChildText("isvpackage/cn");
 			boolean installed = false;
-			for(XmlNode installedIsvp:installedIsvps){
-				if(installedIsvp.getAttribute("cn").equals(dependentIsvpName)){
+			for(XmlNode installedIsvp:installedIsvps)
+			{
+				if(installedIsvp.getAttribute("cn").equals(dependentIsvpName))
+				{
 					installed = true;
 					break;
 				}
 			}
-			if(!installed){
+			if(!installed)
+			{
 				System.out.println("FAILED");
 				throw new CaasRuntimeException("Dependent ISVP '"+dependentIsvpName+"' is not installed on "+hostname);
 			}
 		}
-		System.out.println("OK");
+		//System.out.println("OK");
 	}
 
 	/**
@@ -183,19 +229,15 @@ public class Machine extends CordysObject {
 		request.add("url").setText("http://"+hostname+"/cordys/wcp/isvcontent/packages/"+isvpName);		
 		request.add(isvPackageNode.detach());
 
-		if(getSystem().getEnv().debug)
-		{
-			getSystem().getEnv().debug("UpgradeISVP Request "+request.toString());
-		}
+		env.debug("UpgradeISVP Request "+request.toString());
 		
 		//Upgrade the ISVP on the specific monitor. Required in case of HA installation		
 		HashMap<String, String> queryParams = new HashMap<String, String>();
 		queryParams.put("receiver", monitor.getDn());
 		XmlNode response = monitor.call(request, queryParams);
-		if(getSystem().getEnv().debug)
-		{
-			getSystem().getEnv().debug("UpgradeISVP Response "+response.toString());
-		}
+
+		env.debug("UpgradeISVP Response "+response.toString());
+			
 		//Read the status message
 		return response.getChildText("status");
 	}
@@ -214,7 +256,9 @@ public class Machine extends CordysObject {
 		file.setAttribute("type", "isvpackage");
 		file.setAttribute("detail", "false");
 		file.setAttribute("wizardsteps", "true");
-		return monitor.call(request);
+		HashMap<String, String> queryParams = new HashMap<String, String>();
+		queryParams.put("receiver", monitor.getDn());
+		return monitor.call(request,queryParams);
 	}
 	
 	/**
@@ -228,12 +272,15 @@ public class Machine extends CordysObject {
 	{
 		XmlNode request=new XmlNode(Constants.UNLOAD_ISVP, Constants.XMLNS_ISV);
 		XmlNode file=request.add("file");
+		//TODO: This is causing an issue
 		file.setText(isvp.getBasename());
 		if (deleteReferences)
 			file.setAttribute("deletereference", "true");
 		else
 			file.setAttribute("deletereference", "false");
-		monitor.call(request);
+		HashMap<String, String> queryParams = new HashMap<String, String>();
+		queryParams.put("receiver", monitor.getDn());
+		monitor.call(request,queryParams);
 		//TODO: do this only for last machine??? getSystem().removeLdap(isvp.getDn());
 	}
 	
@@ -247,14 +294,20 @@ public class Machine extends CordysObject {
 		LinkedList<String> result=new LinkedList<String>();
 		XmlNode request=new XmlNode(Constants.LIST_ISVPS, Constants.XMLNS_ISV);
 		request.add("type").setText("ISVPackage");
-		XmlNode response=monitor.call(request);
-		for (XmlNode child: response.getChildren()) {
+		HashMap<String, String> queryParams = new HashMap<String, String>();
+		queryParams.put("receiver", monitor.getDn());		
+		XmlNode response=monitor.call(request,queryParams);
+		for (XmlNode child: response.getChildren()) 
+		{
 			String url=child.getText();
 			result.add(url.substring(url.lastIndexOf("/")+1));
 		}
 		return result;
 	}
 	
+	/**
+	 * @return
+	 */
 	public String getCordysInstallDir()
 	{
 		return cordysInstallDir;
@@ -270,7 +323,9 @@ public class Machine extends CordysObject {
 	{
 		XmlNode request=new XmlNode(Constants.GET_PROPERTY, Constants.XMLNS_MONITOR);
 		request.add("property").setAttribute("name", propertyName);
-		XmlNode response = monitor.call(request);
+		HashMap<String, String> queryParams = new HashMap<String, String>();
+		queryParams.put("receiver", monitor.getDn());
+		XmlNode response = monitor.call(request,queryParams);
 		XmlNode propertyNode = response.getChild("tuple/old/property");
 		return propertyNode.getAttribute("value", null);
 	}
@@ -295,10 +350,16 @@ public class Machine extends CordysObject {
 		monitor.call(request, queryParams);
 	}
 	
-	public List<XmlNode> getInstalledIsvps(){
+	/**
+	 * @return
+	 */
+	public List<XmlNode> getInstalledIsvps()
+	{
 		XmlNode  request=new XmlNode(Constants.GET_INSTALLED_ISVPS, Constants.XMLNS_ISV);
 		request.add("computer").setText(this.hostname);
-		XmlNode response = monitor.call(request);
+		HashMap<String, String> queryParams = new HashMap<String, String>();
+		queryParams.put("receiver", monitor.getDn());		
+		XmlNode response = monitor.call(request,queryParams);
 		XmlNode computerNode = response.getChild("computer");
 		List<XmlNode> list = new ArrayList<XmlNode>();
 		list.addAll(computerNode.getChildren());

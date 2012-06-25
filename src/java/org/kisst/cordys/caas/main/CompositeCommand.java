@@ -26,7 +26,7 @@ import java.util.Map.Entry;
 abstract public class CompositeCommand implements Command {
 	private class HelpCommand extends CommandBase {
 		HelpCommand() {super("[<subcmd> ...]","show help about this command or one of it's subcommands"); }
-		@Override public void run(String[] args) { 
+		@Override public boolean run(String[] args) { 
 			Command cmd=CompositeCommand.this;
 			String prefix=CompositeCommand.this.prefix;
 			int index=0;
@@ -42,7 +42,8 @@ abstract public class CompositeCommand implements Command {
 			System.out.println("\nSYNOPSIS\n\t"+prefix+" "+cmd.getSyntax()); 
 			String help=cmd.getHelp();
 			if (help!=null)
-				System.out.println(help); 
+				System.out.println(help);
+			return true;
 		}
 	}
 	
@@ -86,7 +87,7 @@ abstract public class CompositeCommand implements Command {
 		return commandNames.substring(2);
 	}
 
-	public void run(String[] args) {
+	public boolean run(String[] args) {
 		String cmd=defaultCommand;
 		if (args.length>0) {
 			cmd=args[0];
@@ -97,6 +98,7 @@ abstract public class CompositeCommand implements Command {
 			System.out.println("Unknown subcommand "+cmd);
 		else
 			command.run(args);
+		return true;
 	}
 	
 	protected static String[] subArgs(String[] args, int pos) {

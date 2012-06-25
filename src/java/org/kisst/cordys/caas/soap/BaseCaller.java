@@ -100,15 +100,11 @@ public abstract class BaseCaller implements SoapCaller
 
 	public XmlNode call(XmlNode method, HashMap<String, String> map) 
 	{
-		Environment env=Environment.get();
-		if (env.debug) { env.debug(method.getPretty()); }
 		String xml = method.toString();
 		String response= call(xml, map);
 		XmlNode output=new XmlNode(response);
 		if (output.getName().equals("Envelope"))
 			output=output.getChild("Body").getChildren().get(0);
-		if (env.debug)
-			env.debug(output.getPretty());
 		return output;
 	}
 }
