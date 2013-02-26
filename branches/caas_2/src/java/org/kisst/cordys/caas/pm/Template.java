@@ -8,7 +8,7 @@ import org.kisst.cordys.caas.Configuration;
 import org.kisst.cordys.caas.ConnectionPoint;
 import org.kisst.cordys.caas.Dso;
 import org.kisst.cordys.caas.DsoType;
-import org.kisst.cordys.caas.Isvp;
+import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.Machine;
 import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.Organization;
@@ -422,7 +422,7 @@ public class Template
 				}
 				else
 				{
-					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
+					Package isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
 						newWSI=isvp.webServiceInterfaces.getByName(wsiName);
 				}
@@ -484,7 +484,7 @@ public class Template
 				}
 				else					//Assign ISVP role
 				{
-					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
+					Package isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
 						role=isvp.roles.getByName(roleName);
 					dnRole="cn="+roleName+",cn="+isvpName+","+org.getSystem().getDn(); 
@@ -537,7 +537,7 @@ public class Template
 				}
 				else
 				{
-					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
+					Package isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
 						subRole=isvp.roles.getByName(roleName);
 					else
@@ -708,7 +708,7 @@ public class Template
 				}
 				else
 				{
-					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
+					Package isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
 						role=isvp.roles.getByName(roleName);
 					else
@@ -756,7 +756,7 @@ public class Template
 				}
 				else
 				{
-					Isvp isvp=org.getSystem().isvp.getByName(isvpName);
+					Package isvp=org.getSystem().isvp.getByName(isvpName);
 					if (isvp!=null)
 						subRole=isvp.roles.getByName(roleName);
 					else

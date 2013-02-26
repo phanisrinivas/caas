@@ -34,7 +34,6 @@ import org.kisst.cordys.caas.CordysSystem;
  * 
  */
 public abstract class CordysObjectList<T extends CordysObject> extends CordysObject implements  Iterable<T> {
-	private static final long serialVersionUID = 1L;
 	protected final CordysSystem system;
 	private final ArrayList<T> list=new ArrayList<T>();
 	private boolean listAvailable=false;
@@ -130,9 +129,8 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
 		return result.toString();
 	}
 	
-	@SuppressWarnings("unchecked")
 	public CordysObjectList <T> like(final String filter) {
-		return new CordysObjectList(system) {
+		return new CordysObjectList<T>(system) {
 			final String expr=filter.toLowerCase();
 			@Override protected void retrieveList() {
 				for(T obj: CordysObjectList.this) {
@@ -144,9 +142,8 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
 		};
 	}
 	
-	@SuppressWarnings("unchecked")
 	public CordysObjectList<T> sort() {
-		return new CordysObjectList(system) {
+		return new CordysObjectList<T>(system) {
 			@Override protected void retrieveList() {
 				ArrayList<T> tmp=new ArrayList<T>();
 				for (T obj : CordysObjectList.this)

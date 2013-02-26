@@ -13,7 +13,7 @@ import org.junit.Test;
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
-import org.kisst.cordys.caas.Isvp;
+import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.util.StringUtil;
@@ -112,14 +112,14 @@ public class CordysSystem_Test{
 	
 	@Test
 	public void assertIsvps(){
-		ChildList<Isvp> isvps = system.isvps;
+		ChildList<Package> isvps = system.isvps;
 		Assert.assertNotNull(null,isvps);
 		Assert.assertTrue(null,isvps.getSize()>0);
-		for(Isvp isvp:isvps){
+		for(Package isvp:isvps){
 			if(isvp.owner.get().toLowerCase().contains("RMG")){
 				System.out.println(isvp.getName());
 				Assert.assertFalse("ISVP description cannot be null or empty",StringUtil.isEmptyOrNull(isvp.description.get()));
-				Assert.assertFalse("ISVP filename cannot be null or empty",StringUtil.isEmptyOrNull(isvp.filename.get()));
+				Assert.assertFalse("ISVP filename cannot be null or empty",StringUtil.isEmptyOrNull(isvp.member.get()));
 				Assert.assertFalse("ISVP owner cannot be null or empty",StringUtil.isEmptyOrNull(isvp.getOwner2()));
 				Assert.assertNotNull("No roles in ISVP",isvp.roles);
 				Assert.assertNotNull("No webservices in ISVP",isvp.webServiceInterfaces);

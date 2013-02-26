@@ -4,7 +4,7 @@ import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Dso;
 import org.kisst.cordys.caas.DsoType;
-import org.kisst.cordys.caas.Isvp;
+import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.ServiceGroup;
 import org.kisst.cordys.caas.XMLStoreObject;
@@ -84,7 +84,7 @@ public class Test {
 	public void isvpsTest(){
 		init();
 		System.out.println(system.isvps.getSize());
-		for(Isvp isvp:system.isvps){
+		for(Package isvp:system.isvps){
 			System.out.println(isvp.getName());
 		}
 		System.out.println(system.isvps.getByName("Cordys JMS Connector 1.1"));

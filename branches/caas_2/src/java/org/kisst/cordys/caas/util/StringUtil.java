@@ -189,9 +189,12 @@ public class StringUtil
 			    		stringBuilder.append("&");  
 
 			    String value = map.get(key);  
-				stringBuilder.append((key != null ? key: ""));  
-				stringBuilder.append("=");  
-				stringBuilder.append(value != null ? value: "");  
+				stringBuilder.append((key != null ? key: ""));
+				if (value != null)
+				{
+				    stringBuilder.append("=");  
+				    stringBuilder.append(value != null ? value: "");
+				}
 		   }  
 		   return stringBuilder.toString();  
 	 }  
