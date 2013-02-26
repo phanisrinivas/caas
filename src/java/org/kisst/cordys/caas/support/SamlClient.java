@@ -18,9 +18,9 @@ import org.kisst.cordys.caas.util.XmlNode;
 public class SamlClient{
 
 	//Contains the Cordys BaseGateway URL value
-	private static String baseurl;
+	private static String baseGatewayUrl;
 	//Contains the Cordys Username value as mentioned in the caas.conf file
-	private static String username; 
+	private static String userName; 
 	//Contains the Cordys User password value mentioned in the caas.conf file.
 	private static String password; 
 	//Contains the due time of the SamlClient in Minutes
@@ -38,7 +38,7 @@ public class SamlClient{
 	protected SamlClient() {}
 	
 	/**
-	 *This method returns the SamlClient object of the given system from the Saml cache.
+	 *This webService returns the SamlClient object of the given system from the Saml cache.
 	 *If the SamlClient object for the given system is not present in the cache, then it 
 	 *creates a new SamlClient for the given system and stores it in the cache for further use 
 	 * 
@@ -79,7 +79,7 @@ public class SamlClient{
 			sendSamlRequest();
 	}
 	
-	//This is private method so should be accessed within this class only
+	//This is private webService so should be accessed within this class only
 	private void setExipryTime(String expiryTime){
 			this.expiryTime = expiryTime;
 	}
@@ -100,8 +100,8 @@ public class SamlClient{
 	}
 	
 	/**
-	 * Gets the artifactID of the SamlClient which requested this method.
-	 * If the SamlClient is expired while it is calling this method, then it refreshes all 
+	 * Gets the artifactID of the SamlClient which requested this webService.
+	 * If the SamlClient is expired while it is calling this webService, then it refreshes all 
 	 * the properties of it including artifactID and returns the new artifactID
 	 * 
 	 * @return artifactID
@@ -137,27 +137,27 @@ public class SamlClient{
 			String url =Environment.get().getProp("system."+systemName+".gateway.url", null);
 			if (url==null) throw new RuntimeException("No url configured in property system."+systemName+".gateway.url");
 			int pos=url.indexOf("?");
-			if (pos>0) baseurl=url.substring(0,pos);
-			else baseurl=url;
-			username   = Environment.get().getProp("system."+systemName+".gateway.username", null);
+			if (pos>0) baseGatewayUrl=url.substring(0,pos);
+			else baseGatewayUrl=url;
+			userName   = Environment.get().getProp("system."+systemName+".gateway.username", null);
 			//It is assumed that, always the password is stored in plain text 
 			password   = Environment.get().getProp("system."+systemName+".gateway.password", null);
 			
 			//Check if the UserName or Password is null
-			if(username==null || password==null)
-				throw new CaasRuntimeException("UserName or Password is not configured for system "+systemName+" UserName:: "+username+" Password:: "+password);
+			if(userName==null || password==null)
+				throw new CaasRuntimeException("UserName or Password is not configured for system "+systemName+" UserName:: "+userName+" Password:: "+password);
 			
-			username = username.trim();
+			userName = userName.trim();
 			password = password.trim();
 			
 			//Check if the UserName or Password is empty
-			if(username.length()==0 || password.length()==0)
-				throw new CaasRuntimeException("UserName or Password is blank in the config file for system "+systemName+". UserName:: "+username+" Password:: "+password);
+			if(userName.length()==0 || password.length()==0)
+				throw new CaasRuntimeException("UserName or Password is blank in the config file for system "+systemName+". UserName:: "+userName+" Password:: "+password);
 	}
 	
 	/**
 	 * Sends the SAML request to the Cordys WebGateway 
-	 * It calls the readAuthDetails() method to read the config details from the caas.conf file 
+	 * It calls the readAuthDetails() webService to read the config details from the caas.conf file 
 	 * and sends the request to the Cordys gateway using  HttpClientCaller class.
 	 * 
 	 */
@@ -167,7 +167,7 @@ public class SamlClient{
 			readAuthDetails(sysName);
 			HttpClientCaller caller = new HttpClientCaller(sysName);
 			//Fire the SAML request and read the response
-			String response = caller.httpCall(baseurl, buildSamlRequest(sysName));
+			String response = caller.httpCall(baseGatewayUrl, buildSamlRequest(sysName), null);
 			handleSamlResponse(response);
 	}
 	
@@ -224,12 +224,12 @@ public class SamlClient{
 			StringBuilder builder = new StringBuilder();
 			builder = builder.append("<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\">");
 			builder = builder.append("<SOAP:Header><wsse:Security xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\"><wsse:UsernameToken xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\">");
-			builder = builder.append("<wsse:Username>").append(username).append("</wsse:Username>");
+			builder = builder.append("<wsse:Username>").append(userName).append("</wsse:Username>");
 			builder = builder.append("<wsse:Password>").append(password).append("</wsse:Password>");
 			builder = builder.append("</wsse:UsernameToken></wsse:Security></SOAP:Header><SOAP:Body>");
 			builder = builder.append("<samlp:Request xmlns:samlp=\"urn:oasis:names:tc:SAML:1.0:protocol\" MajorVersion=\"1\" MinorVersion=\"1\" IssueInstant=\"").append(DateUtil.getCurrentUTCDate()).append("\" RequestID=\"").append(StringUtil.generateUUID()).append("\">");
 			builder = builder.append("<samlp:AuthenticationQuery><saml:Subject xmlns:saml=\"urn:oasis:names:tc:SAML:1.0:assertion\">");
-			builder = builder.append("<saml:NameIdentifier Format=\"urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified\">").append(username).append("</saml:NameIdentifier>");
+			builder = builder.append("<saml:NameIdentifier Format=\"urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified\">").append(userName).append("</saml:NameIdentifier>");
 			builder = builder.append("</saml:Subject></samlp:AuthenticationQuery></samlp:Request></SOAP:Body></SOAP:Envelope>");
 			requestXML = builder.toString();
 			builder.setLength(0);

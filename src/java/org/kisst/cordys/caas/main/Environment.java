@@ -34,9 +34,20 @@ public class Environment {
 	private Properties props=new Properties();
 	
 	private void log(String type, String msg){ System.out.println(type+" "+msg);}
-	public void debug(String msg) { if (debug   && ! quiet) log("DEBUG",msg); }
-	public void info(String msg)  { if (verbose && ! quiet) log("INFO ", msg); }
-	public void warn(String msg)  { if (! quiet) log("WARN ", msg); }
+	public void log(String type, String msg, boolean terminateLine)
+	{ 
+		if (verbose && !quiet)
+		{
+			if(terminateLine) 
+				System.out.println(type+" "+msg);
+			else 
+				System.out.print(type+" "+msg);	
+		}
+	}
+	public void debug(String msg) { if (debug && !quiet) log("DEBUG",msg); }
+	public void info(String msg)  { if (verbose && !quiet) log("INFO ", msg); }
+	public void info(String msg, boolean terminateLine)  { log("INFO ", msg, terminateLine); }
+	public void warn(String msg)  { if (!quiet) log("WARN ", msg); }
 	public void error(String msg)  { log("ERROR", msg); }
 	
 	public String getProp(String key, String defaultValue) { return props.getProperty(key, defaultValue); }

@@ -29,7 +29,7 @@ import org.kisst.cordys.caas.CordysSystem;
 
 /**
  * This class works like a list, without being a real java.util.List
- * This hack is necessary, because in groovy the propertyMissing method is never used
+ * This hack is necessary, because in groovy the propertyMissing webService is never used
  * on objects that inherit from a List.
  * 
  */
@@ -189,10 +189,10 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
 		return diffs;
 	}
 
-	// Groovy specific methods
+	// Groovy specific webServices
 	public T propertyMissing(String name) {	return get(name); }
 
-	// Jython specific methods
+	// Jython specific webServices
 	public Object __getattr__(String name) { return get(name); }
 	public Object __getitem__(String key)  { return get(key); }
 	public Object __getitem__(int index)   { return get(index); }

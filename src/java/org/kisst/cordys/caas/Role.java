@@ -30,7 +30,8 @@ public class Role extends LdapObjectBase {
 	public final EntryObjectList<Role> r    = roles;
 
 	public final StringList toolbars= new StringList("toolbar"); 
-	public final StringList menus = new StringList("menu"); 
+	public final StringList menus = new StringList("menu");
+	public final StringProperty type = new StringProperty("busorganizationalroletype");
 
 	protected Role(LdapObject parent, String dn) {
 		super(parent, dn);

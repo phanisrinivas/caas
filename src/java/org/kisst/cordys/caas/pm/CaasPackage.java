@@ -35,8 +35,8 @@ public class CaasPackage {
 		orgName=pm.getAttribute("org");
 		
 		for (XmlNode child: pm.getChildren()) {
-			if ("soapnode".equals(child.getName()))
-				objectives.add(new SoapNodeObjective(child));
+			if ("servicegroup".equals(child.getName()))
+				objectives.add(new ServiceGroupObjective(child));
 			else if ("user".equals(child.getName()))
 				objectives.add(new UserObjective(child));
 			else if ("isvp".equals(child.getName()))
