@@ -22,7 +22,7 @@ package org.kisst.cordys.caas.pm;
 import java.util.LinkedList;
 
 import org.kisst.cordys.caas.CordysSystem;
-import org.kisst.cordys.caas.Isvp;
+import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.ChildList;
@@ -47,7 +47,7 @@ public class ObjectiveBase implements Objective {
 			if (isvpName.length()==0)
 				result = ((ChildList<?>) org.getProp(propName)).getByName(name);
 			else {
-				Isvp isvp=system.isvp.getByName(isvpName);
+				Package isvp=system.isvp.getByName(isvpName);
 				if (isvp==null) {
 					env.error("target "+target.getVarName(org)+" refers to UNKNOWN isvp \""+isvpName+"\" in entry "+this);
 					return null;

@@ -75,12 +75,11 @@ public class Organization extends LdapObjectBase
 	public final ChildList<Dso> dso;
 	public final ChildList<Dso> d;
 	
-	@SuppressWarnings("unchecked")
 	protected Organization(LdapObject parent, String dn) 
 	{
 		super(parent, dn);
 		//Populate the service containers collection
-		serviceContainers = new CordysObjectList(parent.getSystem()) 
+		serviceContainers = new CordysObjectList<ServiceContainer>(parent.getSystem()) 
 		{
 			@Override protected void retrieveList() 
 			{
@@ -98,7 +97,7 @@ public class Organization extends LdapObjectBase
 		sc = serviceContainers;
 		
 		//Populate the dsos collection
-		dsos = new ChildList(parent.getSystem(), Dso.class) 
+		dsos = new ChildList<Dso>(parent.getSystem(), Dso.class) 
 		{
 			@Override protected void retrieveList() 
 			{
@@ -274,7 +273,7 @@ public class Organization extends LdapObjectBase
 		return getSystem().getXml(key, "organization", getDn()); 
 	}
 	
-	public XmlNode deduct(Isvp isvp) 
+	public XmlNode deduct(Package isvp) 
 	{ 
 		return deduct(isvp, isvp.getName());	
 	}
@@ -347,10 +346,9 @@ public class Organization extends LdapObjectBase
 		return result;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public CordysObjectList<LdapObject> seek(final Role target) 
 	{
-		return new CordysObjectList(getSystem()) 
+		return new CordysObjectList<LdapObject>(getSystem()) 
 		{
 			@Override protected void retrieveList() 
 			{
@@ -378,10 +376,9 @@ public class Organization extends LdapObjectBase
 		};
 	}
 
-	@SuppressWarnings("unchecked")
 	public CordysObjectList<ServiceGroup> seek(final WebServiceInterface target) 
 	{
-		return new CordysObjectList(getSystem()) 
+		return new CordysObjectList<ServiceGroup>(getSystem()) 
 		{
 			@Override protected void retrieveList() 
 			{

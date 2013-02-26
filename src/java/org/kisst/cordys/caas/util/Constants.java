@@ -25,6 +25,7 @@ public class Constants {
 	public static final String UPDATE = "Update";
 	public static final String DELETE_RECURSIVE = "DeleteRecursive";
 	public static final String GET_INSTALLED_ISVPS = "GetInstalledISVPackages";
+	public static final String GET_CAP_DETAILS = "GetCapDetails";
 	
 	
 	public final static String XMLNS_MONITOR= "http://schemas.cordys.com/1.0/monitor";
@@ -33,6 +34,7 @@ public class Constants {
 	public final static String XMLNS_XMLSTORE="http://schemas.cordys.com/1.0/xmlstore";
 	public final static String XMLNS_COBOC  = "http://schemas.cordys.com/1.0/coboc";
 	public final static String XMLNS_NOTIFICATION  = "http://schemas.cordys.com/1.0/notification";
+    public final static String XMLNS_CAP = "http://schemas.cordys.com/cap/1.0";
 	
 
 }

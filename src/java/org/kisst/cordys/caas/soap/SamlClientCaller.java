@@ -2,6 +2,8 @@ package org.kisst.cordys.caas.soap;
 
 
 import java.util.HashMap;
+
+import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -38,7 +40,7 @@ public class SamlClientCaller extends BaseCaller {
 	 * Delegates the incoming SOAP request to sendHttpRequest
 	 */
 	public String httpCall(String baseurl, String inputSoapRequest, HashMap<String, String> map) {
-		return sendHttpRequest(baseurl,inputSoapRequest,map);
+		return sendHttpRequest(baseurl,inputSoapRequest,map, true);
 	}
 
 	/**
@@ -50,7 +52,7 @@ public class SamlClientCaller extends BaseCaller {
 	 * @param queryParams - Query string parameters that need to added to the BaseGateway URL.
 	 * @return response - SOAP Response XML string
 	 */
-	public String sendHttpRequest(String url, String inputSoapRequest, HashMap<String, String> queryParams)
+	public String sendHttpRequest(String url, String inputSoapRequest, HashMap<String, String> queryParams, boolean addArtifact)
 	{
 		int statusCode, pos;
 		String response,baseURL,queryString, aString=null;
@@ -74,8 +76,13 @@ public class SamlClientCaller extends BaseCaller {
 		{
 			queryParams = new HashMap<String, String>();
 		}
-		//Add the SAML artifact Id to the map of query string parameters 
-		queryParams.put(SAML_ARTIFACT_NAME, artifactID);
+		
+		//Add the SAML artifact Id to the map of query string parameters
+		if (addArtifact)
+		{
+		    queryParams.put(SAML_ARTIFACT_NAME, artifactID);
+		}
+
 		//Convert the map of query string parameters to string		
 		if(aString==null)
 		{
@@ -103,6 +110,7 @@ public class SamlClientCaller extends BaseCaller {
 					client.getState().setProxyCredentials(new AuthScope(proxyHost, Integer.parseInt(proxyPort)), new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
 				}
 			}
+			
 			statusCode = client.executeMethod(method);
 			response=method.getResponseBodyAsString();
 		}

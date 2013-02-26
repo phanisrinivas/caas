@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.kisst.cordys.caas.CordysSystem;
-import org.kisst.cordys.caas.Isvp;
+import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -176,6 +176,7 @@ public abstract class LdapObject extends CordysObject {
 		this.parent=parent; 
 	}
 	abstract public String getDn();
+	abstract public String getCn();
 	@Override public void myclear() { super.myclear(); entry=null; }
 	public void debug(String msg) { getSystem().getEnv().debug(msg); } 
 	public void info(String msg)  { getSystem().getEnv().info(msg); } 
@@ -283,7 +284,7 @@ public abstract class LdapObject extends CordysObject {
 	public void checkIfMayBeModified() {
 		CordysObject obj=this;
 		while (obj!=null && (obj instanceof LdapObject)) {
-			if (obj instanceof Isvp)
+			if (obj instanceof Package)
 				throw new RuntimeException("It is not allowed to delete any part of an ISVP");
 			obj=((LdapObject)obj).getParent();
 		}

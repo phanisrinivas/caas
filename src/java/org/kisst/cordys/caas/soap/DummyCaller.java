@@ -122,4 +122,33 @@ public class DummyCaller implements SoapCaller {
 		// TODO Auto-generated webService stub
 		return null;
 	}
+
+    /**
+     * @see org.kisst.cordys.caas.soap.SoapCaller#httpCall(java.lang.String, java.lang.String, java.util.HashMap)
+     */
+    @Override
+    public String httpCall(String url, String input, HashMap<String, String> queryStringMap)
+    {
+        return null;
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.soap.SoapCaller#getUrlBase()
+     */
+    @Override
+    public String getUrlBase()
+    {
+        return "http://server/cordys";
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.soap.SoapCaller#isOLDEnabled()
+     */
+    @Override
+    public boolean isOLDEnabled()
+    {
+        return false;
+    }
+	
+	
 }

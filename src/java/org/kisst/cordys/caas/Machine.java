@@ -268,7 +268,7 @@ public class Machine extends CordysObject
 	 * @param deleteReferences
 	 * @return 
 	 */	
-	public void unloadIsvp(Isvp isvp, boolean deleteReferences) 
+	public void unloadIsvp(Package isvp, boolean deleteReferences) 
 	{
 		XmlNode request=new XmlNode(Constants.UNLOAD_ISVP, Constants.XMLNS_ISV);
 		XmlNode file=request.add("file");

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.LinkedList;
 
 import org.kisst.cordys.caas.CordysSystem;
-import org.kisst.cordys.caas.Isvp;
+import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.util.XmlNode;
@@ -61,7 +61,7 @@ public class IsvpObjective implements Objective {
 		CordysSystem system=org.getSystem();
 		Environment env=Environment.get();
 		
-		Isvp isvp=system.isvp.getByName(name);
+		Package isvp=system.isvp.getByName(name);
 		if (isvp==null) {
 			env.error("required isvp "+name+" is not installed");
 			return false;
@@ -69,21 +69,21 @@ public class IsvpObjective implements Objective {
 		// TODO: check if loaded on all necessary machines
 		boolean foundMatchingVersion=false;
 		for (Version v: versions) {
-			env.debug("Checking "+isvp.filename+" against version "+v.filename);
-			if (isvp.filename.get().equals(v.filename)) {
+			env.debug("Checking "+isvp.member+" against version "+v.filename);
+			if (isvp.member.get().equals(v.filename)) {
 				env.info(v.filename+ " matches");
 				foundMatchingVersion=true;
 				if ("OK".equals(v.tested))
 					return true;
 				else {
-					env.error("required isvp "+isvp.getVarName()+" has version "+isvp.filename+" that tested "+v.tested);
+					env.error("required isvp "+isvp.getVarName()+" has version "+isvp.member+" that tested "+v.tested);
 					for (String s: v.warnings)
 						env.warn("\t"+s);
 				}
 			}
 		}
 		if (! foundMatchingVersion)
-			env.error("required isvp "+isvp.getVarName()+", has version "+isvp.filename.get()+" that was not mentioned in the known versions");
+			env.error("required isvp "+isvp.getVarName()+", has version "+isvp.member.get()+" that was not mentioned in the known versions");
 		return false;
 	}
 	
