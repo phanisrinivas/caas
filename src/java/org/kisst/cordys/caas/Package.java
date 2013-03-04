@@ -14,6 +14,7 @@ import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.util.Constants;
+import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
@@ -36,10 +37,10 @@ public class Package extends LdapObjectBase
     public final StringProperty member = new StringProperty("member", 3);
     /** Holds the owner. */
     public final StringProperty owner = new StringProperty("owner", 3);
-    /** Holds the definition. */
-    private XmlNode definition = null;
     /** Holds the corresponding package definition step */
     private PackageDefinition pd = null;
+    /** Holds the deployed package information for this package */
+    private IDeployedPackageInfo m_info;
 
     /**
      * Instantiates a new package.
@@ -50,10 +51,13 @@ public class Package extends LdapObjectBase
     protected Package(LdapObject parent, String dn)
     {
         super(parent, dn);
-        
-        //From the system we need to find the definition object and set it here.
+
+        // From the system we need to find the definition object and set it here.
         CordysSystem sys = getSystem();
-        pd = sys.packages.getByName(getCn());
+
+        // There are some old packages in the Cordys LDAP for which there are no CAP packages. So there will be not package
+        // definition.
+        pd = sys.packageDefinitions.getByName(getCn());
     }
 
     /**
@@ -72,7 +76,7 @@ public class Package extends LdapObjectBase
     public void myclear()
     {
         super.myclear();
-        definition = null;
+        m_info = null;
     }
 
     /**
@@ -110,7 +114,10 @@ public class Package extends LdapObjectBase
     {
         String result = member.get();
         if (result.endsWith(".isvp"))
+        {
             result = result.substring(0, result.length() - 5);
+        }
+
         return result;
     }
 
@@ -123,7 +130,7 @@ public class Package extends LdapObjectBase
     {
         return pd;
     }
-    
+
     /**
      * Unload.
      * 
@@ -139,118 +146,84 @@ public class Package extends LdapObjectBase
                 machine.unloadIsvp(this, deleteReferences);
             }
             getSystem().removeLdap(getDn());
-            
-            //Force a reload of the packages
+
+            // Force a reload of the packages
             getSystem().packages.clear();
         }
     }
 
     /**
-     * This method gets the definition.
+     * This method returns the deployed version information.
      * 
-     * @return The definition
+     * @return The deployed version information.
      */
-    public XmlNode getDefinition()
+    public IDeployedPackageInfo getInfo()
     {
-        if (definition != null)
-            return definition;
+        if (m_info != null)
+        {
+            return m_info;
+        }
+
+        // It's not loaded yet, so lets get the details
+        if (pd != null)
+        {
+            switch (pd.getType())
+            {
+                case isvp:
+                    loadISVPInfo();
+                    break;
+                case cap:
+                    loadCAPInfo();
+                    break;
+            }
+        }
+        return m_info;
+    }
+
+    /**
+     * This method loads the CAP information.
+     */
+    private void loadCAPInfo()
+    {
+        XmlNode request = new XmlNode(Constants.GET_CAP_DETAILS, Constants.XMLNS_CAP);
+        XmlNode cap = request.add("cap");
+        cap.setText(getPackageDN());
+
+        XmlNode response = call(request);
+
+        XmlNode header = (XmlNode) response.get("tuple/old/ApplicationPackage/ApplicationDetails/Header");
+
+        if (header != null)
+        {
+            String vendor = header.getChildText("Vendor");
+            String version = header.getChildText("Version");
+            String buildNumber = header.getChildText("BuildNumber");
+
+            m_info = new DeployedPackageInfo(getPackageDN(), null, vendor, version, buildNumber);
+        }
+    }
+
+    /**
+     * This method loads and creates the deployed package information for an ISV package.
+     */
+    private void loadISVPInfo()
+    {
         XmlNode request = new XmlNode(Constants.GET_ISVP_DEFINITION, Constants.XMLNS_ISV);
         XmlNode file = request.add("file");
         file.setText(getBasename());
         file.setAttribute("type", "isvpackage");
         file.setAttribute("onlyxml", "true");
-        definition = call(request).getChild("ISVPackage").detach();
-        return definition;
-    }
+        file.setAttribute("detail", "false");
 
-    /**
-     * This method gets the description.
-     * 
-     * @return The description
-     */
-    public XmlNode getDescription()
-    {
-        return getDefinition().getChild("description");
-    }
+        XmlNode isvPackage = call(request).getChild("ISVPackage");
 
-    /**
-     * This method gets the content.
-     * 
-     * @return The content
-     */
-    public XmlNode getContent()
-    {
-        return getDefinition().getChild("content");
-    }
+        XmlNode desc = isvPackage.getChild("description");
 
-    /**
-     * This method gets the owner2.
-     * 
-     * @return The owner2
-     */
-    public String getOwner2()
-    {
-        return getDescription().getChildText("owner");
-    }
+        String vendor = desc.getChildText("owner");
+        String fullVersion = desc.getChildText("version");
+        String buildNumber = desc.getChildText("build");
 
-    /**
-     * This method gets the name2.
-     * 
-     * @return The name2
-     */
-    public String getName2()
-    {
-        return getDescription().getChildText("name");
-    }
-
-    /**
-     * This method gets the version.
-     * 
-     * @return The version
-     */
-    public String getVersion()
-    {
-        return getDescription().getChildText("version");
-    }
-
-    /**
-     * This method gets the wcpversion.
-     * 
-     * @return The wcpversion
-     */
-    public String getWcpversion()
-    {
-        return getDescription().getChildText("wcpversion");
-    }
-
-    /**
-     * This method gets the eula.
-     * 
-     * @return The eula
-     */
-    public String getEula()
-    {
-        return getDescription().getChildText("eula");
-    }
-
-    /**
-     * This method gets the sidebar.
-     * 
-     * @return The sidebar
-     */
-    public String getSidebar()
-    {
-        return getDescription().getChildText("sidebar");
-    }
-
-    /**
-     * This method gets the buildnumber.
-     * 
-     * @return The buildnumber
-     */
-    public String getBuildnumber()
-    {
-        return getDescription().getChildText("build");
+        m_info = new DeployedPackageInfo(getPackageDN(), fullVersion, vendor, fullVersion, buildNumber);
     }
 
     /**
@@ -263,5 +236,144 @@ public class Package extends LdapObjectBase
         public String status;
         public String version;
         public String buildNumber;
+    }
+
+    /**
+     * This class holds the information about a deployed package.
+     */
+    private static class DeployedPackageInfo implements IDeployedPackageInfo
+    {
+        /** Holds the full version of the package */
+        private String m_fullVersion;
+        /** Holds the name of the package. */
+        private String m_packageName;
+        /** Holds the vendor of this package */
+        private String m_vendor;
+        /** Holds the version part */
+        private String m_version;
+        /** Holds the build number */
+        private String m_buildNumber;
+
+        /**
+         * Instantiates a new deployed package info.
+         * 
+         * @param packageName The package name
+         * @param fullVersion The full version
+         * @param vendor The vendor
+         * @param version The version
+         * @param buildNumber The build number
+         */
+        DeployedPackageInfo(String packageName, String fullVersion, String vendor, String version, String buildNumber)
+        {
+            m_fullVersion = fullVersion;
+            m_packageName = packageName;
+            m_vendor = vendor;
+            m_version = version;
+            m_buildNumber = buildNumber;
+
+            if (StringUtil.isEmptyOrNull(m_fullVersion))
+            {
+                m_fullVersion = m_version + "." + m_buildNumber;
+            }
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#getFullVersion()
+         */
+        @Override
+        public String getFullVersion()
+        {
+            return m_fullVersion;
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#setFullVersion(java.lang.String)
+         */
+        @Override
+        public void setFullVersion(String fullVersion)
+        {
+            m_fullVersion = fullVersion;
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#getPackageName()
+         */
+        @Override
+        public String getPackageName()
+        {
+            return m_packageName;
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#setPackageName(java.lang.String)
+         */
+        @Override
+        public void setPackageName(String packageName)
+        {
+            m_packageName = packageName;
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#getVendor()
+         */
+        @Override
+        public String getVendor()
+        {
+            return m_vendor;
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#setVendor(java.lang.String)
+         */
+        @Override
+        public void setVendor(String vendor)
+        {
+            m_vendor = vendor;
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#getVersion()
+         */
+        @Override
+        public String getVersion()
+        {
+            return m_version;
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#setVersion(java.lang.String)
+         */
+        @Override
+        public void setVersion(String version)
+        {
+            m_version = version;
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#getBuildNumber()
+         */
+        @Override
+        public String getBuildNumber()
+        {
+            return m_buildNumber;
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.IDeployedPackageInfo#setBuildNumber(java.lang.String)
+         */
+        @Override
+        public void setBuildNumber(String buildNumber)
+        {
+            m_buildNumber = buildNumber;
+        }
+        
+        /**
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString()
+        {
+            return getPackageName() + "(" + getVendor() + "; " + getFullVersion() + ")";
+        }
     }
 }

@@ -53,7 +53,7 @@ public class CaasPackage
             }
             else if ("package".equals(child.getName()))
             {
-                objectives.add(new IsvpObjective(child));
+                objectives.add(new PackageObjective(child));
             }
         }
     }
