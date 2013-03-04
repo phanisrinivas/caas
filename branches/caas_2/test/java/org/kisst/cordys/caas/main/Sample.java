@@ -27,6 +27,7 @@ import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
+@SuppressWarnings("unused")
 public class Sample {
 
 	@BeforeClass
@@ -46,14 +47,6 @@ public class Sample {
 	}
 	
 	private static void reverseSubstituteTest(){
-							String xml="<component>"+
-							"<connectionString>"+
-								"<![CDATA[jdbc:mysql://cordysserver:3306/Northwind]]>"+
-								"</connectionString>"+
-								"<sp name='sp1' />"+
-								"<sp name='sp2' />"+
-						"</component>";
-					
 					String jreconfig = "<jreconfig>"+
 					"<param value='-cp CORDYS_INSTALL_DIR/Immediate/Immediate.jar:CORDYS_INSTALL_DIR/rmg/SalesOrderReports/lib/axis.jar:CORDYS_INSTALL_DIR/rmg/SalesOrderReports/lib/commons-discovery-0.2.jar:CORDYS_INSTALL_DIR/rmg/SalesOrderReports/lib/commons-logging-1.0.4.jar:CORDYS_INSTALL_DIR/rmg/SalesOrderReports/lib/jaxrpc.jar:CORDYS_INSTALL_DIR/rmg/SalesOrderReports/lib/wsdl4j-1.5.1.jar:CORDYS_INSTALL_DIR/rmg/SalesOrderReports/lib/wss4j-1.5.8.jar:CORDYS_INSTALL_DIR/rmg/SalesOrderReports/lib/xalan-2.7.1.jar:CORDYS_INSTALL_DIR/rmg/SalesOrderReports/lib/xmlsec-1.4.3.jar' />"+
 					"<param value='-Xmx256M' />"+
@@ -62,7 +55,7 @@ public class Sample {
 					"<param value='-Dcircuitbreaker.enabled=false' />"+
 					"</jreconfig>";
 					XmlNode jreNode = new XmlNode(jreconfig);
-					String temp = jreNode.compact();
+					jreNode.compact();
 					
 					String xml2 =   "<xmlstoreobject>"+
 					"<RMLVendaConfiguration>"+
@@ -93,6 +86,7 @@ public class Sample {
 					Properties props = new Properties();
 					props.load(new FileInputStream("D:/Users/galoori/config/caas/cordysSIT.properties"));
 					//System.out.println(props.size());
+		           @SuppressWarnings({ "rawtypes", "unchecked" })
 					Map<String,String> map = new HashMap<String, String>((Map) props);
 					
 					System.out.println("export::: "+StringUtil.reverseSubstitute(xml2, map));
@@ -174,9 +168,6 @@ public class Sample {
 		//joinTest();
 	}
 	
-	private void exportVarsTest(){
-		
-	}
 	
 	private void joinTest(){
 		Map<String,String> tokens = new HashMap<String,String>();
@@ -206,7 +197,7 @@ public class Sample {
 	}
 	
 	
-	private boolean caaspmExport(){
+    private boolean caaspmExport(){
 		//String cmd = "pm template -o RMG_Release3 -s cordysDev D:/Users/galoori/config/caas/dev_test.caaspm";
 		//String cmd_sit = "pm template -o RMG -s cordysSIT D:/Users/galoori/config/caas/rmg_SIT.caaspm";
 		//String cmd_vm = "pm template -o system -s cordysVM D:/Users/galoori/config/caas/test.caaspm";
@@ -214,7 +205,7 @@ public class Sample {
 		CaasMain.main(cmd_uat.split(" "));
 		return true;
 	}
-	private boolean caaspmImport(){
+    private boolean caaspmImport(){
 		//String cmd="pm create -o Practice -s cordysVM D:/Users/galoori/config/caas/vm.caaspm";
 		String cmd_vm="pm create -o CaasOrg -s cordysVM D:/Users/galoori/config/caas/rmg_SIT.caaspm";
 		
@@ -232,7 +223,7 @@ public class Sample {
 	    return rev;
 	}
 	
-	private void test(){
+    private void test(){
 		String xml="<accessconfigurations applyToAllMethodSets='false'>"+
 		"<accessconfiguration methodsetdn='cn=Prepay Web Service.apiBinding,cn=webService sets,o=RMG,cn=cordys,cn=BOP,o=uk-prv.attenda.net'>"+
 			"<urlmappings>"+

@@ -28,9 +28,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.kisst.cordys.caas.exception.CaasRuntimeException;
-import org.kisst.cordys.caas.main.Environment;
-
 import sun.misc.BASE64Encoder;
 
 public class FileUtil {
@@ -116,8 +113,9 @@ public class FileUtil {
 	 */
 	public static String  encodeFile(String filePath)
 	{
+	    FileInputStream fin = null;
 		try {			
-			FileInputStream fin = new FileInputStream(filePath);
+			fin = new FileInputStream(filePath);
 			byte[] fileContent = new byte[fin.available()];
 			DataInputStream din = new DataInputStream(fin);
 			din.readFully(fileContent);
@@ -126,6 +124,14 @@ public class FileUtil {
 			
 		} catch (Exception  e) {
 			throw new RuntimeException(e);
+		}
+		finally {
+		    if (fin != null)
+                try {
+                    fin.close();
+                }
+                catch (IOException e) {
+                }
 		}
 	}
 }

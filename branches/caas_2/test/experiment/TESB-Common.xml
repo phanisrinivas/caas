@@ -1,0 +1,24 @@
+<packagedescriptor>
+    <!-- 
+        To identify the parameters that this file contributes to the configuration. This means 
+        that these are needed before this configuration can be used. 
+    -->
+    <properties>
+        <property name="CORDYS_INSTALL_DIR" description="The location where the Cordys instance is running"/>
+    </properties>
+    <!-- 
+        This part identifies the data sources that are needed for this ISV package
+    -->
+    <datasources>
+        <dso name="TESBCommon"/>
+    </datasources>
+    <servicegroups>
+        <servicegroup name="BPM">
+            <wsi name="Common_v20121012.CommonWebServiceInterface" package="TataSteel Common v20121012 1"/>
+            <servicecontainer>
+                <jar>${CORDYS_INSTALL_DIR}/com-cordys-coe/jmsconnector/java/jmsconnector.jar</jar>
+                <jar>${CORDYS_INSTALL_DIR}/com-cordys-coe/jmsconnector/java/lib/coelib.jar</jar>
+            </servicecontainer>
+        </servicegroup>
+    </servicegroups>
+</packagedescriptor>

@@ -89,7 +89,7 @@ public class StringUtil
 		return xmlString.replaceAll( "(?s)<!--.*?-->", "" );
 	}
 	
-	public static String join(Iterator iterator, String separator) 
+	public static String join(Iterator<?> iterator, String separator) 
 	{		 
 	      // handle null, zero and one elements before building a buffer
 	      if (iterator == null)

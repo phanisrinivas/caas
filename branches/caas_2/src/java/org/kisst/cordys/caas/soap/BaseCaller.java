@@ -11,6 +11,8 @@ package org.kisst.cordys.caas.soap;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.util.StringUtil;
@@ -21,10 +23,14 @@ import org.kisst.cordys.caas.util.XmlNode;
  */
 public abstract class BaseCaller implements SoapCaller
 {
+    /** Holds the regex to parse an old-style BOP 4.1 gateway URL */
+    private static final Pattern GU_BOP41 = Pattern.compile("^([^/]+\\/\\/[^/]+\\/cordys)/(.+)$");
+    /** Holds the regex to parse an old-style VOP 4.2+ gateway URL */
+    private static final Pattern GU_BOP42 = Pattern.compile("^([^/]+\\/\\/[^/]+\\/home)\\/([^/]+)\\/(.+)$");
     /**
      * Holds the url base for the Cordys server. This is for pre 4.2: http://server/cordys and for 4.2 and up http://server/home
      */
-    protected final String urlBase;
+    protected String urlBase;
     /** Holds the location of the web gateway. If not filled it is set to com.eibus.web.soap.Gateway.wcp. */
     protected String location;
     /** Holds the user name to use for connecting. */
@@ -54,22 +60,51 @@ public abstract class BaseCaller implements SoapCaller
     public BaseCaller(String name)
     {
         urlBase = Environment.get().getProp("system." + name + ".gateway.url.base", null);
-
-        if (urlBase == null)
-        {
-            throw new RuntimeException("No gateway URL base is configured in the caas.conf file for property system." + name
-                    + ".gateway.url.base");
-        }
-
         // Read the location of the default web gateway.
         location = Environment.get().getProp("system." + name + ".gateway.location", "com.eibus.web.soap.Gateway.wcp");
 
-        // Read whether or not Organizational level deployment is used.
-        String tmp = Environment.get().getProp("system." + name + ".gateway.old", "false");
-
-        if ("true".equalsIgnoreCase(tmp))
+        if (urlBase == null)
         {
-            orgLevelDeployment = true;
+            // The new way of specifying the connection details was not used. So let's see if they used the old way.
+            String oldStyle = Environment.get().getProp("system." + name + ".gateway.url", null);
+            if (StringUtil.isEmptyOrNull(oldStyle))
+            {
+                throw new RuntimeException("No gateway URL base is configured in the caas.conf file for property system." + name
+                        + ".gateway.url");
+            }
+
+            // The old style of configuring is used. So we need to detect whether it's BOP 4.1 or a 4.2+
+            Matcher m = GU_BOP41.matcher(oldStyle);
+            if (!m.matches())
+            {
+                // Try to match the 4.2 variant
+                m = GU_BOP42.matcher(oldStyle);
+                if (!m.matches())
+                {
+                    throw new RuntimeException("Invalid gateway URL specified for system." + name + ".gateway.url");
+                }
+
+                urlBase = m.group(1);
+                location = m.group(3);
+                orgLevelDeployment = true;
+            }
+            else
+            {
+                // It's BOP 4.1
+                urlBase = m.group(1);
+                location = m.group(2);
+                orgLevelDeployment = false;
+            }
+        }
+        else
+        {
+            // Read whether or not Organizational level deployment is used.
+            String tmp = Environment.get().getProp("system." + name + ".gateway.old", "false");
+
+            if ("true".equalsIgnoreCase(tmp))
+            {
+                orgLevelDeployment = true;
+            }
         }
 
         // Read additional default query string parameters from the location
@@ -135,6 +170,74 @@ public abstract class BaseCaller implements SoapCaller
         // Add the default parameters that were specified in the config file.
         filtered.putAll(queryStringMap);
 
+        String baseGatewayUrl = getFinalGatewayURL(filtered);
+
+        // Execute the web service.
+        return httpCall(baseGatewayUrl, input, filtered);
+    }
+    
+    /**
+     * This method gets the username to use for connecting.
+     * 
+     * @return The username to use for connecting.
+     */
+    public String getUsername()
+    {
+        return userName;
+    }
+    
+    /**
+     * This method gets the password to use for authenticating the user.
+     * 
+     * @return The password to use for authenticating the user.
+     */
+    public String getPassword()
+    {
+        return password;
+    }
+    
+    /**
+     * This method returns the gateway URL that should be used to post to. In case of OLD it will return the URL of the System org.
+     * 
+     * @return The gateway URL that should be used.
+     */
+    public String getFinalGatewayURL()
+    {
+        return getFinalGatewayURL(null, null);
+    }
+    
+    /**
+     * This method returns the gateway URL that should be used to post to. In case of OLD it will return the URL of the System org.
+     * 
+     * @return The gateway URL that should be used.
+     */
+    public String getFinalGatewayURL(String organization)
+    {
+        return getFinalGatewayURL(organization, null);
+    }
+    
+    /**
+     * This method returns the gateway URL that should be used to post to.
+     * 
+     * @param queryParameters The query parameters. These are needed to read the organization from that should be used. If null
+     *            then it will default to the system org.
+     * @return The gateway URL that should be used.
+     */
+    public String getFinalGatewayURL(HashMap<String, String> queryParameters)
+    {
+        return getFinalGatewayURL(null, queryParameters);
+    }
+
+    /**
+     * This method returns the gateway URL that should be used to post to.
+     * 
+     * @param organization The name of the organization that should be used.
+     * @param queryParameters The query parameters. These are needed to read the organization from that should be used. If null
+     *            then it will default to the system org.
+     * @return The gateway URL that should be used.
+     */
+    private String getFinalGatewayURL(String organization, HashMap<String, String> queryParameters)
+    {
         // Construct the URL to use.
         String baseGatewayUrl = urlBase;
 
@@ -144,16 +247,37 @@ public abstract class BaseCaller implements SoapCaller
         }
 
         // Add the org name if needed.
+        String org = null;
         if (orgLevelDeployment == true)
         {
             // The organization should no longer be passed on as a parameter, but as part of the URL.
-            String org = filtered.remove("organization");
+            if (queryParameters != null)
+            {
+                org = queryParameters.remove("organization");
+            }
+            
+            if (organization != null)
+            {
+                org = organization;
+            }
 
             if (org == null)
             {
                 org = "system";
             }
-
+        }
+        else
+        {
+            //For non-OLD we need to add it to the query parameters.
+            if (queryParameters != null)
+            {
+                queryParameters.put("organization", organization);
+            }
+        }
+        
+        //If applicable, add the organization
+        if (org != null)
+        {
             baseGatewayUrl += org + "/";
         }
 
@@ -166,9 +290,7 @@ public abstract class BaseCaller implements SoapCaller
         {
             baseGatewayUrl += location;
         }
-
-        // Execute the web service.
-        return httpCall(baseGatewayUrl, input, filtered);
+        return baseGatewayUrl;
     }
 
     /**
