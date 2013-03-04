@@ -62,15 +62,19 @@ public class CordysSystem extends LdapObject
     /** Holds an alias for the organizations. */
     public final ChildList<Organization> o = organizations;
     /** Holds the packages that are installed on the system. */
-    public final CordysObjectList<PackageDefinition> packages = new PackageDefinitionList(this);
-    /** Holds an alias for the packages. */
-    public final CordysObjectList<PackageDefinition> p = packages;
+    public final CordysObjectList<PackageDefinition> packageDefinitions = new PackageDefinitionList(this);
+    /** Holds an alias for the package definitions. */
+    public final CordysObjectList<PackageDefinition> pd = packageDefinitions;
+    /** Holds the list of deployed packages. */
+    public final ChildList<Package> packages = new ChildList<Package>(this, Package.class);
+    /** Holds an alias for the loaded packages. */
+    public final ChildList<Package> p = packages;
     /** Holds an alias for the packages. This is for backwards compatibility. */
-    public final ChildList<Package> isvp = new ChildList<Package>(this, Package.class);
+    public final ChildList<Package> isvp = packages;
     /** Holds an alias for the packages. This is for backwards compatibility. */
-    public final ChildList<Package> i = isvp;
+    public final ChildList<Package> i = packages;
     /** Holds an alias for the packages. This is for backwards compatibility. */
-    public final ChildList<Package> isvps = isvp;
+    public final ChildList<Package> isvps = packages;
     /** Holds the all the authenticated users in this Cordys instance. */
     public final ChildList<AuthenticatedUser> authenticatedUsers = new ChildList<AuthenticatedUser>(this,
             "cn=authenticated users,", AuthenticatedUser.class);

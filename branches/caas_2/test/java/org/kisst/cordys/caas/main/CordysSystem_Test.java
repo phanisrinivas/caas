@@ -120,18 +120,11 @@ public class CordysSystem_Test{
 				System.out.println(isvp.getName());
 				Assert.assertFalse("ISVP description cannot be null or empty",StringUtil.isEmptyOrNull(isvp.description.get()));
 				Assert.assertFalse("ISVP filename cannot be null or empty",StringUtil.isEmptyOrNull(isvp.member.get()));
-				Assert.assertFalse("ISVP owner cannot be null or empty",StringUtil.isEmptyOrNull(isvp.getOwner2()));
 				Assert.assertNotNull("No roles in ISVP",isvp.roles);
 				Assert.assertNotNull("No webservices in ISVP",isvp.webServiceInterfaces);
 				Assert.assertFalse("ISVP basename cannot be null or empty",StringUtil.isEmptyOrNull(isvp.getBasename()));
-				Assert.assertFalse("ISVP version cannot be null or empty",StringUtil.isEmptyOrNull(isvp.getVersion()));
-				Assert.assertFalse("ISVP buildnumber cannot be null or empty",StringUtil.isEmptyOrNull(isvp.getBuildnumber()));
-				Assert.assertNotNull("ISVP content cannot be null",isvp.getContent());
-				Assert.assertNotNull("ISVP definition cannot be null",isvp.getDefinition());
 				Assert.assertFalse("ISVP dn cannot be null or empty",StringUtil.isEmptyOrNull(isvp.getDn()));
 				Assert.assertFalse("ISVP name cannot be null or empty",StringUtil.isEmptyOrNull(isvp.getName()));
-				Assert.assertFalse("ISVP name2 cannot be null or empty",StringUtil.isEmptyOrNull(isvp.getName2()));
-				Assert.assertFalse("ISVP ownser2 cannot be null or empty",StringUtil.isEmptyOrNull(isvp.getOwner2()));
 				Assert.assertNotNull("ISVP props cannot be null",isvp.getProps());
 				Assert.assertNotNull("ISVP system cannot be null",isvp.getSystem());
 			}
