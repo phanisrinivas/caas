@@ -461,15 +461,21 @@ public class Template
             if ((child.getName().equals("wsi")))
             {
                 WebServiceInterface newWSI = null;
-                String isvpName = child.getAttribute("package");
+                String packageName = child.getAttribute("package");
+                if (StringUtil.isEmptyOrNull(packageName))
+                {
+                    //For backward compatibility
+                    packageName = child.getAttribute("isvp");
+                }
+                
                 String wsiName = child.getAttribute("name");
-                if (isvpName == null)
+                if (packageName == null)
                 {
                     newWSI = org.webServiceInterfaces.getByName(wsiName);
                 }
                 else
                 {
-                    Package isvp = org.getSystem().isvp.getByName(isvpName);
+                    Package isvp = org.getSystem().isvp.getByName(packageName);
                     if (isvp != null)
                         newWSI = isvp.webServiceInterfaces.getByName(wsiName);
                 }
@@ -479,7 +485,7 @@ public class Template
                 }
                 else
                 {
-                    env.error("Skipping unknownn methodset " + wsiName);
+                    env.error("Skipping unknown web service interface " + wsiName);
                 }
             }
         }
