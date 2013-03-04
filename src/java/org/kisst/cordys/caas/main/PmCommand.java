@@ -135,7 +135,8 @@ public class PmCommand extends CompositeCommand
 			args=checkArgs(args);
 			String orgz = System.getProperty("template.org");
 			Properties props = getSystem().getProperties();
-			Map<String,String> variables = new HashMap<String, String>((Map) props);			
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+            Map<String,String> variables = new HashMap<String, String>((Map) props);			
 			Template template = new Template(getOrganization(orgz), isvpName.get());
 			template.save(args[0],variables);
 			return true;
@@ -153,6 +154,7 @@ public class PmCommand extends CompositeCommand
 			Template template=new Template(FileUtil.loadString(args[0]));			
 			String orgz = System.getProperty("create.org");
 			Properties props = this.getSystem().getProperties();
+            @SuppressWarnings({ "rawtypes", "unchecked" })
 			Map<String,String> variables = new HashMap<String, String>((Map) props);
 			template.apply(getOrganization(orgz), variables);
 			return true;

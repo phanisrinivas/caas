@@ -49,7 +49,7 @@ public class Template
 		env.info("Exporting template for "+org.getName()+" organization");
 		XmlNode result=new XmlNode("org");
 		if(targetIsvpName!=null)
-			result.setAttribute("isvp", targetIsvpName);
+			result.setAttribute("package", targetIsvpName);
 		result.setAttribute("org", org.getName());
 		env.info("Exporting "+org.dsos.getSize()+" dso objects ... ",false);
 		for(DsoType dsotype:org.dsotypes)
@@ -102,7 +102,7 @@ public class Template
 					child.setAttribute("type", subRole.type.get());
 				}
 				if (isvpName!=null)
-					child.setAttribute("isvp", isvpName);
+					child.setAttribute("package", isvpName);
 			}
 		}
 		env.log("", "OK", true);
@@ -132,7 +132,7 @@ public class Template
 					child.setAttribute("type", role.type.get());	
 				}
 				if (isvpName!=null)
-					child.setAttribute("isvp", isvpName);
+					child.setAttribute("package", isvpName);
 			}
 		}
 		env.log("", "OK", true);
@@ -156,7 +156,7 @@ public class Template
 				else
 					isvpName=wsi.getParent().getName();
 				if (isvpName!=null)
-					child.setAttribute("isvp", isvpName);
+					child.setAttribute("package", isvpName);
 			}
 			for (ServiceContainer serviceContainer: serviceGroup.serviceContainers)
 			{
@@ -286,7 +286,7 @@ public class Template
 	
 	/**
 	 * Creates/updates DSO. 
-	 * Also creates the DSO type if it's not existing
+	 * Also creates the DSO type if it does not exist.
 	 * 
 	 * @param org Organization where the DSO needs to be created/updated
 	 * @param dsoNode XmlNode representing the DSO as per the template
@@ -414,7 +414,7 @@ public class Template
 			if ((child.getName().equals("wsi")) )
 			{
 				WebServiceInterface newWSI=null;
-				String isvpName=child.getAttribute("isvp");
+				String isvpName=child.getAttribute("package");
 				String wsiName=child.getAttribute("name");
 				if (isvpName==null)
 				{
@@ -474,7 +474,7 @@ public class Template
 			if (child.getName().equals("role"))
 			{
 				Role role=null;
-				String isvpName=child.getAttribute("isvp");
+				String isvpName=child.getAttribute("package");
 				String roleName=child.getAttribute("name");
 				String dnRole=null;
 				if (isvpName==null)	//Assign organizational role if the isvp name is not mentioned
@@ -527,7 +527,7 @@ public class Template
 			if (child.getName().equals("role")) 
 			{
 				Role subRole=null;
-				String isvpName=child.getAttribute("isvp");
+				String isvpName=child.getAttribute("package");
 				String roleName=child.getAttribute("name");
 				String dnRole=null;
 				if (isvpName==null) 
@@ -560,7 +560,7 @@ public class Template
 		for (XmlNode child:node.getChildren()) {
 			if (child.getName().equals("role")) {
 				Role r=null;
-				String isvpName=child.getAttribute("isvp");
+				String isvpName=child.getAttribute("package");
 				String roleName=child.getAttribute("name");
 				String dnRole=null;
 				if (isvpName==null) {
@@ -697,7 +697,7 @@ public class Template
 			if (child.getName().equals("role"))
 			{
 				Role role=null;
-				String isvpName=child.getAttribute("isvp");
+				String isvpName=child.getAttribute("package");
 				String roleName=child.getAttribute("name");
 				env.info("Checking role "+roleName);
 				String dnRole=null;
@@ -744,7 +744,7 @@ public class Template
 			if (child.getName().equals("role"))
 			{
 				Role subRole=null;
-				String isvpName=child.getAttribute("isvp");
+				String isvpName=child.getAttribute("package");
 				String roleName=child.getAttribute("name");
 				env.info("  adding role "+roleName);
 
