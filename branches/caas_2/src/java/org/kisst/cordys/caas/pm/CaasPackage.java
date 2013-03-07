@@ -13,6 +13,7 @@ import java.util.LinkedList;
 
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
+import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -54,6 +55,14 @@ public class CaasPackage
             else if ("package".equals(child.getName()))
             {
                 objectives.add(new PackageObjective(child));
+            }
+            else if ("dso".equals(child.getName()))
+            {
+                objectives.add(new DsoObjective(child));
+            }
+            else
+            {
+                Environment.get().warn("Unknown objective: " + child.getName());
             }
         }
     }
@@ -113,6 +122,7 @@ public class CaasPackage
         {
             result = o.check(org) && result;
         }
+        
         return result;
     }
 

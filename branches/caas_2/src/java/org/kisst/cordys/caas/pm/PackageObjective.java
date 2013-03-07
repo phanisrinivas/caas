@@ -25,10 +25,8 @@ import org.kisst.cordys.caas.util.XmlNode;
  */
 public class PackageObjective implements Objective
 {
-
     /** Holds the name. */
     private final String name;
-
     /** Holds the versions. */
     private final LinkedList<Version> versions = new LinkedList<Version>();
 
@@ -60,7 +58,7 @@ public class PackageObjective implements Objective
         Package pkg = system.packages.getByName(name);
         if (pkg == null)
         {
-            env.error("Required package " + name + " is not installed");
+            env.error("[" + name + "] is not installed");
             return false;
         }
 
@@ -75,14 +73,14 @@ public class PackageObjective implements Objective
 
             if (v.matches(dpi.getFullVersion()))
             {
-                env.info(v.getVersion() + " matches actual version " + dpi.getFullVersion());
+                env.info("[" + name + "] " + v.getVersion() + " matches actual version " + dpi.getFullVersion());
 
                 foundMatchingVersion = true;
                 if ("OK".equals(v.getTested()))
                     return true;
                 else
                 {
-                    env.error("Required package " + pkg.getVarName() + " has version " + dpi.getFullVersion() + " that tested "
+                    env.error("[" + pkg.getVarName() + "] has version " + dpi.getFullVersion() + " that tested "
                             + v.getTested());
                     for (String s : v.getWarnings())
                     {
@@ -121,7 +119,9 @@ public class PackageObjective implements Objective
     {
         /** Holds the regular expression the version should match to be 'OK'. */
         private String m_version;
-        /** Holds the warning messages that should be displayed in case the package doe not match. */
+        /**
+         * Holds the warning messages that should be displayed in case the package doe not match.
+         */
         private String[] m_warnings;
         /**
          * Holds the test result for this version. When set to 'OK' it means that this is a good version. If the tested is

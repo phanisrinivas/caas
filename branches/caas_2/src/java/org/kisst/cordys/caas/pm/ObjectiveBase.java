@@ -32,7 +32,7 @@ public class ObjectiveBase implements Objective
         public Entry(String propName, XmlNode node)
         {
             this.propName = propName;
-            this.isvpName = node.getAttribute("isvp");
+            this.isvpName = node.getAttribute("package");
             this.name = node.getAttribute("name");
         }
 
