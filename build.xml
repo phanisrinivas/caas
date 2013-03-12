@@ -18,7 +18,7 @@
 	</target>
 
 	<target name="compile" description="Compiles Java files" depends="init">
-		<javac srcdir="${srcdir}/java" destdir="${builddir}/classes" debug="on" optimize="on" target="1.5">
+		<javac srcdir="${srcdir}/java" destdir="${builddir}/classes" debug="on" optimize="on" source="1.6" target="1.6">
 			<compilerarg value="-Xlint" />
 			<classpath>
 				<fileset dir="${libdir}">
@@ -110,9 +110,9 @@
 	</target>
 
 	<target name="download-groovy" depends="init,proxy">
-		<get src="http://repo1.maven.org/maven2/org/codehaus/groovy/groovy-all/1.6.5/groovy-all-1.6.5.jar" dest="lib/groovy-all-1.6.5.jar" />
+		<get src="http://repo1.maven.org/maven2/org/codehaus/groovy/groovy-all/2.0.7/groovy-all-2.0.7.jar" dest="lib/groovy-all-2.0.7.jar" />
 		<get src="http://repo1.maven.org/maven2/commons-cli/commons-cli/1.2/commons-cli-1.2.jar" dest="lib/commons-cli-1.2.jar" />
-		<get src="http://repo1.maven.org/maven2/jline/jline/0.9.94/jline-0.9.94.jar" dest="lib/jline-0.9.94.jar" />
+		<get src="http://repo1.maven.org/maven2/jline/jline/1.0/jline-1.0.jar" dest="lib/jline-1.0.jar" />
 	</target>
 
 	<target name="download-all" depends="download-commons,download-log4j,download-jdom,download-groovy" />

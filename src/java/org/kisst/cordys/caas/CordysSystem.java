@@ -12,6 +12,7 @@ package org.kisst.cordys.caas;
 import java.io.File;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -133,7 +134,7 @@ public class CordysSystem extends LdapObject
     {
         return name;
     }
-    
+
     /**
      * This method gets the SOAP caller that is to be used.
      * 
@@ -257,7 +258,7 @@ public class CordysSystem extends LdapObject
     {
         return dn;
     }
-    
+
     /**
      * @see org.kisst.cordys.caas.support.LdapObject#getCn()
      */
@@ -805,6 +806,176 @@ public class CordysSystem extends LdapObject
                 return CordysSystem.this.getKey() + ":seek(" + target + ")";
             }
         };
+    }
+
+    /**
+     * This method will upload the given CAP file to the Cordys system. CAP works different then ISVP. Cordys takes care that all
+     * nodes get the CAP package.
+     * 
+     * @param capFile The CAP file to load.
+     */
+    public void uploadCap(String capFile)
+    {
+        File cap = new File(capFile);
+        if (!cap.exists())
+        {
+            throw new CaasRuntimeException("CAP file " + cap.getAbsolutePath() + " does not exist");
+        }
+
+        String filename = cap.getName();
+        String capEncodedContent = FileUtil.encodeFile(capFile);
+
+        XmlNode request = new XmlNode(Constants.UPLOAD_CAP, Constants.XMLNS_CAP);
+        request.add("name").setText(filename);
+        request.add("content").setText(capEncodedContent);
+
+        // With ISV packages we needed to upload it to each monitor individually. But with CAP it is not needed anymore.
+        call(request);
+    }
+
+    /**
+     * This method will deploy the latest version of the given CAP package name. It will first check to see if there is a package
+     * to deploy and whether it's an upgrade or a fresh load.
+     * 
+     * @param name The name
+     */
+    public void deployCap(String name)
+    {
+        deployCap(name, 10);
+    }
+
+    /**
+     * This method will deploy the latest version of the given CAP package name. It will first check to see if there is a package
+     * to deploy and whether it's an upgrade or a fresh load.
+     * 
+     * @param name The name
+     * @param timeoutInMinutes The timeout in minutes.
+     */
+    public void deployCap(String name, long timeoutInMinutes)
+    {
+        // First get the status of the package. Is it indeed a new one
+        XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
+        request.add("ApplicationName").setText(name);
+        XmlNode response = call(request);
+
+        XmlNode url = response
+                .xpathSingle(
+                        "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deploy' or @operation='Upgrade']/cap:url",
+                        Constants.NS);
+        if (url == null || StringUtil.isEmptyOrNull(url.getText()))
+        {
+            throw new CaasRuntimeException("Could not find the URL for CAP " + name
+                    + ". Cause could be that there is no Upgrade / Deploy operation for this package");
+        }
+
+        long timeout = timeoutInMinutes * 60 * 1000;
+
+        // Now create the request to deploy the package
+        request = new XmlNode(Constants.DEPLOY_CAP, Constants.XMLNS_CAP);
+        request.setAttribute("Timeout", String.valueOf(timeout));
+        request.setAttribute("revertOnFailure", "false");
+
+        request.add("url").setText(url.getText());
+
+        // Add the timeout
+        HashMap<String, String> p = new LinkedHashMap<String, String>();
+        p.put("timeout", String.valueOf(timeout));
+
+        call(request, p);
+    }
+
+    /**
+     * This method will undeploy the given cap package.
+     * 
+     * @param name The package DN of the package.
+     */
+    public void undeployCap(String name)
+    {
+        undeployCap(name, null, null, 10);
+    }
+
+    /**
+     * This method will undeploy the given cap package.
+     * 
+     * @param name The package DN of the package.
+     * @param timeoutInMinutes The timeout in minutes
+     */
+    public void undeployCap(String name, long timeoutInMinutes)
+    {
+        undeployCap(name, null, null, timeoutInMinutes);
+    }
+
+    /**
+     * This method will undeploy the given cap package.
+     * 
+     * @param name The package DN of the package.
+     * @param deleteReferences Whether or not to delete the references of the package
+     * @param timeoutInMinutes The timeout in minutes
+     */
+    public void undeployCap(String name, Boolean deleteReferences, long timeoutInMinutes)
+    {
+        undeployCap(name, null, deleteReferences, timeoutInMinutes);
+    }
+
+    /**
+     * This method will undeploy the given cap package.
+     * 
+     * @param name The package DN of the package.
+     * @param userInputs The user inputs XML.
+     * @param deleteReferences Whether or not to delete the references of the package
+     * @param timeoutInMinutes The timeout in minutes
+     */
+    public void undeployCap(String name, String userInputs, Boolean deleteReferences, long timeoutInMinutes)
+    {
+        // First get the status of the package. Is it indeed a new one
+        XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
+        request.add("ApplicationName").setText(name);
+        XmlNode response = call(request);
+
+        XmlNode url = response.xpathSingle(
+                "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deployed']/cap:url", Constants.NS);
+        if (url == null || StringUtil.isEmptyOrNull(url.getText()))
+        {
+            throw new CaasRuntimeException("Could not find the URL for CAP " + name
+                    + ". Cause could be that the package is not deployed");
+        }
+
+        long timeout = timeoutInMinutes * 60 * 1000;
+
+        // Now create the request to deploy the package
+        request = new XmlNode(Constants.UNDEPLOY_CAP, Constants.XMLNS_CAP);
+        request.setAttribute("Timeout", String.valueOf(timeout));
+
+        request.add("CAP").setText(name);
+        XmlNode ui = request.add("UserInputs");
+        if (!StringUtil.isEmptyOrNull(userInputs))
+        {
+            ui.add(new XmlNode(userInputs));
+        }
+
+        XmlNode dr = request.add("deletereference");
+        if (deleteReferences != null)
+        {
+            dr.setText(deleteReferences.toString());
+        }
+
+        // Add the timeout
+        HashMap<String, String> p = new LinkedHashMap<String, String>();
+        p.put("timeout", String.valueOf(timeout));
+
+        call(request, p);
+    }
+
+    /**
+     * This method will download the currently deployed package with the given name from the Cordys server to the given
+     * destination folder.
+     * 
+     * @param packageDn The DN of the package.
+     * @param destination The destination folder to write the package to.
+     */
+    public void donwloadCap(String packageDn, String destination)
+    {
+        throw new IllegalAccessError("Currently not supported by Cordys yet.");
     }
 
     /**

@@ -308,6 +308,35 @@ public class XmlNode
             i2++;
         }
     }
+    
+    /**
+     * This method executes the XPath on the current element.
+     * 
+     * @param xpath The XPath to execute.
+     * @return The list of elements that match the given XPath.
+     */
+    public XmlNode xpathSingle(String xpath)
+    {
+        return xpathSingle(xpath, null);
+    }
+    
+    /**
+     * This method executes the XPath on the current element.
+     * 
+     * @param xpath The XPath to execute.
+     * @return The list of elements that match the given XPath.
+     */
+    public XmlNode xpathSingle(String xpath, String[][] namespaces)
+    {
+        List<XmlNode> tmp = xpath(xpath, namespaces);
+        
+        if (tmp.size() > 0)
+        {
+            return tmp.get(0);
+        }
+        
+        return null;
+    }
 
     /**
      * This method executes the XPath on the current element.
@@ -319,7 +348,7 @@ public class XmlNode
     {
         return xpath(xpath, null);
     }
-
+    
     /**
      * This method executes the XPath on the current element.
      * 
