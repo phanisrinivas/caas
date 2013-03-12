@@ -170,5 +170,14 @@ public class PackageDefinition extends CordysObject
     {
         return "packagedefinition:" + getSystem().getDn() + ":entry:" + name;
     }
-
+    
+    /**
+     * This method gets the full version for this package.
+     * 
+     * @return The full version for this package.
+     */
+    public String getFullVersion()
+    {
+        return version + "." + buildnumber;
+    }
 }

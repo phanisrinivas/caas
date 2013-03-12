@@ -7,11 +7,12 @@
 	<classpathentry kind="lib" path="lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.2.jar"/>
-	<classpathentry kind="lib" path="lib/groovy-all-1.6.5.jar"/>
-	<classpathentry kind="lib" path="lib/jline-0.9.94.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.13.jar"/>
 	<classpathentry kind="lib" path="lib/jaxen-1.1.4.jar"/>
 	<classpathentry kind="lib" path="lib/jdom-2.0.4.jar"/>
+	<classpathentry kind="lib" path="lib/jline-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/groovy-all-2.0.6.jar"/>
+	<classpathentry kind="lib" path="lib/jansi-1.6.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry exported="true" kind="con" path="GROOVY_DSL_SUPPORT"/>
 	<classpathentry kind="output" path="build/classes"/>
