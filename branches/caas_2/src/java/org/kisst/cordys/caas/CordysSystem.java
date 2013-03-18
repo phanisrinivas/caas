@@ -933,7 +933,7 @@ public class CordysSystem extends LdapObject
         XmlNode response = call(request);
 
         XmlNode url = response.xpathSingle(
-                "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deployed']/cap:url", Constants.NS);
+                "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deployed' or @operation='Deploy']/cap:url", Constants.NS);
         if (url == null || StringUtil.isEmptyOrNull(url.getText()))
         {
             throw new CaasRuntimeException("Could not find the URL for CAP " + name
@@ -958,6 +958,66 @@ public class CordysSystem extends LdapObject
         {
             dr.setText(deleteReferences.toString());
         }
+
+        // Add the timeout
+        HashMap<String, String> p = new LinkedHashMap<String, String>();
+        p.put("timeout", String.valueOf(timeout));
+
+        call(request, p);
+    }
+
+    /**
+     * This method will revert the given incomplete cap package. The default timeout is 10 minutes.
+     * 
+     * @param name The package DN of the package.
+     */
+    public void revertCap(String name)
+    {
+        revertCap(name, 10);
+    }
+
+    /**
+     * This method will revert the given incomplete cap package.
+     * 
+     * @param name The package DN of the package.
+     * @param timeoutInMinutes The timeout in minutes
+     */
+    public void revertCap(String name, long timeoutInMinutes)
+    {
+        // First we need to check that it is indeed incomplete. Also we need the URL of the package to call the DeployCAP method.
+        XmlNode request = new XmlNode(Constants.GET_DEPLOYED_CAP_SUMMARY, Constants.XMLNS_CAP);
+        request.setAttribute("isInComplete", "true");
+        XmlNode response = call(request);
+
+        XmlNode ap = response.xpathSingle("cap:tuple/cap:old/cap:ApplicationPackage[cap:ApplicationName='" + name + "']",
+                Constants.NS);
+        if (ap == null)
+        {
+            throw new CaasRuntimeException("The package " + name + " is not in an incomplete state.");
+        }
+
+        // Now we need to get the URL of the package to undeploy
+        request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
+        request.add("ApplicationName").setText(name);
+        response = call(request);
+
+        XmlNode url = response.xpathSingle(
+                "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deploy']/cap:url", Constants.NS);
+        if (url == null || StringUtil.isEmptyOrNull(url.getText()))
+        {
+            throw new CaasRuntimeException("Could not find the URL for CAP " + name
+                    + ". Cause could be that the package is not deployed");
+        }
+
+        long timeout = timeoutInMinutes * 60 * 1000;
+
+        // Now create the request to revert the deployment of the cap
+        request = new XmlNode(Constants.DEPLOY_CAP, Constants.XMLNS_CAP);
+        request.setAttribute("Timeout", String.valueOf(timeout));
+        request.setAttribute("isRevert", "true");
+        request.setAttribute("revertOnFailure", "false");
+
+        request.add("url").setText(url.getText());
 
         // Add the timeout
         HashMap<String, String> p = new LinkedHashMap<String, String>();
