@@ -9,6 +9,7 @@ public class Constants
     public static final String GET_NEW_CAP_SUMMARY = "GetNewCapSummary";
     public static final String DEPLOY_CAP = "DeployCAP";
     public static final String GET_CAP_DEPLOYMENT_DETAILS = "GetCapDeploymentDetails";
+    public static final String GET_DEPLOYED_CAP_SUMMARY = "GetDeployedCapSummary";
     public static final String UNDEPLOY_CAP = "UnDeployCAP";
     public static final String LOAD_ISVP = "LoadISVPackage";
     public static final String UPGRADE_ISVP = "UpgradeISVPackage";
