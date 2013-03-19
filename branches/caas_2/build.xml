@@ -59,6 +59,7 @@
 			<zipfileset dir="build" includes="caas.jar" />
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
+			<zipfileset dir="src/schema" prefix="schema" />
 		</zip>
 	</target>
 
@@ -68,6 +69,7 @@
 			<zipfileset dir="build" includes="caas.jar" />
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
+            <zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
 		</zip>
 	</target>
@@ -78,6 +80,7 @@
 			<zipfileset dir="build" includes="caas.jar" />
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
+            <zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" excludes="jython.jar" />
 		</zip>
 	</target>
