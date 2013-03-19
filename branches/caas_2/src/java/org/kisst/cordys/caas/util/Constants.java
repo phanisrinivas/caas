@@ -33,6 +33,7 @@ public class Constants
     public static final String GET_INSTALLED_ISVPS = "GetInstalledISVPackages";
     public static final String GET_CAP_DETAILS = "GetCapDetails";
 
+    public static final String XMLNS_TEMPLATE = "http://caas.kisst.org/2.0/template";
     public final static String XMLNS_MONITOR = "http://schemas.cordys.com/1.0/monitor";
     public final static String XMLNS_LDAP = "http://schemas.cordys.com/1.0/ldap";
     public final static String XMLNS_ISV = "http://schemas.cordys.com/1.0/isvpackage";

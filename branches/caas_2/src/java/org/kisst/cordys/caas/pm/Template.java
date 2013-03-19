@@ -21,6 +21,7 @@ import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.XMLStoreObject;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.CordysObjectList;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
@@ -54,37 +55,37 @@ public class Template
     public Template(Organization org, String targetIsvpName)
     {
         env.info("Exporting template for " + org.getName() + " organization");
-        XmlNode result = new XmlNode("org");
+        XmlNode result = new XmlNode("org", Constants.XMLNS_TEMPLATE);
         if (targetIsvpName != null)
         {
             result.setAttribute("package", targetIsvpName);
         }
-        
+
         result.setAttribute("org", org.getName());
 
-        //First we export all the non-Cordys packages.
+        // First we export all the non-Cordys packages.
         env.info("Exporting non-Cordys packages... ", false);
         CordysSystem system = org.getSystem();
         for (Package p : system.packages)
         {
             IDeployedPackageInfo pi = p.getInfo();
-            
+
             if (pi != null && !"Cordys".equals(pi.getVendor()))
             {
                 env.debug("Found non-standard package: " + pi.getPackageName());
-                
+
                 XmlNode node = result.add("package");
                 node.setAttribute("name", pi.getPackageName());
-                
+
                 XmlNode version = node.add("version");
                 version.setAttribute("version", pi.getFullVersion());
                 version.setAttribute("tested", "OK");
-                
+
                 version.add("warning").setAttribute("message", "Package " + pi.getPackageName() + " should be loaded");
             }
         }
-        
-        //Export the DSOs in the given organization
+
+        // Export the DSOs in the given organization
         env.info("Exporting " + org.dsos.getSize() + " dso objects ... ", false);
         for (DsoType dsotype : org.dsotypes)
         {
@@ -98,8 +99,8 @@ public class Template
                 node.add("datasourceconfiguration").add(configNode);
             }
         }
-        
-        //Export XML Store objects
+
+        // Export XML Store objects
         env.info("Exporting " + org.xmlStoreObjects.getSize() + " xmlstore objects ... ", false);
         for (XMLStoreObject xso : org.xmlStoreObjects)
         {
@@ -109,8 +110,8 @@ public class Template
             node.setAttribute("name", xso.getName());
             node.add(xso.getXML().clone());
         }
-        
-        //Exporting local roles
+
+        // Exporting local roles
         env.info("Exporting " + org.roles.getSize() + " roles ... ", false);
         for (Role role : org.roles)
         {
@@ -142,7 +143,7 @@ public class Template
             }
         }
 
-        //Exporting users in the organization
+        // Exporting users in the organization
         env.info("Exporting " + org.users.getSize() + " users ... ", false);
         for (User user : org.users)
         {
@@ -172,8 +173,8 @@ public class Template
                     child.setAttribute("package", isvpName);
             }
         }
-        
-        //Exporting service groups.
+
+        // Exporting service groups.
         env.info("Exporting " + org.serviceGroups.getSize() + " service groups ... ", false);
         for (ServiceGroup serviceGroup : org.serviceGroups)
         {
@@ -206,10 +207,41 @@ public class Template
                 {
                     XmlNode cpNode = child.add("cp");
                     cpNode.setAttribute("name", cp.getName());
+                    
+                    //Check the type
+                    String labeledURI = cp.uri.get();
+                    String description = cp.desc.get();
+                    
+                    if (labeledURI.startsWith("socket"))
+                    {
+                        cpNode.setAttribute("type", "socket://");
+                        //No need to add the child nodes for the socket
+                    }
+                    else if (labeledURI.startsWith("msmq"))
+                    {
+                        cpNode.setAttribute("type", "msmq://");
+                        
+                        cpNode.add("labeleduri").setText(labeledURI);
+                        cpNode.add("description").setText(description);
+                    }
+                    else if (labeledURI.startsWith("jms://"))
+                    {
+                        cpNode.setAttribute("type", "jms");
+                        
+                        cpNode.add("labeleduri").setText(labeledURI);
+                        cpNode.add("description").setText(description);
+                    }
+                    else
+                    {
+                        cpNode.setAttribute("type", "other");
+                        
+                        cpNode.add("labeleduri").setText(labeledURI);
+                        cpNode.add("description").setText(description);
+                    }
                 }
             }
         }
-        
+
         String str = result.getPretty();
         this.template = str.replace("$", "${dollar}");
     }
@@ -417,33 +449,87 @@ public class Template
         }
         for (XmlNode serviceContainerNode : serviceGroupNode.getChildren("sc"))
         {
-            Machine machine = machines.get(i++);
-            String machineName = machine.getName();
+            boolean processContainer = true;
             String scName = serviceContainerNode.getAttribute("name");
-            XmlNode configsNode = serviceContainerNode.getChild("bussoapprocessorconfiguration/configurations");
-            ServiceContainer serviceContainer = serviceGroup.serviceContainers.getByName(scName);
-            if (serviceContainer == null) // Create SC
+
+            // Determine the machine on which the container should run
+            String machineName = serviceContainerNode.getAttribute("machine");
+            Machine machine = null;
+            if (!StringUtil.isEmptyOrNull(machineName))
             {
-                env.info("creating servicecontainer " + scName + " for machine " + machineName + " ... ", false);
-                boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
-                serviceGroup.createServiceContainer(scName, machineName, automatic, configsNode.clone());
-                for (XmlNode subchild : serviceContainerNode.getChildren())
+                // A name was set. Try to look it up.
+                machine = machines.getByName(machineName);
+                if (machine == null)
                 {
-                    if (subchild.getName().equals("cp"))
+                    // Could not find the machine by its name. So maybe its a number
+                    try
                     {
-                        ServiceContainer newSC = serviceGroup.serviceContainers.getByName(scName);
-                        newSC.createConnectionPoint(subchild.getAttribute("name"), machineName);
+                        int index = Integer.parseInt(machineName);
+                        if (index > machines.getSize())
+                        {
+                            env.warn("Service container " + scName
+                                    + " is configured to run on a node which is not present. Skipping the creation of this node");
+                            processContainer = false;
+                        }
+                        else
+                        {
+                            machine = machines.get(index);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        env.warn("Could not find machine with identification '" + machineName + "' in the environment");
                     }
                 }
-                env.log("", "OK", true);
             }
-            else
-            // Update SC
+
+            // If no specific machine was found we'll use the iteration
+            if (machine == null)
             {
-                env.info("updating servicecontainer " + scName + " for machine " + machineName + " ... ", false);
-                boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
-                serviceGroup.updateServiceContainer(scName, machineName, automatic, configsNode.clone(), serviceContainer);
-                env.log("", "OK", true);
+                machine = machines.get(i++);
+            }
+
+            // Get the real machine name to create the container on.
+            machineName = machine.getName();
+
+            if (processContainer)
+            {
+                XmlNode configsNode = serviceContainerNode.getChild("bussoapprocessorconfiguration/configurations");
+                ServiceContainer serviceContainer = serviceGroup.serviceContainers.getByName(scName);
+                if (serviceContainer == null) // Create SC
+                {
+                    env.info("creating servicecontainer " + scName + " for machine " + machineName + " ... ", false);
+                    boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
+                    serviceGroup.createServiceContainer(scName, machineName, automatic, configsNode.clone());
+                    for (XmlNode subchild : serviceContainerNode.getChildren())
+                    {
+                        if (subchild.getName().equals("cp"))
+                        {
+                            ServiceContainer newSC = serviceGroup.serviceContainers.getByName(scName);
+
+                            // Read the data from the XML
+                            String type = subchild.getAttribute("type");
+                            if (StringUtil.isEmptyOrNull(type))
+                            {
+                                type = "socket";
+                            }
+                            String cpName = subchild.getAttribute("name");
+                            String description = subchild.getChildText("description");
+                            String labeledURI = subchild.getChildText("labeleduri");
+
+                            newSC.createConnectionPoint(cpName, type, machineName, description, labeledURI);
+                        }
+                    }
+                    env.log("", "OK", true);
+                }
+                else
+                // Update SC
+                {
+                    env.info("updating servicecontainer " + scName + " for machine " + machineName + " ... ", false);
+                    boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
+                    serviceGroup.updateServiceContainer(scName, machineName, automatic, configsNode.clone(), serviceContainer);
+                    env.log("", "OK", true);
+                }
             }
         }
     }
@@ -464,10 +550,10 @@ public class Template
                 String packageName = child.getAttribute("package");
                 if (StringUtil.isEmptyOrNull(packageName))
                 {
-                    //For backward compatibility
+                    // For backward compatibility
                     packageName = child.getAttribute("isvp");
                 }
-                
+
                 String wsiName = child.getAttribute("name");
                 if (packageName == null)
                 {
