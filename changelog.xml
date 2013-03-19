@@ -11,7 +11,8 @@
         </release>
     </template>
     <body>
-    <release description="Stable release" version="@NEXT@">
+    <release description="Stable release" version="@NEXT@"/>
+    <release date="2013-03-19" description="Stable release" version="2.0.12">
       <action dev="pgussow" type="add"><![CDATA[Added support for all type of connection points]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added the option to specify the node number on which a service container should run]]></action>
     </release>
