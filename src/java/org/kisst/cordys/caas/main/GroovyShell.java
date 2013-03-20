@@ -27,7 +27,7 @@ public class GroovyShell extends CommandBase {
 	private Cli cli=new Cli();
 	private Cli.StringOption terminal = cli.stringOption("t", "terminal", "choose the terminal type out of unix|win|none", null);
 	
-	@Override public boolean run(String[] args) {
+	@Override public void run(String[] args) {
 		int code=0;
 		args=cli.parse(args);
 		if (terminal.isSet())
@@ -45,7 +45,6 @@ public class GroovyShell extends CommandBase {
 			System.setSecurityManager(psm);
 		}
 		System.exit(code);
-		return true;
 	}
 
 	@Override public String getHelp() { return "\nOPTIONS\n"+cli.getSyntax("\t"); } 

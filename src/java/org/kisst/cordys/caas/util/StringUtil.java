@@ -6,19 +6,33 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+/**
+ * DOCUMENTME.
+ * 
+ * @author $author$
+ */
 public class StringUtil
 {
-
+    /**
+     * DOCUMENTME.
+     * 
+     * @param name DOCUMENTME
+     * @return DOCUMENTME
+     */
     public static String quotedName(String name)
     {
-        if (name.indexOf(' ') >= 0 || name.indexOf('.') >= 0)
+        if ((name.indexOf(' ') >= 0) || (name.indexOf('.') >= 0))
+        {
             return '"' + name + '"';
+        }
         else
+        {
             return name;
+        }
     }
 
     /**
-     * Substitutes the Map values found in the given string with their corresponding keys from the Map
+     * Substitutes the Map values found in the given string with their corresponding keys from the Map.
      * 
      * @param str
      * @param vars
@@ -27,6 +41,7 @@ public class StringUtil
     public static String reverseSubstitute(String str, Map<String, String> vars)
     {
         StringBuffer buff = new StringBuffer();
+
         for (Entry<String, String> entry : vars.entrySet())
         {
             String value = entry.getValue();
@@ -34,6 +49,7 @@ public class StringUtil
             int prevpos = 0;
             int pos = 0;
             buff.setLength(0);
+
             while ((pos = str.indexOf(value, prevpos)) >= 0)
             {
                 buff.append(str.substring(prevpos, pos));
@@ -54,7 +70,7 @@ public class StringUtil
      */
 
     /**
-     * Returns a key matching the given value from the givem Map
+     * Returns a key matching the given value from the givem Map.
      * 
      * @param map
      * @param value
@@ -73,7 +89,7 @@ public class StringUtil
     }
 
     /**
-     * Removes XML comments from the given string
+     * Removes XML comments from the given string.
      * 
      * @param xmlString
      * @return
@@ -83,20 +99,40 @@ public class StringUtil
         return xmlString.replaceAll("(?s)<!--.*?-->", "");
     }
 
+    /**
+     * DOCUMENTME.
+     * 
+     * @param iterator DOCUMENTME
+     * @param separator DOCUMENTME
+     * @return DOCUMENTME
+     */
     public static String join(Iterator<?> iterator, String separator)
     {
         // handle null, zero and one elements before building a buffer
         if (iterator == null)
+        {
             return null;
+        }
+
         if (!iterator.hasNext())
+        {
             return "";
+        }
+
         Object first = iterator.next();
+
         if (!iterator.hasNext())
+        {
             return null;
+        }
+
         // two or more elements
         StringBuffer buf = new StringBuffer(256); // Java default is 16, probably too small
+
         if (first != null)
+        {
             buf.append(first);
+        }
 
         while (iterator.hasNext())
         {
@@ -104,7 +140,9 @@ public class StringUtil
             {
                 buf.append(separator);
             }
+
             Object obj = iterator.next();
+
             if (obj != null)
             {
                 buf.append(obj);
@@ -114,7 +152,7 @@ public class StringUtil
     }
 
     /**
-     * Substitutes the Map keys found in the given string with their corresponding values from the Map
+     * Substitutes the Map keys found in the given string with their corresponding values from the Map.
      * 
      * @param str
      * @param vars
@@ -123,32 +161,45 @@ public class StringUtil
     public static String substitute(String str, Map<String, String> vars)
     {
         StringBuilder result = new StringBuilder();
+
         if (str == null)
         {
             str = "";
         }
+
         try
         {
             int prevpos = 0;
             int pos = str.indexOf("${");
+
             while (pos >= 0)
             {
                 int pos2 = str.indexOf("}", pos);
+
                 if (pos < 0)
+                {
                     throw new RuntimeException("Unbounded ${");
+                }
+
                 String key = str.substring(pos + 2, pos2);
                 result.append(str.substring(prevpos, pos));
+
                 String value = vars.get(key);
 
-                if (value == null && key.equals("dollar"))
+                if ((value == null) && key.equals("dollar"))
+                {
                     value = "$";
-                // This will be replaced later in resolveVariables() webService of Template.java, as we don't know its value at
-                // this point of time
+                }
+
+                // This will be replaced later in resolveVariables() webService of Template.java, as we don't know its
+                // value at this point of time
                 /*
                  * if(value==null && key.equals("CORDYS_INSTALL_DIR")) value="CORDYS_INSTALL_DIR";
                  */
                 if (value == null)
+                {
                     throw new RuntimeException("Unknown variable ${" + key + "}");
+                }
                 result.append(value);
                 prevpos = pos2 + 1;
                 pos = str.indexOf("${", prevpos);
@@ -163,14 +214,15 @@ public class StringUtil
     }
 
     /**
-     * Generates a random UUID used as a RequestID for SAML request
+     * Generates a random UUID used as a RequestID for SAML request.
      * 
      * @return
      */
     public static String generateUUID()
     {
         UUID uuid = UUID.randomUUID();
-        String strUUID = "a" + uuid.toString(); // XML validation requires that the request ID does not start with a number
+        String strUUID = "a" + uuid.toString(); // XML validation requires that the request ID does not start with a
+                                                // number
         return strUUID;
     }
 
@@ -183,34 +235,41 @@ public class StringUtil
     public static String mapToString(Map<String, String> map)
     {
         StringBuilder stringBuilder = new StringBuilder();
+
         for (String key : map.keySet())
         {
             if (stringBuilder.length() > 0)
+            {
                 stringBuilder.append("&");
+            }
 
             String value = map.get(key);
-            stringBuilder.append((key != null ? key : ""));
+            stringBuilder.append(((key != null) ? key : ""));
+
             if (value != null)
             {
                 stringBuilder.append("=");
-                stringBuilder.append(value != null ? value : "");
+                stringBuilder.append((value != null) ? value : "");
             }
         }
         return stringBuilder.toString();
     }
 
     /**
-     * Converts a Query String to Map
+     * Converts a Query String to Map.
      * 
      * @param input Input query string which need to be converted to a map object
+     * @param map DOCUMENTME
      * @return map HashMap object loaded with <key,value> pairs
      */
     public static HashMap<String, String> stringToMap(String input, HashMap<String, String> map)
     {
         String[] nameValuePairs = input.split("&");
+
         for (String nameValuePair : nameValuePairs)
         {
             int pos = nameValuePair.indexOf("=");
+
             if (pos > 0)
             {
                 map.put(nameValuePair.substring(0, pos), nameValuePair.substring(pos + 1));
@@ -234,19 +293,23 @@ public class StringUtil
         else
         {
             path = path.trim();
+
             if (path.length() > 0)
             {
                 path = path.replace('\\', '/');
                 path = path.replaceAll("/{2,}", "/");
+
                 if (path.endsWith("/"))
+                {
                     path = path.substring(0, path.length() - 1);
+                }
             }
         }
         return path;
     }
 
     /**
-     * Checks if a stirng is empty or null
+     * Checks if a stirng is empty or null.
      * 
      * @param str
      * @return true if the string is empty or null false otherwise
@@ -254,9 +317,13 @@ public class StringUtil
     public static boolean isEmptyOrNull(String str)
     {
         if ((str == null) || str.matches("^\\s*$"))
+        {
             return true;
+        }
         else
+        {
             return false;
+        }
     }
 
     /**
@@ -266,11 +333,11 @@ public class StringUtil
      * </p>
      * <p>
      * This method will return true if:
+     * </p>
      * <ul>
      * <li>source == null and target == null</li>
      * <li>source.equals(target)</li>
      * </ul>
-     * </p>
      * 
      * @param source The source string to compare.
      * @param target The target string to compare.
@@ -279,16 +346,16 @@ public class StringUtil
     public static boolean equals(String source, String target)
     {
         boolean retVal = false;
-        
-        if (source == null && target == null)
+
+        if ((source == null) && (target == null))
         {
             retVal = true;
         }
-        else if (source != null && source.equals(target))
+        else if ((source != null) && source.equals(target))
         {
             retVal = true;
         }
-        
+
         return retVal;
     }
 }

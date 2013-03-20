@@ -12,6 +12,7 @@ package org.kisst.cordys.caas.support;
 import java.lang.reflect.Constructor;
 
 import java.util.HashMap;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,20 +36,20 @@ import org.kisst.cordys.caas.util.ReflectionUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
- * This is the base class for all kinds of Ldap Objects, except for CordysSystem, which is special This basically is just a
- * convenience class provding the getDn() and getSystem() webService so that not all sublcasses need to implement these again. It
- * is separate from the LdapObject class, because CordysSystem also is a LdapObject, but does can't use the dn and system (itself)
- * at construction time.
+ * This is the base class for all kinds of Ldap Objects, except for CordysSystem, which is special This basically is
+ * just a convenience class provding the getDn() and getSystem() webService so that not all sublcasses need to implement
+ * these again. It is separate from the LdapObject class, because CordysSystem also is a LdapObject, but does can't use
+ * the dn and system (itself) at construction time.
  */
 public abstract class LdapObjectBase extends LdapObject
 {
-    /** Holds the regex to get the CN of the current entry */
+    /** Holds the regex to get the CN of the current entry. */
     private static final Pattern GET_CN = Pattern.compile("^cn=([^,]+)");
     /** Holds the system. */
     private final CordysSystem system;
     /** Holds the dn. */
     private final String dn;
-    /** Holds the CN of the current entry */
+    /** Holds the CN of the current entry. */
     private String cn;
     /** Holds the Constant ldapObjectTypes. */
     private static final HashMap<String, Class<?>> ldapObjectTypes = new HashMap<String, Class<?>>();
@@ -73,16 +74,18 @@ public abstract class LdapObjectBase extends LdapObject
 
     /**
      * Instantiates a new ldap object base.
-     * 
-     * @param parent The parent
-     * @param dn The dn
+     *
+     * @param  parent  The parent
+     * @param  dn      The dn
      */
     protected LdapObjectBase(LdapObject parent, String dn)
     {
         super(parent);
         this.system = parent.getSystem();
         this.dn = dn;
+
         Matcher m = GET_CN.matcher(dn);
+
         if (m.find())
         {
             this.cn = m.group(1);
@@ -90,38 +93,36 @@ public abstract class LdapObjectBase extends LdapObject
     }
 
     /**
-     * @see org.kisst.cordys.caas.support.CordysObject#getSystem()
+     * @see  org.kisst.cordys.caas.support.CordysObject#getSystem()
      */
-    @Override
-    public CordysSystem getSystem()
+    @Override public CordysSystem getSystem()
     {
         return system;
     }
 
     /**
-     * @see org.kisst.cordys.caas.support.LdapObject#getDn()
+     * @see  org.kisst.cordys.caas.support.LdapObject#getDn()
      */
-    @Override
-    public String getDn()
+    @Override public String getDn()
     {
         return dn;
     }
-    
+
     /**
-     * @see org.kisst.cordys.caas.support.LdapObject#getCn()
+     * @see  org.kisst.cordys.caas.support.LdapObject#getCn()
      */
-    @Override
-    public String getCn()
+    @Override public String getCn()
     {
         return cn;
     }
 
     /**
      * This method creates the object.
-     * 
-     * @param system The system
-     * @param dn The dn
-     * @return The ldap object
+     *
+     * @param   system  The system
+     * @param   dn      The dn
+     *
+     * @return  The ldap object
      */
     public static LdapObject createObject(CordysSystem system, String dn)
     {
@@ -135,10 +136,11 @@ public abstract class LdapObjectBase extends LdapObject
 
     /**
      * This method creates the object.
-     * 
-     * @param system The system
-     * @param entry The entry
-     * @return The ldap object
+     *
+     * @param   system  The system
+     * @param   entry   The entry
+     *
+     * @return  The ldap object
      */
     public static LdapObject createObject(CordysSystem system, XmlNode entry)
     {
@@ -154,8 +156,8 @@ public abstract class LdapObjectBase extends LdapObject
 
         if (resultClass == Package.class)
         {
-            if (newdn.startsWith("cn=licinfo,") || newdn.startsWith("cn=authenticated users,")
-                    || newdn.startsWith("cn=consortia,"))
+            if (newdn.startsWith("cn=licinfo,") || newdn.startsWith("cn=authenticated users,") ||
+                    newdn.startsWith("cn=consortia,"))
             {
                 return null;
             }
@@ -166,7 +168,8 @@ public abstract class LdapObjectBase extends LdapObject
             throw new RuntimeException("could not determine class for entry " + entry);
         }
 
-        Constructor<?> cons = ReflectionUtil.getConstructor(resultClass, new Class[] { LdapObject.class, String.class });
+        Constructor<?> cons = ReflectionUtil.getConstructor(resultClass,
+                                                            new Class[] { LdapObject.class, String.class });
         LdapObject result = (LdapObject) ReflectionUtil.createObject(cons, new Object[] { parent, newdn });
         result.setEntry(entry);
         return result;
@@ -174,10 +177,11 @@ public abstract class LdapObjectBase extends LdapObject
 
     /**
      * Determine class.
-     * 
-     * @param system The system
-     * @param entry The entry
-     * @return The class
+     *
+     * @param   system  The system
+     * @param   entry   The entry
+     *
+     * @return  The class
      */
     private static Class<?> determineClass(CordysSystem system, XmlNode entry)
     {
@@ -210,10 +214,11 @@ public abstract class LdapObjectBase extends LdapObject
 
     /**
      * Calc parent.
-     * 
-     * @param system The system
-     * @param dn The dn
-     * @return The ldap object
+     *
+     * @param   system  The system
+     * @param   dn      The dn
+     *
+     * @return  The ldap object
      */
     private static LdapObject calcParent(CordysSystem system, String dn)
     {

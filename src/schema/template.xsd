@@ -153,28 +153,36 @@
       </sequence></complexType>
 
     <complexType name="ctXMLStoreObject">
-        <annotation>
-          <documentation>The content of a file that should be stored in the XML store</documentation></annotation>
-        <sequence>
+      <annotation>
+        <documentation>The content of a file that should be stored in the XML store</documentation>
+      </annotation>
+      <sequence>
         <any processContents="skip" minOccurs="1" maxOccurs="1">
           <annotation>
             <documentation>Holds the content of the XML store file</documentation>
-          </annotation></any>
+          </annotation>
+        </any>
       </sequence>
       <attribute name="key" type="string">
         <annotation>
           <documentation>The key of the file in the XML store</documentation>
-        </annotation></attribute>
+        </annotation>
+      </attribute>
       <attribute name="version" type="tns:stXMLStoreVersion">
         <annotation>
           <documentation>The version for this file.</documentation>
-        </annotation></attribute>
+        </annotation>
+      </attribute>
       <attribute name="name" type="string">
         <annotation>
           <documentation>The name of the XML file</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="operation" type="tns:stXMLStoreObjectOperation" use="optional">
+        <annotation>
+          <documentation>The operation to do with this given XML store object. overwrite or append The default is overwrite.</documentation>
         </annotation></attribute>
     </complexType>
-
     <simpleType name="stXMLStoreVersion">
         <annotation>
           <documentation>The options for the XML store versions</documentation>
@@ -407,4 +415,16 @@
       </restriction>
     </simpleType>
 
+
+    <simpleType name="stXMLStoreObjectOperation">
+      <annotation>
+        <documentation>
+          This type describes the operations possible for an XML store object. This is either overwrite or append.
+        </documentation>
+      </annotation>
+      <restriction base="string">
+        <enumeration value="overwrite"></enumeration>
+        <enumeration value="append"></enumeration>
+      </restriction>
+    </simpleType>
 </schema>

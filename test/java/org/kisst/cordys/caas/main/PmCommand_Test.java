@@ -43,8 +43,8 @@ public class PmCommand_Test{
 	@Test
 	public void templateCommandTest() {
 		String template_cmd="template -o "+ORG_NAME+" -s "+SYS_NAME+" D:/Users/galoori/config/caas/uat.caaspm";
-		PmCommand pm = new PmCommand();
-		Assert.assertTrue("Template command for "+SYS_NAME+" in "+ORG_NAME+" organization",pm.run(template_cmd.split(" ")));
+		CmCommand pm = new CmCommand("cm");
+		pm.run(template_cmd.split(" "));
 	}
 	
 
@@ -52,8 +52,8 @@ public class PmCommand_Test{
 	@Test
 	public void createCommandTest() {
 		String create_cmd="create -o "+ORG_NAME+" -s "+SYS_NAME+" D:/Users/galoori/config/caas/uat.caaspm";
-		PmCommand pm = new PmCommand();
-		Assert.assertTrue("Create command failed for "+SYS_NAME+" in "+ORG_NAME+" organization",pm.run(create_cmd.split(" ")));
+		CmCommand pm = new CmCommand("cm");
+		pm.run(create_cmd.split(" "));
 	}
 	
 	@Test

@@ -30,16 +30,16 @@ public class SetupCommand extends  CompositeCommand {
 	public SetupCommand() {
 		super("caas setup", "", "all");
 		commands.put("all", new CommandBase("","download all jar files")
-			{ @Override public boolean run(String args[]) {downloadBase(); downloadGroovy(); downloadJython(); return true;}});
+			{ @Override public void run(String args[]) {downloadBase(); downloadGroovy(); downloadJython(); }});
 		
 		commands.put("groovy", new CommandBase("","download all jar files needed to run groovy") 
-			{ @Override public boolean run(String args[]) {downloadBase(); downloadGroovy(); return true;}});
+			{ @Override public void run(String args[]) {downloadBase(); downloadGroovy(); }});
 		
 		commands.put("jython", new CommandBase("","download all jar files needed to run jython") 
-		{ @Override public boolean run(String args[]) {downloadBase(); downloadJython(); return true;}});
+		{ @Override public void run(String args[]) {downloadBase(); downloadJython(); }});
 		
-		commands.put("packageManager", new CommandBase("","download all jar files needed to run packageManager")     
-		{ @Override public boolean run(String args[]) {downloadBase(); return true;}});
+		commands.put("cm", new CommandBase("","download all jar files needed to run cm")     
+		{ @Override public void run(String args[]) {downloadBase(); }});
 	}
 
 	public void runold(String args[]) {

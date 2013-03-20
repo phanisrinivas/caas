@@ -29,7 +29,7 @@ abstract public class CommandBase implements Command {
 		this.usage=usage;
 		this.summary=summary;
 	}
-	abstract public boolean run(String[] args);
+	abstract public void run(String[] args);
 	
 	public String getSyntax() { return usage; }
 	public String getHelp()  { return null;}

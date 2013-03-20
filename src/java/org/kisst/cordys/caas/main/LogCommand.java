@@ -16,10 +16,9 @@ public class LogCommand extends CommandBase {
 		super("[options] [--grep <string>] [<file> ...]", "treat log4j xml files as linebased logfiles");
 	}
 
-	@Override public boolean run(String[] args) {
+	@Override public void run(String[] args) {
 		try {
 			main(args);
-			return true;
 		} catch (IOException e) { throw new RuntimeException(e); }
 	}
 	

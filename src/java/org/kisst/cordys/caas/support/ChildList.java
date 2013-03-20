@@ -15,8 +15,8 @@ import org.kisst.cordys.caas.util.XmlNode;
 
 /**
  * This class holds a list of Ldap based Cordys objects.
- *
- * @param  <T>  The Ldap based object.
+ * 
+ * @param <T> The Ldap based object.
  */
 public class ChildList<T extends LdapObject> extends CordysObjectList<T>
 {
@@ -29,9 +29,9 @@ public class ChildList<T extends LdapObject> extends CordysObjectList<T>
 
     /**
      * Instantiates a new child list.
-     *
-     * @param  parent  The parent
-     * @param  clz     The clz
+     * 
+     * @param parent The parent
+     * @param clz The clz
      */
     public ChildList(LdapObject parent, Class<? extends LdapObject> clz)
     {
@@ -40,10 +40,10 @@ public class ChildList<T extends LdapObject> extends CordysObjectList<T>
 
     /**
      * Instantiates a new child list.
-     *
-     * @param  parent  The parent
-     * @param  prefix  The prefix
-     * @param  clz     The clz
+     * 
+     * @param parent The parent
+     * @param prefix The prefix
+     * @param clz The clz
      */
     public ChildList(LdapObject parent, String prefix, Class<? extends LdapObject> clz)
     {
@@ -56,34 +56,38 @@ public class ChildList<T extends LdapObject> extends CordysObjectList<T>
     }
 
     /**
-     * @see  org.kisst.cordys.caas.support.CordysObject#getKey()
+     * @see org.kisst.cordys.caas.support.CordysObject#getKey()
      */
-    @Override public String getKey()
+    @Override
+    public String getKey()
     {
         return parent.getKey() + ":" + clz.getSimpleName() + "s";
     }
 
     /**
-     * @see  org.kisst.cordys.caas.support.CordysObjectList#getName()
+     * @see org.kisst.cordys.caas.support.CordysObjectList#getName()
      */
-    @Override public String getName()
+    @Override
+    public String getName()
     {
         String name = clz.getSimpleName();
         return name.substring(0, 1).toLowerCase() + name.substring(1) + "s";
     }
 
     /**
-     * @see  org.kisst.cordys.caas.support.CordysObjectList#getVarName()
+     * @see org.kisst.cordys.caas.support.CordysObjectList#getVarName()
      */
-    @Override public String getVarName()
+    @Override
+    public String getVarName()
     {
         return parent.getVarName() + "." + getName();
     }
 
     /**
-     * @see  org.kisst.cordys.caas.support.CordysObjectList#retrieveList()
+     * @see org.kisst.cordys.caas.support.CordysObjectList#retrieveList()
      */
-    @Override @SuppressWarnings("unchecked")
+    @Override
+    @SuppressWarnings("unchecked")
     protected void retrieveList()
     {
         XmlNode method = new XmlNode(Constants.GET_CHILDREN, Constants.XMLNS_LDAP);
