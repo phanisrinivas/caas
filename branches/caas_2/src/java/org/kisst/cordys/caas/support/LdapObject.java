@@ -176,7 +176,6 @@ public abstract class LdapObject extends CordysObject {
 		this.parent=parent; 
 	}
 	abstract public String getDn();
-	abstract public String getCn();
 	@Override public void myclear() { super.myclear(); entry=null; }
 	public void debug(String msg) { getSystem().getEnv().debug(msg); } 
 	public void info(String msg)  { getSystem().getEnv().info(msg); } 
@@ -320,4 +319,6 @@ public abstract class LdapObject extends CordysObject {
 				o.dumpXml(children);
 		}
 	}
+
+    public abstract String getCn();
 }

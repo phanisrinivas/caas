@@ -308,7 +308,7 @@ public class XmlNode
             i2++;
         }
     }
-    
+
     /**
      * This method executes the XPath on the current element.
      * 
@@ -319,7 +319,7 @@ public class XmlNode
     {
         return xpathSingle(xpath, null);
     }
-    
+
     /**
      * This method executes the XPath on the current element.
      * 
@@ -329,12 +329,12 @@ public class XmlNode
     public XmlNode xpathSingle(String xpath, String[][] namespaces)
     {
         List<XmlNode> tmp = xpath(xpath, namespaces);
-        
+
         if (tmp.size() > 0)
         {
             return tmp.get(0);
         }
-        
+
         return null;
     }
 
@@ -348,7 +348,7 @@ public class XmlNode
     {
         return xpath(xpath, null);
     }
-    
+
     /**
      * This method executes the XPath on the current element.
      * 
@@ -363,7 +363,7 @@ public class XmlNode
         {
             // Parse the name spaces
             List<Namespace> ns = new ArrayList<Namespace>();
-            
+
             if (namespaces != null)
             {
                 for (String[] nsDetails : namespaces)
@@ -371,7 +371,7 @@ public class XmlNode
                     ns.add(Namespace.getNamespace(nsDetails[0], nsDetails[1]));
                 }
             }
-            
+
             // Create the XPath
             XPathExpression<Element> p = XPathFactory.instance().compile(xpath, Filters.element(), null, ns);
 
@@ -390,5 +390,23 @@ public class XmlNode
         }
 
         return retVal;
+    }
+
+    /**
+     * This method sets the namespace of this element.
+     * 
+     * @param namespace The new namespace for this element.
+     */
+    public void setNamespace(String namespace)
+    {
+        if (StringUtil.isEmptyOrNull(namespace))
+        {
+            // Remove the namespace
+            element.removeNamespaceDeclaration(Namespace.getNamespace(namespace));
+        }
+        else
+        {
+            element.setNamespace(Namespace.getNamespace(namespace));
+        }
     }
 }

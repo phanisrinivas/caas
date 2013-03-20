@@ -493,16 +493,16 @@ public class CordysSystem extends LdapObject
         for (Machine machine : machines)
         {
             // Upload the ISVP on to the machine
-            env.info("Uploading application " + isvpName + " to " + machine.getName() + " ... ", false);
+            env.info("Uploading application " + isvpName + " to " + machine.getName() + " ... ");
             machine.uploadIsvp(isvpFilePath);
-            env.log("", "OK", true);
+            env.info("OK");
 
             // TODO: check if dependent isvps are installed
             // Install the ISVP
-            env.info("Installing application " + isvpName + " on " + machine.getName() + " ... ", false);
+            env.info("Installing application " + isvpName + " on " + machine.getName() + " ... ");
 
             String status = machine.loadIsvp(isvpName, prompSetsXMLNode, timeOutInMillis);
-            env.log("", "OK", true);
+            env.info("OK");
             env.info("STATUS:: " + status);
         }
         isvp.clear();
@@ -574,14 +574,14 @@ public class CordysSystem extends LdapObject
         for (Machine machine : machines)
         {
             // TODO: Upload the ISVP only when it is not present on the machine
-            env.info("Uploading application " + isvpName + " to " + machine.getName() + " ... ", false);
+            env.info("Uploading application " + isvpName + " to " + machine.getName() + " ... ");
             machine.uploadIsvp(isvpFilePath);
-            env.log("", "OK", true);
+            env.info("OK");
             // Upgrade the ISVP
-            env.info("Upgrading application " + isvpName + " on " + machine.getName() + " ... ", false);
+            env.info("Upgrading application " + isvpName + " on " + machine.getName() + " ... ");
 
             String status = machine.upgradeIsvp(isvpName, prompSetsXMLNode, deleteReferences, timeOutInMillis);
-            env.log("", "OK", true);
+            env.info("OK");
             env.info("STATUS:: " + status);
         }
         isvp.clear();
@@ -605,9 +605,9 @@ public class CordysSystem extends LdapObject
         for (Machine machine : machines)
         {
             env.info("Unloading " + isvp.getName() + " on " + machine.getName() + " with deleteReference=" + deleteReferences
-                    + " ... ", false);
+                    + " ... ");
             machine.unloadIsvp(isvp, deleteReferences);
-            env.log("", "OK", true);
+            env.info("OK");
         }
         isvp.clear();
         return true;
@@ -747,11 +747,12 @@ public class CordysSystem extends LdapObject
         queryParams.put("organization", organization);
 
         XmlNode response = caller.call(request, queryParams);
-        return response.getChild("tuple/old");
+
+        return response.getChild("tuple/old").getChildren().get(0);
     }
 
     /**
-     * This method seeks all users and roles that have the given role attached throughout the entire organization
+     * This method seeks all users and roles that have the given role attached throughout the entire organization.
      * 
      * @param target The role to find
      * @return The cordys object list containing all users and roles that have the given role attached.
@@ -817,6 +818,7 @@ public class CordysSystem extends LdapObject
     public void uploadCap(String capFile)
     {
         File cap = new File(capFile);
+
         if (!cap.exists())
         {
             throw new CaasRuntimeException("CAP file " + cap.getAbsolutePath() + " does not exist");
@@ -856,13 +858,15 @@ public class CordysSystem extends LdapObject
         // First get the status of the package. Is it indeed a new one
         XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
         request.add("ApplicationName").setText(name);
+
         XmlNode response = call(request);
 
         XmlNode url = response
                 .xpathSingle(
                         "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deploy' or @operation='Upgrade']/cap:url",
                         Constants.NS);
-        if (url == null || StringUtil.isEmptyOrNull(url.getText()))
+
+        if ((url == null) || StringUtil.isEmptyOrNull(url.getText()))
         {
             throw new CaasRuntimeException("Could not find the URL for CAP " + name
                     + ". Cause could be that there is no Upgrade / Deploy operation for this package");
@@ -930,11 +934,15 @@ public class CordysSystem extends LdapObject
         // First get the status of the package. Is it indeed a new one
         XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
         request.add("ApplicationName").setText(name);
+
         XmlNode response = call(request);
 
-        XmlNode url = response.xpathSingle(
-                "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deployed' or @operation='Deploy']/cap:url", Constants.NS);
-        if (url == null || StringUtil.isEmptyOrNull(url.getText()))
+        XmlNode url = response
+                .xpathSingle(
+                        "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deployed' or @operation='Deploy']/cap:url",
+                        Constants.NS);
+
+        if ((url == null) || StringUtil.isEmptyOrNull(url.getText()))
         {
             throw new CaasRuntimeException("Could not find the URL for CAP " + name
                     + ". Cause could be that the package is not deployed");
@@ -947,13 +955,16 @@ public class CordysSystem extends LdapObject
         request.setAttribute("Timeout", String.valueOf(timeout));
 
         request.add("CAP").setText(name);
+
         XmlNode ui = request.add("UserInputs");
+
         if (!StringUtil.isEmptyOrNull(userInputs))
         {
             ui.add(new XmlNode(userInputs));
         }
 
         XmlNode dr = request.add("deletereference");
+
         if (deleteReferences != null)
         {
             dr.setText(deleteReferences.toString());
@@ -984,13 +995,16 @@ public class CordysSystem extends LdapObject
      */
     public void revertCap(String name, long timeoutInMinutes)
     {
-        // First we need to check that it is indeed incomplete. Also we need the URL of the package to call the DeployCAP method.
+        // First we need to check that it is indeed incomplete. Also we need the URL of the package to call the
+        // DeployCAP method.
         XmlNode request = new XmlNode(Constants.GET_DEPLOYED_CAP_SUMMARY, Constants.XMLNS_CAP);
         request.setAttribute("isInComplete", "true");
+
         XmlNode response = call(request);
 
         XmlNode ap = response.xpathSingle("cap:tuple/cap:old/cap:ApplicationPackage[cap:ApplicationName='" + name + "']",
                 Constants.NS);
+
         if (ap == null)
         {
             throw new CaasRuntimeException("The package " + name + " is not in an incomplete state.");
@@ -1003,7 +1017,8 @@ public class CordysSystem extends LdapObject
 
         XmlNode url = response.xpathSingle(
                 "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deploy']/cap:url", Constants.NS);
-        if (url == null || StringUtil.isEmptyOrNull(url.getText()))
+
+        if ((url == null) || StringUtil.isEmptyOrNull(url.getText()))
         {
             throw new CaasRuntimeException("Could not find the URL for CAP " + name
                     + ". Cause could be that the package is not deployed");
