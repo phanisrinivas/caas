@@ -11,7 +11,10 @@
         </release>
     </template>
     <body>
-    <release description="Stable release" version="@NEXT@"/>
+    <release date="2013-03-21" description="Stable release" version="2.0.13">
+      <action dev="pgussow" type="update"><![CDATA[Merged the latest code from the GITHub repository in the 2.x branch. This includes the removal of the term 'PackageManager'. It is now called ConfigurationManager.]]></action>
+      <action dev="pgussow" type="add"><![CDATA[Added an XML namespace to the template file. Also added a schema file for validating Caas configuration manager files.]]></action>
+    </release>
     <release date="2013-03-19" description="Stable release" version="2.0.12">
       <action dev="pgussow" type="add"><![CDATA[Added support for all type of connection points]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added the option to specify the node number on which a service container should run]]></action>
