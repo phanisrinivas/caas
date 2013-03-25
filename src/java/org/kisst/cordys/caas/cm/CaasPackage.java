@@ -25,9 +25,9 @@ import org.kisst.cordys.caas.util.XmlNode;
 /**
  * This is the main class for the package manager. The package manager has a few main operations:
  * <ul>
- * <li>check - Checks if the configuration of the objectives that are in the pm file are currently in place</li>
- * <li>configure - Configures the given organization based on the current pm file.</li>
- * <li>purge - Removes the configuration as described in the pm file from the given organization.</li>
+ * <li>check - Checks if the configuration of the objectives that are in the ccm file are currently in place</li>
+ * <li>configure - Configures the given organization based on the current ccm file.</li>
+ * <li>purge - Removes the configuration as described in the ccm file from the given organization.</li>
  * </ul>
  */
 public class CaasPackage implements Objective
@@ -46,13 +46,13 @@ public class CaasPackage implements Objective
     /**
      * Instantiates a new caas package. It will load the given pmFile and parse the objectives from the definition.
      * 
-     * @param pmfile The pmfile to parse.
+     * @param ccmfile The pmfile to parse.
      */
-    public CaasPackage(String pmfile, CordysSystem system)
+    public CaasPackage(String ccmfile, CordysSystem system)
     {
-        this.name = pmfile;
+        this.name = ccmfile;
         this.system = system;
-        String content = FileUtil.loadString(pmfile);
+        String content = FileUtil.loadString(ccmfile);
         
         //The content of the file contains the variables. So we need to replace them which the actual properties.
         Properties p = system.getProperties();
@@ -89,6 +89,11 @@ public class CaasPackage implements Objective
         }
     }
 
+    /**
+     * This method gets the name of the file.
+     * 
+     * @return The name of the file.
+     */
     public String getName()
     {
         return name;
