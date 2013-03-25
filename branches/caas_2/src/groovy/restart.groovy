@@ -1,12 +1,15 @@
-println "loading restart"
 // Shows runtime information about all SoapProcessors
 // It is named after the ps command in Unix
+import org.kisst.cordys.caas.Caas;
+import org.kisst.cordys.caas.main.Environment;
 
-restart = { sys, name ->
-  for (sp in sys.sp.like(name)) { 
-    if (sp.status=="Started") {
-	  println "Restarting ${sp}"
-	  sp.restart()
-	}
-  }
+Environment.get().loadProperties("caas/config/caas.conf")
+def sys = Caas.getDefaultSystem()
+def name = args[0]
+
+for (sc in sys.sc.like(name)) {
+    if (sc.status=="Started") {
+        println "Restarting ${sc}"
+        sc.restart()
+    }
 }

@@ -35,6 +35,7 @@ import org.kisst.cordys.caas.soap.NativeCaller;
 import org.kisst.cordys.caas.soap.SamlClientCaller;
 import org.kisst.cordys.caas.soap.SoapCaller;
 import org.kisst.cordys.caas.util.FileUtil;
+import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
@@ -200,6 +201,11 @@ public class Caas
      */
     public static CordysSystem getSystem(String name)
     {
+        if (StringUtil.isEmptyOrNull(name))
+        {
+            return getDefaultSystem();
+        }
+        
         CordysSystem result = systemCache.get(name);
 
         if (result != null)
