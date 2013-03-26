@@ -20,6 +20,7 @@
       <action dev="pgussow" type="add"><![CDATA[Added an XML namespace to the template file. Also added a schema file for validating Caas configuration manager files.]]></action>
     </release>
     <release date="2013-03-26" description="Stable release" version="2.0.14">
+      <action dev="pgussow" type="add"><![CDATA[Added the option to specify via a -D option where to find the caas.conf. The name of the option is caas.conf.location. You need to specify the full location to the file. Example: c:/temp/mycaas.conf]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added support for accessing the teams and user assignments from the Organization object. Look at the listteams.groovy example script for usage.]]></action>
     </release>
   </body>

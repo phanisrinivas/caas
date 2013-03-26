@@ -4,6 +4,8 @@ import java.util.regex.Pattern;
 
 public class Constants
 {
+    /** The name of the -D property to tell CAAS where to get the caas.conf from */
+    public static final String CAAS_CONF_LOCATION = "caas.conf.location";
     public static final String GET_INSTALLATION_INFO = "GetInstallationInfo";
     public static final String GET_XML_OBJECT = "GetXMLObject";
     public static final String UPLOAD_ISVP = "UploadISVPackage";
