@@ -1,7 +1,6 @@
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.main.Environment;
 
-Environment.get().loadProperties("caas/config/caas.conf")
 def sys = Caas.getDefaultSystem()
 
 for (i in sys.isvps) {

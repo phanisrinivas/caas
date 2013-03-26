@@ -14,7 +14,6 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.ConnectionPoint;
@@ -43,8 +42,6 @@ import org.kisst.cordys.caas.util.XmlNode;
  */
 public abstract class LdapObjectBase extends LdapObject
 {
-    /** Holds the regex to get the CN of the current entry. */
-    private static final Pattern GET_CN = Pattern.compile("^cn=([^,]+)");
     /** Holds the system. */
     private final CordysSystem system;
     /** Holds the dn. */
@@ -84,7 +81,7 @@ public abstract class LdapObjectBase extends LdapObject
         this.system = parent.getSystem();
         this.dn = dn;
 
-        Matcher m = GET_CN.matcher(dn);
+        Matcher m = Constants.GET_CN.matcher(dn);
 
         if (m.find())
         {
