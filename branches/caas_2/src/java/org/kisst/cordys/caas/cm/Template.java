@@ -236,7 +236,7 @@ public class Template
 
                     if (labeledURI.startsWith("socket"))
                     {
-                        cpNode.setAttribute("type", "socket://");
+                        cpNode.setAttribute("type", "socket");
                         // No need to add the child nodes for the socket
                     }
                     else if (labeledURI.startsWith("msmq"))
