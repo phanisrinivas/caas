@@ -192,18 +192,13 @@ public class Organization extends LdapObjectBase
     public void createUser(String name)
     {
         AuthenticatedUser authUser = getSystem().authenticatedUsers.getByName(name);
-        createUser(name, authUser);
-    }
-
-    /**
-     * Creates an organization user with the given name
-     * 
-     * @param name Name of the user
-     * @param authUser Authenticated user object
-     */
-    public void createUser(String name, AuthenticatedUser authUser)
-    {
-
+        String au = null;
+        if (authUser != null)
+        {
+            au = authUser.getName();
+        }
+        
+        createUser(name, au);
     }
 
     /**
@@ -225,6 +220,7 @@ public class Organization extends LdapObjectBase
         // Create organizational user with the given user name
         XmlNode newEntry = newEntryXml("cn=organizational users,", name, "busorganizationaluser", "busorganizationalobject");
         newEntry.add("authenticationuser").add("string").setText(au.getDn());
+        newEntry.add("description").add("string").setText(name);
         newEntry.add("menu");
         newEntry.add("toolbar");
         newEntry.add("role").add("string").setText("cn=everyoneIn" + getName() + ",cn=organizational roles," + getDn());
