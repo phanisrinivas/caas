@@ -3,21 +3,21 @@ package org.kisst.cordys.caas.cm;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
-import org.kisst.cordys.caas.AuthenticatedUser;
+
 import org.kisst.cordys.caas.Configuration;
 import org.kisst.cordys.caas.ConnectionPoint;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Dso;
 import org.kisst.cordys.caas.DsoType;
 import org.kisst.cordys.caas.IDeployedPackageInfo;
-import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.Machine;
-import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.Organization;
+import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.Role;
-import org.kisst.cordys.caas.ServiceGroup;
 import org.kisst.cordys.caas.ServiceContainer;
+import org.kisst.cordys.caas.ServiceGroup;
 import org.kisst.cordys.caas.User;
+import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.XMLStoreObject;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.CordysObjectList;
@@ -630,9 +630,8 @@ public class Template
         }
         if (org.users.getByName(name) == null) // Create User
         {
-            AuthenticatedUser authUser = org.getSystem().authenticatedUsers.getByName(userNode.getAttribute("au"));
             env.info("creating user " + name + " ... ");
-            org.createUser(name, authUser); // Create Org User
+            org.createUser(name, userNode.getAttribute("au")); // Create Org User
             env.info("OK");
         }
 
