@@ -187,7 +187,7 @@ public class Caas
         {
             throw new RuntimeException(e);
         }
-        return props.getProperty("project.version");
+        return props.getProperty("base.version") + "." + props.getProperty("build.number");
     }
 
     /**
