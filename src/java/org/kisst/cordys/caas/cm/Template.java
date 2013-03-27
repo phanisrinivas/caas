@@ -65,7 +65,7 @@ public class Template
      * @param org Organization which template needs to be created
      * @param targetPackageName The name of the target package.
      * @param isvp The package for which the template should be generated.
-     * @param user The user to generate the template for.
+     * @param userDn The user to generate the template for.
      */
     public Template(Organization org, String targetPackageName, Package pkg, User u)
     {

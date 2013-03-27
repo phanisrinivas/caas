@@ -1,5 +1,6 @@
 package org.kisst.cordys.caas;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.kisst.cordys.caas.Assignment.AssignmentList;
@@ -39,11 +40,11 @@ public class Team extends CordysObject
     /** Holds whether or not the team is deleted. */
     public final XmlProperty<Boolean> deleted;
     /** Holds the assignments to this team */
-    public final AssignmentList assignments;
+    public final AssignmentList<Team> assignments;
     /** Alias */
-    public final AssignmentList assignment;
+    public final AssignmentList<Team> assignment;
     /** Alias */
-    public final AssignmentList a;
+    public final AssignmentList<Team> a;
 
     /**
      * Instantiates a new team.
@@ -62,9 +63,9 @@ public class Team extends CordysObject
         description = new XmlProperty<String>(m_unitData, "", "Description", "ua", Constants.NS, String.class);
         deleted = new XmlProperty<Boolean>(m_unitData, "", "Deleted", "ua", Constants.NS, Boolean.class);
         space = new XmlProperty<String>(m_unitData, "", "Space", "ua", Constants.NS, String.class);
-        
-        //Create the assignment list
-        assignments = new AssignmentList(this);
+
+        // Create the assignment list
+        assignments = new AssignmentList<Team>(this);
         assignment = assignments;
         a = assignments;
     }
@@ -101,6 +102,7 @@ public class Team extends CordysObject
     {
         return qname.get();
     }
+
     /**
      * This method gets the organization to which this team is bound.
      * 
@@ -180,6 +182,40 @@ public class Team extends CordysObject
         public String getKey()
         {
             return m_organization.getVarName() + ".teams";
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
+         */
+        @Override
+        public Organization getOrganization()
+        {
+            return m_organization;
+        }
+        
+        /**
+         * This method will search for the team with the given Unit ID.
+         * 
+         * @param unitId The ID of the team to be found.
+         * @return The team with the given ID.
+         */
+        public Team findByUnitID(String unitId)
+        {
+            Team retVal = null;
+            
+            //Make sure the list is available
+            ArrayList<Team> allTeams = fetchList();
+            
+            for (Team team : allTeams)
+            {
+                if (team.id.get().equals(unitId))
+                {
+                    retVal = team;
+                    break;
+                }
+            }
+            
+            return retVal;
         }
     }
 }

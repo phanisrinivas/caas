@@ -10,6 +10,7 @@
 package org.kisst.cordys.caas.support;
 
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -53,6 +54,15 @@ public class ChildList<T extends LdapObject> extends CordysObjectList<T>
         this.clz = clz;
         // We have to delay the use of the dn, because the dn is not known in CordysSystem
         // at construction time
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
+     */
+    @Override
+    public Organization getOrganization()
+    {
+        return parent.getOrganization();
     }
 
     /**

@@ -144,6 +144,15 @@ public class CordysSystem extends LdapObject
     {
         return caller;
     }
+    
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
+     */
+    @Override
+    public Organization getOrganization()
+    {
+        return organizations.getByName("system");
+    }
 
     /**
      * Creates an authenticated user.
@@ -777,6 +786,12 @@ public class CordysSystem extends LdapObject
             {
                 return CordysSystem.this.getKey() + ":seek(" + target + ")";
             }
+
+            @Override
+            public Organization getOrganization()
+            {
+                return CordysSystem.this.getOrganization();
+            }
         };
     }
 
@@ -805,6 +820,12 @@ public class CordysSystem extends LdapObject
             public String getKey()
             {
                 return CordysSystem.this.getKey() + ":seek(" + target + ")";
+            }
+            
+            @Override
+            public Organization getOrganization()
+            {
+                return CordysSystem.this.getOrganization();
             }
         };
     }
@@ -1091,6 +1112,16 @@ public class CordysSystem extends LdapObject
         {
             return getSystem().getKey() + ":machines";
         }
+        
+        /**
+         * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
+         */
+        @Override
+        public Organization getOrganization()
+        {
+            return CordysSystem.this.getOrganization();
+        }
+
     }
 
     /**
@@ -1131,5 +1162,15 @@ public class CordysSystem extends LdapObject
         {
             return getSystem().getKey() + ":serviceContainers";
         }
+        
+        /**
+         * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
+         */
+        @Override
+        public Organization getOrganization()
+        {
+            return CordysSystem.this.getOrganization();
+        }
+
     }
 }

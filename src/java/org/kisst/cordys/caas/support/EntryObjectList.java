@@ -22,6 +22,7 @@ package org.kisst.cordys.caas.support;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -49,6 +50,7 @@ public class EntryObjectList<T extends LdapObject> extends CordysObjectList<T>  
 	
 	@Override public String getVarName() { return parent.getVarName()+"."+type;}
 	@Override public String getKey() { return parent.getKey()+":Entries:"+group;}
+	@Override public Organization getOrganization() { return parent.getOrganization();}
 	@SuppressWarnings("unchecked")
 	@Override protected void retrieveList() {
 		dangling.clear();

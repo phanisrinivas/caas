@@ -143,4 +143,13 @@ final class PackageDefinitionList extends CordysObjectList<PackageDefinition>
     {
         return getSystem().getKey() + ":packageDefinitions";
     }
+    
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
+     */
+    @Override
+    public Organization getOrganization()
+    {
+        return null;
+    }
 }

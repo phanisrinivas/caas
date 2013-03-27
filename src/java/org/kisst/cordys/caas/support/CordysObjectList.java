@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.Organization;
 
 
 /**
@@ -139,6 +140,8 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
 				}
 			}
 			@Override public String getKey() { return CordysObjectList.this.getKey()+":like("+filter+")";}
+			
+			@Override public Organization getOrganization() { return CordysObjectList.this.getOrganization();}
 		};
 	}
 	
@@ -155,6 +158,8 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
 				
 			}
 			@Override public String getKey() { return CordysObjectList.this.getKey()+":sorted";}
+			
+			@Override public Organization getOrganization() { return CordysObjectList.this.getOrganization();}
 		};
 	}
 	@SuppressWarnings("unchecked")

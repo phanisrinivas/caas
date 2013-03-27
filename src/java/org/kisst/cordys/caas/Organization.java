@@ -12,6 +12,7 @@ package org.kisst.cordys.caas;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
+import org.kisst.cordys.caas.User.UserList;
 import org.kisst.cordys.caas.cm.Template;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.ChildList;
@@ -26,9 +27,9 @@ public class Organization extends LdapObjectBase
     // private static final Environment env=Environment.get();
 
     // Collection to hold the users
-    public final ChildList<User> users = new ChildList<User>(this, "cn=organizational users,", User.class);
-    public final ChildList<User> user = users;
-    public final ChildList<User> u = users;
+    public final UserList users = new UserList(this);
+    public final UserList user = users;
+    public final UserList u = users;
 
     // Collection to hold the roles
     public final ChildList<Role> roles = new ChildList<Role>(this, "cn=organizational roles,", Role.class);
@@ -99,6 +100,12 @@ public class Organization extends LdapObjectBase
             public String getKey()
             {
                 return "ServiceContainers:" + getDn();
+            }
+            
+            @Override
+            public Organization getOrganization()
+            {
+                return Organization.this;
             }
         };
         sc = serviceContainers;
@@ -415,6 +422,12 @@ public class Organization extends LdapObjectBase
             {
                 return Organization.this.getKey() + ":seek(" + target + ")";
             }
+            
+            @Override
+            public Organization getOrganization()
+            {
+                return Organization.this;
+            }
         };
     }
 
@@ -438,6 +451,12 @@ public class Organization extends LdapObjectBase
             public String getKey()
             {
                 return Organization.this.getKey() + ":seek(" + target + ")";
+            }
+            
+            @Override
+            public Organization getOrganization()
+            {
+                return Organization.this;
             }
         };
     }
