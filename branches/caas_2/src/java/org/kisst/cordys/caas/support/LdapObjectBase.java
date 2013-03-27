@@ -35,10 +35,10 @@ import org.kisst.cordys.caas.util.ReflectionUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
- * This is the base class for all kinds of Ldap Objects, except for CordysSystem, which is special This basically is
- * just a convenience class provding the getDn() and getSystem() webService so that not all sublcasses need to implement
- * these again. It is separate from the LdapObject class, because CordysSystem also is a LdapObject, but does can't use
- * the dn and system (itself) at construction time.
+ * This is the base class for all kinds of Ldap Objects, except for CordysSystem, which is special This basically is just a
+ * convenience class provding the getDn() and getSystem() webService so that not all sublcasses need to implement these again. It
+ * is separate from the LdapObject class, because CordysSystem also is a LdapObject, but does can't use the dn and system (itself)
+ * at construction time.
  */
 public abstract class LdapObjectBase extends LdapObject
 {
@@ -71,9 +71,9 @@ public abstract class LdapObjectBase extends LdapObject
 
     /**
      * Instantiates a new ldap object base.
-     *
-     * @param  parent  The parent
-     * @param  dn      The dn
+     * 
+     * @param parent The parent
+     * @param dn The dn
      */
     protected LdapObjectBase(LdapObject parent, String dn)
     {
@@ -90,36 +90,75 @@ public abstract class LdapObjectBase extends LdapObject
     }
 
     /**
-     * @see  org.kisst.cordys.caas.support.CordysObject#getSystem()
+     * @see org.kisst.cordys.caas.support.CordysObject#getSystem()
      */
-    @Override public CordysSystem getSystem()
+    @Override
+    public CordysSystem getSystem()
     {
         return system;
     }
 
     /**
-     * @see  org.kisst.cordys.caas.support.LdapObject#getDn()
+     * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
      */
-    @Override public String getDn()
+    @Override
+    public Organization getOrganization()
+    {
+        // We need to figure out what the organizational context is for this object. We determine this by examining the parent
+        // until we find the organization object. If we can't determine it we'll use the system or of the CordysSystem.
+        Organization retVal = null;
+        
+        LdapObject current = this;
+        
+        while (current != null && retVal != null)
+        {
+            if (current instanceof Organization)
+            {
+                retVal = (Organization) current;
+                break;
+            }
+            
+            //Get the parent
+            CordysObject tmp = current.getParent();
+            if (tmp instanceof LdapObjectBase)
+            {
+                current = (LdapObjectBase) tmp;
+            }
+            else
+            {
+                //The parent is no longer an LDAP object
+                current = null;
+                retVal = tmp.getOrganization();
+            }
+        }
+
+        return retVal;
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.support.LdapObject#getDn()
+     */
+    @Override
+    public String getDn()
     {
         return dn;
     }
 
     /**
-     * @see  org.kisst.cordys.caas.support.LdapObject#getCn()
+     * @see org.kisst.cordys.caas.support.LdapObject#getCn()
      */
-    @Override public String getCn()
+    @Override
+    public String getCn()
     {
         return cn;
     }
 
     /**
      * This method creates the object.
-     *
-     * @param   system  The system
-     * @param   dn      The dn
-     *
-     * @return  The ldap object
+     * 
+     * @param system The system
+     * @param dn The dn
+     * @return The ldap object
      */
     public static LdapObject createObject(CordysSystem system, String dn)
     {
@@ -133,11 +172,10 @@ public abstract class LdapObjectBase extends LdapObject
 
     /**
      * This method creates the object.
-     *
-     * @param   system  The system
-     * @param   entry   The entry
-     *
-     * @return  The ldap object
+     * 
+     * @param system The system
+     * @param entry The entry
+     * @return The ldap object
      */
     public static LdapObject createObject(CordysSystem system, XmlNode entry)
     {
@@ -153,8 +191,8 @@ public abstract class LdapObjectBase extends LdapObject
 
         if (resultClass == Package.class)
         {
-            if (newdn.startsWith("cn=licinfo,") || newdn.startsWith("cn=authenticated users,") ||
-                    newdn.startsWith("cn=consortia,"))
+            if (newdn.startsWith("cn=licinfo,") || newdn.startsWith("cn=authenticated users,")
+                    || newdn.startsWith("cn=consortia,"))
             {
                 return null;
             }
@@ -165,8 +203,7 @@ public abstract class LdapObjectBase extends LdapObject
             throw new RuntimeException("could not determine class for entry " + entry);
         }
 
-        Constructor<?> cons = ReflectionUtil.getConstructor(resultClass,
-                                                            new Class[] { LdapObject.class, String.class });
+        Constructor<?> cons = ReflectionUtil.getConstructor(resultClass, new Class[] { LdapObject.class, String.class });
         LdapObject result = (LdapObject) ReflectionUtil.createObject(cons, new Object[] { parent, newdn });
         result.setEntry(entry);
         return result;
@@ -174,11 +211,10 @@ public abstract class LdapObjectBase extends LdapObject
 
     /**
      * Determine class.
-     *
-     * @param   system  The system
-     * @param   entry   The entry
-     *
-     * @return  The class
+     * 
+     * @param system The system
+     * @param entry The entry
+     * @return The class
      */
     private static Class<?> determineClass(CordysSystem system, XmlNode entry)
     {
@@ -211,11 +247,10 @@ public abstract class LdapObjectBase extends LdapObject
 
     /**
      * Calc parent.
-     *
-     * @param   system  The system
-     * @param   dn      The dn
-     *
-     * @return  The ldap object
+     * 
+     * @param system The system
+     * @param dn The dn
+     * @return The ldap object
      */
     private static LdapObject calcParent(CordysSystem system, String dn)
     {

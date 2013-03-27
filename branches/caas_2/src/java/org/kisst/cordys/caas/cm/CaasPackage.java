@@ -23,7 +23,7 @@ import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
- * This is the main class for the package manager. The package manager has a few main operations:
+ * This is the main class for the configuration manager. The configuration manager has a few main operations:
  * <ul>
  * <li>check - Checks if the configuration of the objectives that are in the ccm file are currently in place</li>
  * <li>configure - Configures the given organization based on the current ccm file.</li>

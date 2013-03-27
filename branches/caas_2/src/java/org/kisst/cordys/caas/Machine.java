@@ -69,6 +69,13 @@ public class Machine extends CordysObject
     {
         return getSystem().getVarName() + ".machine." + getName();
     }
+    
+    @Override
+    public Organization getOrganization()
+    {
+        //A machine has no organizational context
+        return null;
+    }
 
     public ServiceContainer getMonitor()
     {

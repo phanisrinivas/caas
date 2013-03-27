@@ -14,16 +14,13 @@ public class PackageDefinition extends CordysObject
     /** Holds the package types. */
     public enum EPackageType
     {
-        cap,
-        isvp
+        cap, isvp
     };
 
     /** Holds the package types. */
     public enum EPackageStatus
     {
-        loaded,
-        incomplete,
-        not_loaded
+        loaded, incomplete, not_loaded
     };
 
     /** Holds the reference to the Cordys system that is being used. */
@@ -103,15 +100,15 @@ public class PackageDefinition extends CordysObject
             //   <node>CNL1523</node>
             // </ApplicationPackage>
             // @formatter:on
-            
+
             // It is a CAP file
             type = EPackageType.cap;
             name = definition.getChildText("ApplicationName");
             owner = definition.getChildText("owner");
-            
+
             buildnumber = definition.getChildText("ApplicationBuild");
-            version =  definition.getChildText("ApplicationVersion");
-            
+            version = definition.getChildText("ApplicationVersion");
+
             if (owner == null || owner.isEmpty())
             {
                 status = EPackageStatus.not_loaded;
@@ -154,6 +151,15 @@ public class PackageDefinition extends CordysObject
     }
 
     /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
+     */
+    @Override
+    public Organization getOrganization()
+    {
+        return null;
+    }
+
+    /**
      * @see org.kisst.cordys.caas.support.CordysObject#getVarName()
      */
     @Override
@@ -170,7 +176,7 @@ public class PackageDefinition extends CordysObject
     {
         return "packagedefinition:" + getSystem().getDn() + ":entry:" + name;
     }
-    
+
     /**
      * This method gets the full version for this package.
      * 

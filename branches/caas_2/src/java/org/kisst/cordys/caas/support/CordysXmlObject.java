@@ -10,6 +10,7 @@
 package org.kisst.cordys.caas.support;
 
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.util.XmlNode;
 
 public class CordysXmlObject extends CordysObject
@@ -48,6 +49,12 @@ public class CordysXmlObject extends CordysObject
     public CordysSystem getSystem()
     {
         return system;
+    }
+
+    @Override
+    public Organization getOrganization()
+    {
+        return parent.getOrganization();
     }
 
     public String getPath()
