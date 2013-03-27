@@ -26,5 +26,9 @@
       <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the creation of a user via the caascm template. It was not creating the authenticated user correctly.]]></action>
       <action dev="pgussow" type="fix"><![CDATA[Bugfix for the connection point when it is exported via the Configuration Manager. The type was set to socket:// instead of just socket]]></action>
     </release>
+    <release date="2013-03-27" description="Stable release" version="2.0.15">
+      <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the version number]]></action>
+      <action dev="pgussow" type="fix"><![CDATA[Changed the caas.cmd file a bit to be more flexible]]></action>
+    </release>
   </body>
 </document>
