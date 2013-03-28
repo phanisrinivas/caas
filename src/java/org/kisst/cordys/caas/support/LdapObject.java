@@ -161,7 +161,9 @@ public abstract class LdapObject extends CordysObject {
 		}
 	}
 
+	/** Holds the description for the LDAP based entry */
 	public final StringProperty description = new StringProperty("description");
+	/** Alias for the description */
 	public final StringProperty desc = description;
 
 	private final LdapObject parent; 
