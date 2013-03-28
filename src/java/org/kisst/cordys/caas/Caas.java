@@ -1,21 +1,11 @@
 /**
-Copyright 2008, 2009 Mark Hooijkaas
-
-This file is part of the Caas tool.
-
-The Caas tool is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-The Caas tool is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * Copyright 2008, 2009 Mark Hooijkaas This file is part of the Caas tool. The Caas tool is free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version
+ * 3 of the License, or (at your option) any later version. The Caas tool is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details. You should have received a copy of the GNU General Public License along with the Caas
+ * tool. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.kisst.cordys.caas;
 
@@ -40,22 +30,21 @@ import org.kisst.cordys.caas.util.XmlNode;
 
 /**
  * DOCUMENTME.
- *
- * @author  $author$
+ * 
+ * @author $author$
  */
 public class Caas
 {
     /** DOCUMENTME. */
     private static LinkedHashMap<String, CordysSystem> systemCache = new LinkedHashMap<String, CordysSystem>();
-    /** DOCUMENTME. */
+    /** Holds the default system that is used. */
     public static String defaultSystem = null;
 
     /**
-     * DOCUMENTME.
-     *
-     * @param   filename
-     *
-     * @return
+     * This method creates a new Configuration object based on the given filename.
+     * 
+     * @param filename The name of the file to load. The content must be a caas.conf like file.
+     * @return The configuration object wrapping the given file.
      */
     public static Configuration config(String filename)
     {
@@ -64,10 +53,9 @@ public class Caas
 
     /**
      * Creates a template from the file.
-     *
-     * @param   filename  Template file name
-     *
-     * @return  Template object
+     * 
+     * @param filename Template file name
+     * @return Template object
      */
     public static Template template(String filename)
     {
@@ -76,9 +64,8 @@ public class Caas
 
     /**
      * DOCUMENTME.
-     *
-     * @param   filename
-     *
+     * 
+     * @param filename
      * @return
      */
     public static CordysSystem connect(String filename)
@@ -95,10 +82,9 @@ public class Caas
 
     /**
      * DOCUMENTME.
-     *
-     * @param   filename
-     * @param   name
-     *
+     * 
+     * @param filename
+     * @param name
      * @return
      */
     public static CordysSystem connect(String filename, String name)
@@ -126,9 +112,8 @@ public class Caas
 
     /**
      * DOCUMENTME.
-     *
-     * @param   filename
-     *
+     * 
+     * @param filename
      * @return
      */
     public static CordysSystem loadFromDump(String filename)
@@ -145,10 +130,9 @@ public class Caas
 
     /**
      * DOCUMENTME.
-     *
-     * @param   filename
-     * @param   name
-     *
+     * 
+     * @param filename
+     * @param name
      * @return
      */
     public static CordysSystem loadFromDump(String filename, String name)
@@ -165,8 +149,8 @@ public class Caas
 
     /**
      * DOCUMENTME.
-     *
-     * @return  Caas version
+     * 
+     * @return Caas version
      */
     public static String getVersion()
     {
@@ -191,12 +175,11 @@ public class Caas
     }
 
     /**
-     * Constructs a Cordys system and caches it. Depending up on the authentication mechanism mentioned in the caas.conf
-     * file it connects to the Cordys server and returns an instance of CordysSystem It also loads the properties file
-     * of the system if configured
-     *
-     * @param   name
-     *
+     * Constructs a Cordys system and caches it. Depending up on the authentication mechanism mentioned in the caas.conf file it
+     * connects to the Cordys server and returns an instance of CordysSystem It also loads the properties file of the system if
+     * configured
+     * 
+     * @param name
      * @return
      */
     public static CordysSystem getSystem(String name)
@@ -205,7 +188,7 @@ public class Caas
         {
             return getDefaultSystem();
         }
-        
+
         CordysSystem result = systemCache.get(name);
 
         if (result != null)
@@ -266,7 +249,7 @@ public class Caas
 
     /**
      * DOCUMENTME.
-     *
+     * 
      * @return
      */
     public static CordysSystem getDefaultSystem()

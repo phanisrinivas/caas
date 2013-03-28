@@ -12,8 +12,6 @@ import org.kisst.cordys.caas.util.XmlNode;
 
 /**
  * This class wraps the details of a team definition within an organization.
- * 
- * @author pgussow
  */
 public class Team extends CordysObject
 {
@@ -41,9 +39,9 @@ public class Team extends CordysObject
     public final XmlProperty<Boolean> deleted;
     /** Holds the assignments to this team */
     public final AssignmentList<Team> assignments;
-    /** Alias */
+    /** Alias for the assignments */
     public final AssignmentList<Team> assignment;
-    /** Alias */
+    /** Alias for the assignments */
     public final AssignmentList<Team> a;
 
     /**

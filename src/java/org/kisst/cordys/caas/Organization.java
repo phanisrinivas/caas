@@ -22,10 +22,11 @@ import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
+/**
+ * This class wraps the definition of an organization. It contains all the objects like service containers, users, roles, etc.
+ */
 public class Organization extends LdapObjectBase
 {
-    // private static final Environment env=Environment.get();
-
     // Collection to hold the users
     public final UserList users = new UserList(this);
     public final UserList user = users;
@@ -73,7 +74,6 @@ public class Organization extends LdapObjectBase
     public final Team.TeamList team = teams;
     public final Team.TeamList t = teams;
     public final Team.TeamList ou = teams;
-    
 
     /**
      * Instantiates a new organization.
@@ -101,7 +101,7 @@ public class Organization extends LdapObjectBase
             {
                 return "ServiceContainers:" + getDn();
             }
-            
+
             @Override
             public Organization getOrganization()
             {
@@ -130,16 +130,17 @@ public class Organization extends LdapObjectBase
         };
         dso = dsos;
         d = dsos;
-        
-        //Now we need to read the Assignment Root for this organization for the user/team assignments
+
+        // Now we need to read the Assignment Root for this organization for the user/team assignments
         XmlNode request = new XmlNode(Constants.INITIALIZE_ASSIGNMENT_ROOT, Constants.XMLNS_USER_ASSIGNMENT);
         request.add("WorkspaceID").setText("__Organization Staging__");
         request.add("AssignmentRoot").setText("CIUIRoot");
         request.add("Create").setText("true");
-        
+
         XmlNode response = call(request);
-        
-        m_assignmentRoot = response.xpathSingle("//ua:InitializeAssignmentRootResponse/ua:InitializeAssignmentRoot", Constants.NS).getText();
+
+        m_assignmentRoot = response
+                .xpathSingle("//ua:InitializeAssignmentRootResponse/ua:InitializeAssignmentRoot", Constants.NS).getText();
     }
 
     @Override
@@ -154,17 +155,18 @@ public class Organization extends LdapObjectBase
         queryParams.put("receiver", getDn());
         return getSystem().call(request, queryParams);
     }
-    
+
     /**
      * @see org.kisst.cordys.caas.support.LdapObject#call(org.kisst.cordys.caas.util.XmlNode)
      */
     @Override
     public XmlNode call(XmlNode request)
     {
-        //The reason why we override it here is because when a call is done via the organization, then also the organizational context should be passed on
+        // The reason why we override it here is because when a call is done via the organization, then also the organizational
+        // context should be passed on
         HashMap<String, String> org = new LinkedHashMap<String, String>();
         org.put("organization", getName());
-        
+
         return super.call(request, org);
     }
 
@@ -204,7 +206,7 @@ public class Organization extends LdapObjectBase
         {
             au = authUser.getName();
         }
-        
+
         createUser(name, au);
     }
 
@@ -422,7 +424,7 @@ public class Organization extends LdapObjectBase
             {
                 return Organization.this.getKey() + ":seek(" + target + ")";
             }
-            
+
             @Override
             public Organization getOrganization()
             {
@@ -452,7 +454,7 @@ public class Organization extends LdapObjectBase
             {
                 return Organization.this.getKey() + ":seek(" + target + ")";
             }
-            
+
             @Override
             public Organization getOrganization()
             {
@@ -465,7 +467,7 @@ public class Organization extends LdapObjectBase
     {
         return new Template(this, isvpName);
     }
-    
+
     /**
      * This method gets the assignment root that is used for assigning teams and users.
      * 

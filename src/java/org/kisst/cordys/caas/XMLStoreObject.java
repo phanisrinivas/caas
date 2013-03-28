@@ -7,44 +7,65 @@ import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
- * Class to represent an object in XMLStore
- * 
- * @author galoori
+ * Class to represent an object in XMLStore.
  */
 public class XMLStoreObject extends CordysObject
 {
+    /** Holds the key. */
     private String key;
+    /** Holds the version. */
     private String version;
+    /** Holds the xml. */
     private XmlNode xml = null;
+    /** Holds the org. */
     private Organization org;
+    /** Holds the name. */
     private String name = null;
+    /** Holds the last modified. */
     private String lastModified = null;
+    /** Holds the system. */
     private final CordysSystem system;
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getKey()
+     */
     @Override
     public String getKey()
     {
         return key;
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getName()
+     */
     @Override
     public String getName()
     {
         return name;
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getVarName()
+     */
     @Override
     public String getVarName()
     {
         return name;
     }
 
+    /**
+     * This method gets the last modified.
+     * 
+     * @return The last modified
+     */
     public String getLastModified()
     {
         return lastModified;
     }
 
     /**
+     * This method gets the xml.
+     * 
      * @return XML of the XMLStore object
      */
     public XmlNode getXML()
@@ -53,6 +74,8 @@ public class XMLStoreObject extends CordysObject
     }
 
     /**
+     * This method gets the version.
+     * 
      * @return version of the XMLStore object
      */
     public String getVersion()
@@ -60,6 +83,9 @@ public class XMLStoreObject extends CordysObject
         return version;
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getSystem()
+     */
     @Override
     public CordysSystem getSystem()
     {
@@ -67,10 +93,10 @@ public class XMLStoreObject extends CordysObject
     }
 
     /**
-     * Constructs XMLStore object with given key and organization
+     * Constructs XMLStore object with given key and organization.
      * 
-     * @param key
-     * @param org
+     * @param key The key
+     * @param org The org
      */
     public XMLStoreObject(String key, Organization org)
     {
@@ -78,11 +104,11 @@ public class XMLStoreObject extends CordysObject
     }
 
     /**
-     * Constructs XMLStore object with given key, version and organization
+     * Constructs XMLStore object with given key, version and organization.
      * 
-     * @param key
-     * @param version
-     * @param org
+     * @param key The key
+     * @param version The version
+     * @param org The org
      */
     public XMLStoreObject(String key, String version, Organization org)
     {
@@ -100,6 +126,9 @@ public class XMLStoreObject extends CordysObject
     }
 
     /**
+     * This method gets the organization.
+     * 
+     * @return The organization
      * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
      */
     @Override
@@ -109,10 +138,10 @@ public class XMLStoreObject extends CordysObject
     }
 
     /**
-     * Returns the XML of the XMLStore object with the given key and version
+     * Returns the XML of the XMLStore object with the given key and version.
      * 
-     * @param key
-     * @param version
+     * @param key The key
+     * @param version The version
      * @return XML of the object
      */
     public XmlNode getXMLObject(String key, String version)
@@ -124,7 +153,7 @@ public class XMLStoreObject extends CordysObject
     }
 
     /**
-     * Appends the given XML to the XMLStore object
+     * Appends the given XML to the XMLStore object.
      * 
      * @param node XML to be appended
      */
@@ -142,7 +171,7 @@ public class XMLStoreObject extends CordysObject
     }
 
     /**
-     * Overwrites the existing XML of the object with the given XML
+     * Overwrites the existing XML of the object with the given XML.
      * 
      * @param newXml XML that would overwrite the existing one
      */
@@ -161,6 +190,12 @@ public class XMLStoreObject extends CordysObject
         this.xml = newXml;
     }
 
+    /**
+     * Call.
+     * 
+     * @param request The request
+     * @return The xml node
+     */
     public XmlNode call(XmlNode request)
     {
         HashMap<String, String> queryParams = new HashMap<String, String>();
@@ -169,12 +204,21 @@ public class XMLStoreObject extends CordysObject
     }
 
     /**
+     * Holds the Class List.
+     * 
      * @author galoori
      */
     public static class List extends CordysObjectList<XMLStoreObject>
     {
+
+        /** Holds the org. */
         private final Organization org;
 
+        /**
+         * Instantiates a new list.
+         * 
+         * @param org The org
+         */
         public List(Organization org)
         {
             super(org.getSystem());
@@ -182,6 +226,8 @@ public class XMLStoreObject extends CordysObject
         }
 
         /**
+         * Retrieve list.
+         * 
          * @see org.kisst.cordys.caas.support.CordysObjectList#retrieveList()
          */
         @Override
@@ -212,12 +258,18 @@ public class XMLStoreObject extends CordysObject
             }
         }
 
+        /**
+         * @see org.kisst.cordys.caas.support.CordysObject#getKey()
+         */
         @Override
         public String getKey()
         {
             return "XMLStoreObjects:" + org.getKey();
         }
 
+        /**
+         * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
+         */
         @Override
         public Organization getOrganization()
         {
@@ -225,6 +277,9 @@ public class XMLStoreObject extends CordysObject
         }
     };
 
+    /**
+     * Delete.
+     */
     public void delete()
     {
         if ("isv".equals(version))

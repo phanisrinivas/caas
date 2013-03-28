@@ -18,9 +18,11 @@ import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
+/**
+ * This class wraps the definition and configuration of a service container.
+ */
 public class ServiceContainer extends LdapObjectBase
 {
-
     public final ChildList<ConnectionPoint> connectionPoints = new ChildList<ConnectionPoint>(this, ConnectionPoint.class);
     public final ChildList<ConnectionPoint> cp = connectionPoints;
     public final StringProperty computer = new StringProperty("computer");

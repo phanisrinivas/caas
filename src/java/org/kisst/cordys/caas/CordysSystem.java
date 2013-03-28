@@ -32,7 +32,8 @@ import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
- * Holds the Class CordysSystem.
+ * This is the main class for a Cordys system. From this class you can access organizations, manage CAP packages, create
+ * authenticated users, etc.
  */
 public class CordysSystem extends LdapObject
 {
@@ -144,7 +145,7 @@ public class CordysSystem extends LdapObject
     {
         return caller;
     }
-    
+
     /**
      * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
      */
@@ -821,7 +822,7 @@ public class CordysSystem extends LdapObject
             {
                 return CordysSystem.this.getKey() + ":seek(" + target + ")";
             }
-            
+
             @Override
             public Organization getOrganization()
             {
@@ -1112,7 +1113,7 @@ public class CordysSystem extends LdapObject
         {
             return getSystem().getKey() + ":machines";
         }
-        
+
         /**
          * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
          */
@@ -1162,7 +1163,7 @@ public class CordysSystem extends LdapObject
         {
             return getSystem().getKey() + ":serviceContainers";
         }
-        
+
         /**
          * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
          */

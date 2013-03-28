@@ -366,7 +366,7 @@ public class Package extends LdapObjectBase
         {
             m_buildNumber = buildNumber;
         }
-        
+
         /**
          * @see java.lang.Object#toString()
          */
