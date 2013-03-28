@@ -237,7 +237,7 @@ public class CmCommand extends CompositeCommand
 
     public CmCommand(String name)
     {
-        super("caas " + name, "run a caas package manager command");
+        super("caas " + name, "run a caas configuration manager command");
         // options.addOption("o", "org", true, "override the default organization");
         commands.put("gui", gui);
         commands.put("check", check);
