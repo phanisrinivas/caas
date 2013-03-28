@@ -173,8 +173,9 @@ public class GenerateDoc
         sb.append("{anchor:clz").append(clz.getName()).append("}\n");
         sb.append("h1. Object ").append(clz.getName()).append("\n");
 
-        // Dump the properties
-        JavaField[] fields = clz.getFields();
+        // Dump the properties. Since there is inheritence, we need to also look at the parent classes.
+        JavaField[] fields = getFields(clz);
+        
         if (fields != null)
         {
             boolean writeHeader = true;
@@ -218,7 +219,7 @@ public class GenerateDoc
         // Dump the methods
         Map<JavaMethod, String> methodDetail = new LinkedHashMap<JavaMethod, String>();
 
-        JavaMethod[] methods = clz.getMethods();
+        JavaMethod[] methods = getMethods(clz);
         if (methods != null)
         {
             boolean writeHeader = true;
@@ -341,6 +342,58 @@ public class GenerateDoc
         }
 
         return sb.toString();
+    }
+
+    /**
+     * This method gets all the fields applicable for this class. This includes the fields from the parent classes.
+     * 
+     * @param clz The class to get the fields for.
+     * @return All the fields including the parent.
+     */
+    private JavaField[] getFields(JavaClass clz)
+    {
+        List<JavaField> retVal = new ArrayList<JavaField>();
+        
+        JavaClass current = clz;
+        
+        while (current != null && current.getPackageName().startsWith("org.kisst"))
+        {
+            JavaField[] tmp = current.getFields();
+            for (JavaField jf : tmp)
+            {
+                retVal.add(jf);
+            }
+            
+            current = current.getSuperJavaClass();
+        }
+        
+        return retVal.toArray(new JavaField[0]);
+    }
+    
+    /**
+     * This method gets all the methods applicable for this class. This includes the methods from the parent classes.
+     * 
+     * @param clz The class to get the methods for.
+     * @return All the methods including the parent.
+     */
+    private JavaMethod[] getMethods(JavaClass clz)
+    {
+        List<JavaMethod> retVal = new ArrayList<JavaMethod>();
+        
+        JavaClass current = clz;
+        
+        while (current != null && current.getPackageName().startsWith("org.kisst"))
+        {
+            JavaMethod[] tmp = current.getMethods();
+            for (JavaMethod jf : tmp)
+            {
+                retVal.add(jf);
+            }
+            
+            current = current.getSuperJavaClass();
+        }
+        
+        return retVal.toArray(new JavaMethod[0]);
     }
 
     /**
