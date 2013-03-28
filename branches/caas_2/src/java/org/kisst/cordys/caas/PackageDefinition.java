@@ -6,8 +6,6 @@ import org.kisst.cordys.caas.util.XmlNode;
 /**
  * This class holds the definition of a package. The packages available on a system do not need to be loaded. This class contains
  * both loaded and unloaded packages. It will also contain ISV packages, but also CAP packages.
- * 
- * @author pgussow
  */
 public class PackageDefinition extends CordysObject
 {

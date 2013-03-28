@@ -5,8 +5,6 @@ import org.kisst.cordys.caas.support.LdapObjectBase;
 
 /**
  * Class to represent a DSO
- * 
- * @author galoori
  */
 public class Dso extends LdapObjectBase
 {

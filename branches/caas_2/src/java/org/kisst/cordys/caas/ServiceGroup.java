@@ -26,7 +26,9 @@ import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.util.XmlNode;
 
-
+/**
+ * This class contains the configuration of a service group.
+ */
 public class ServiceGroup extends LdapObjectBase 
 {
 	public final ChildList<ServiceContainer> serviceContainers= new ChildList<ServiceContainer>(this, ServiceContainer.class);
@@ -42,6 +44,7 @@ public class ServiceGroup extends LdapObjectBase
 	public final XmlSubProperty algorithm= new XmlSubProperty(config, "routing/algorithm");  
 	public final XmlBoolProperty protocolValidation = new XmlBoolProperty(config, "validation/protocol",false);
 	public final XmlBoolProperty payloadValidation = new XmlBoolProperty(config, "validation/payload",false);
+	public final XmlBoolProperty requestValidation = new XmlBoolProperty(config, "validation/request",false);
 	public final XmlBoolProperty payloadTrim = new XmlBoolProperty(config, "IgnoreWhiteSpaces",false);
 		
 	

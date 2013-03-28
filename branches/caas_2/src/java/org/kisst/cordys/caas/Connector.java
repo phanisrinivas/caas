@@ -13,7 +13,7 @@ import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.support.CordysXmlObject;
 
 /**
- * Holds the Class Connector.
+ * This class wraps the runtime definition of an application connector.
  */
 public class Connector extends CordysXmlObject
 {

@@ -22,15 +22,24 @@ import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
- * Class to represent a node of the Cordys cluster
+ * Class to represent a node of the Cordys cluster.
  */
 public class Machine extends CordysObject
 {
+    /** Holds the monitor. */
     private final ServiceContainer monitor;
+    /** Holds the hostname. */
     private final String hostname;
+    /** Holds the cordys install dir. */
     private final String cordysInstallDir;
+    /** Holds the env. */
     private Environment env;
 
+    /**
+     * Instantiates a new machine.
+     * 
+     * @param monitor The monitor
+     */
     protected Machine(ServiceContainer monitor)
     {
         this.monitor = monitor;
@@ -40,51 +49,74 @@ public class Machine extends CordysObject
         this.env = getSystem().getEnv();
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#toString()
+     */
     @Override
     public String toString()
     {
         return getVarName();
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getName()
+     */
     @Override
     public String getName()
     {
         return hostname;
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getKey()
+     */
     @Override
     public String getKey()
     {
         return "machine:" + getName();
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getSystem()
+     */
     @Override
     public CordysSystem getSystem()
     {
         return monitor.getSystem();
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getVarName()
+     */
     @Override
     public String getVarName()
     {
         return getSystem().getVarName() + ".machine." + getName();
     }
-    
+
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
+     */
     @Override
     public Organization getOrganization()
     {
-        //A machine has no organizational context
+        // A machine has no organizational context
         return null;
     }
 
+    /**
+     * This method gets the monitor.
+     * 
+     * @return The monitor
+     */
     public ServiceContainer getMonitor()
     {
         return monitor;
     }
 
     /**
-	 * 
-	 */
+     * Refresh service containers.
+     */
     public void refreshServiceContainers()
     {
         XmlNode request = new XmlNode(Constants.LIST, Constants.XMLNS_MONITOR);
@@ -101,10 +133,11 @@ public class Machine extends CordysObject
     }
 
     /**
-     * Loads the ISVP
+     * Loads the ISVP.
      * 
-     * @param isvpName
-     * @return
+     * @param isvpName The isvp name
+     * @param timeOutInMillis The time out in millis
+     * @return The string
      */
     public String loadIsvp(String isvpName, long timeOutInMillis)
     {
@@ -112,10 +145,12 @@ public class Machine extends CordysObject
     }
 
     /**
-     * Loads the ISVP
+     * Loads the ISVP.
      * 
-     * @param isvpName
-     * @return
+     * @param isvpName The isvp name
+     * @param prompSetsXMLNode The promp sets xml node
+     * @param timeOutInMilis The time out in milis
+     * @return The string
      */
     public String loadIsvp(String isvpName, XmlNode prompSetsXMLNode, long timeOutInMilis)
     {
@@ -150,8 +185,10 @@ public class Machine extends CordysObject
     }
 
     /**
-     * @param isvpName
-     * @param isvpPackageNode
+     * Check if dependent isvps installed.
+     * 
+     * @param isvpName The isvp name
+     * @param isvpPackageNode The isvp package node
      */
     private void checkIfDependentIsvpsInstalled(String isvpName, XmlNode isvpPackageNode)
     {
@@ -186,10 +223,12 @@ public class Machine extends CordysObject
 
     /**
      * Upgrades ISVP It needs to consider the rules and other runtime content as well Currently It overwrites the BPM content in
-     * the previous ISVP
+     * the previous ISVP.
      * 
-     * @param isvpName
-     * @return
+     * @param isvpName The isvp name
+     * @param deleteReferences The delete references
+     * @param timeOutInMillis The time out in millis
+     * @return The string
      */
     public String upgradeIsvp(String isvpName, boolean deleteReferences, long timeOutInMillis)
     {
@@ -198,10 +237,13 @@ public class Machine extends CordysObject
 
     /**
      * Upgrades ISVP It needs to consider the rules and other runtime content as well Currently It overwrites the BPM content in
-     * the previous ISVP
+     * the previous ISVP.
      * 
-     * @param isvpName
-     * @return
+     * @param isvpName The isvp name
+     * @param prompSetsXMLNode The promp sets xml node
+     * @param deleteReferences The delete references
+     * @param timeOutInMillis The time out in millis
+     * @return The string
      */
     public String upgradeIsvp(String isvpName, XmlNode prompSetsXMLNode, boolean deleteReferences, long timeOutInMillis)
     {
@@ -247,9 +289,9 @@ public class Machine extends CordysObject
     }
 
     /**
-     * Gets the complete details of the given ISVP
+     * Gets the complete details of the given ISVP.
      * 
-     * @param isvpName
+     * @param isvpName The isvp name
      * @return XmlNode ISVP details XML node
      */
     private XmlNode getIsvpDefinition(String isvpName)
@@ -266,11 +308,10 @@ public class Machine extends CordysObject
     }
 
     /**
-     * Unloads the ISVP
+     * Unloads the ISVP.
      * 
-     * @param isvp
-     * @param deleteReferences
-     * @return
+     * @param isvp The isvp
+     * @param deleteReferences The delete references
      */
     public void unloadIsvp(Package isvp, boolean deleteReferences)
     {
@@ -289,7 +330,7 @@ public class Machine extends CordysObject
     }
 
     /**
-     * Lists all the ISVP files
+     * Lists all the ISVP files.
      * 
      * @return List<String> Names of the ISVPs
      */
@@ -310,7 +351,9 @@ public class Machine extends CordysObject
     }
 
     /**
-     * @return
+     * This method gets the cordys install dir.
+     * 
+     * @return The cordys install dir
      */
     public String getCordysInstallDir()
     {
@@ -318,9 +361,9 @@ public class Machine extends CordysObject
     }
 
     /**
-     * Reads the value of given EIB property
+     * Reads the value of given EIB property.
      * 
-     * @param propertyName
+     * @param propertyName The property name
      * @return String
      */
     public String readEIBProperty(String propertyName)
@@ -335,10 +378,9 @@ public class Machine extends CordysObject
     }
 
     /**
-     * Uploads the ISVP
+     * Uploads the ISVP.
      * 
-     * @param isvpFilePath
-     * @return
+     * @param isvpFilePath The isvp file path
      */
     public void uploadIsvp(String isvpFilePath)
     {
@@ -355,7 +397,9 @@ public class Machine extends CordysObject
     }
 
     /**
-     * @return
+     * This method gets the installed isvps.
+     * 
+     * @return The installed isvps
      */
     public List<XmlNode> getInstalledIsvps()
     {
