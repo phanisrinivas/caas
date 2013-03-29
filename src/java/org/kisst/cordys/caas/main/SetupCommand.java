@@ -38,7 +38,7 @@ public class SetupCommand extends  CompositeCommand {
 		commands.put("jython", new CommandBase("","download all jar files needed to run jython") 
 		{ @Override public void run(String args[]) {downloadBase(); downloadJython(); }});
 		
-		commands.put("pm", new CommandBase("","download all jar files needed to run pm")     
+		commands.put("cm", new CommandBase("","download all jar files needed to run cm")     
 		{ @Override public void run(String args[]) {downloadBase(); }});
 	}
 

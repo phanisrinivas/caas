@@ -26,12 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
-
-import org.kisst.cordys.caas.exception.CaasRuntimeException;
-import org.kisst.cordys.caas.main.Environment;
 
 import sun.misc.BASE64Encoder;
 
@@ -99,7 +94,7 @@ public class FileUtil {
 	 * @param fileName 
 	 * @return boolean returns true if the file exists, false if it doesn't or if the fileName is null
 	 */
-	public static boolean isFileExists(String fileName){
+	public static boolean doesFileExist(String fileName){
 		if(fileName==null)
 			return false;
 		File file = new File(fileName);
@@ -107,10 +102,10 @@ public class FileUtil {
 	}
 	
 	/**
-	 * This method encodes the files content in Base64 format
+	 * This webService encodes the files content in Base64 format
 	 * 
 	 * Usage: For uploading an ISVP to a remote node in the cluster,
-	 * the isvp file has to be encoded and uploaded. This method
+	 * the isvp file has to be encoded and uploaded. This webService
 	 * encodes the isvp content
 	 * 
 	 * @param filePath
@@ -118,8 +113,9 @@ public class FileUtil {
 	 */
 	public static String  encodeFile(String filePath)
 	{
+	    FileInputStream fin = null;
 		try {			
-			FileInputStream fin = new FileInputStream(filePath);
+			fin = new FileInputStream(filePath);
 			byte[] fileContent = new byte[fin.available()];
 			DataInputStream din = new DataInputStream(fin);
 			din.readFully(fileContent);
@@ -129,44 +125,13 @@ public class FileUtil {
 		} catch (Exception  e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	/**
-	 * This method looks up for the properties file and loads it after finding it.
-	 * It first looks up at the location mentioned in 'system.<<systemName>>.properties.file' property in caas.conf
-	 * If not then looks up for the '<<systemName>>.properties' file in the current directory
-	 * If not then look up for the '<<systemName>>.properties' in logged in user's home directory
-	 * 
-	 * @param systemName - Cordys system name as mentioned in the caas.conf file
-	 * @return String - A file path  corresponding to the properties of the given system
-	 */
-	public static String getSystemPropertiesFilePath(String systemName){
-
-		String fileName=null; 
-		if(systemName==null)
-			throw new CaasRuntimeException("Unable to load the properties as the Cordys system name is null");
-		
-		//File name of the properties file mentioned in caas.conf file - Highest Precedence
-		String propsFileInConf = Environment.get().getProp("system."+systemName+".properties.file", null);
-		//File name of the properties file in current directory - Second Highest Precedence
-		String propsFileInPWD = systemName+".properties";
-		//File name of the properties file in user's home directory - Lowest Precedence
-		String propsFileInHomeDir = System.getProperty("user.home")+"/config/caas/"+systemName+".properties";
-		Properties props = new Properties();
-		//Convert the file paths to Unix file path format
-		propsFileInConf = StringUtil.getUnixStyleFilePath(propsFileInConf);
-		propsFileInHomeDir = StringUtil.getUnixStyleFilePath(propsFileInHomeDir);
-		
-		String[] fileNames = new String[]{propsFileInConf, propsFileInPWD, propsFileInHomeDir};
-		//Determine the file that need to be considered for loading
-		//To do so, Loop over the files as per their precedence and check for their existence  
-		for(String  aFileName:fileNames){ 
-			if(FileUtil.isFileExists(aFileName)){ 
-				fileName = aFileName;
-				break;
-			}
+		finally {
+		    if (fin != null)
+                try {
+                    fin.close();
+                }
+                catch (IOException e) {
+                }
 		}
-		return fileName;
 	}
-	
 }

@@ -1,6 +1,9 @@
+@echo off
+set JAVA_EXE=java
+set JAVA_OPTS=-Xmx1024m 
 
-@set JAVA_EXE=java
-@set JAVA_OPTS=-Xmx256m  
+rem In case you need to remotely debug CAAS itself
+rem @set JAVA_OPTS=%JAVA_OPTS% -Xdebug -Xrunjdwp:transport=dt_socket,address=127.0.0.1:9302,server=y,suspend=y 
 
-%JAVA_EXE% %JAVA_OPTS% -jar ../caas.jar %1 %2 %3 %4 %5 %6 %7 %8 %9 
+%JAVA_EXE% %JAVA_OPTS% -jar ../caas.jar %* 
 
