@@ -20,6 +20,7 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 package org.kisst.cordys.caas.support;
 
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.support.LdapObject.AbstractProperty;
 import org.kisst.cordys.caas.support.LdapObject.XmlProperty;
 import org.kisst.cordys.caas.support.Props.Alias;
@@ -27,15 +28,9 @@ import org.kisst.cordys.caas.util.XmlNode;
 
 
 public abstract class CordysObject implements Comparable<CordysObject> {
-	public final static String xmlns_monitor= "http://schemas.cordys.com/1.0/monitor";
-	public final static String xmlns_ldap   = "http://schemas.cordys.com/1.0/ldap";
-	public final static String xmlns_isv    = "http://schemas.cordys.com/1.0/isvpackage";
-	public final static String xmlns_xmlstore="http://schemas.cordys.com/1.0/xmlstore";
-	public final static String xmlns_coboc  = "http://schemas.cordys.com/1.0/coboc";
-	public final static String xmlns_notification  = "http://schemas.cordys.com/1.0/notification";
-	//public final static String xmlns_bpm    = "http://schemas.cordys.com/1.0/xmlstore";
 
-	abstract public CordysSystem getSystem();
+    abstract public CordysSystem getSystem();
+    abstract public Organization getOrganization();
 	abstract public String getName(); 
 	abstract public String getVarName();
 	abstract public String getKey(); 

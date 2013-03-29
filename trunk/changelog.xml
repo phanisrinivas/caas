@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><document>
+    <properties>
+        <title>CAAS 2.x changelog</title>
+        <author email="pgussow@cordys.com">Phillip Gussow</author>
+    </properties>
+    <template>
+        <release date="YYYY-MM-DD" description="OPTIONAL DESCRIPTION" version="x.y.z">
+            <action dev="USER" type="add|fix|update|change">
+				Description about the action.
+			</action>
+        </release>
+    </template>
+    <body>
+    <release date="2013-03-19" description="Stable release" version="2.0.12">
+      <action dev="pgussow" type="add"><![CDATA[Added support for all type of connection points]]></action>
+      <action dev="pgussow" type="add"><![CDATA[Added the option to specify the node number on which a service container should run]]></action>
+    </release>
+    <release date="2013-03-21" description="Stable release" version="2.0.13">
+      <action dev="pgussow" type="update"><![CDATA[Merged the latest code from the GITHub repository in the 2.x branch. This includes the removal of the term 'PackageManager'. It is now called ConfigurationManager.]]></action>
+      <action dev="pgussow" type="add"><![CDATA[Added an XML namespace to the template file. Also added a schema file for validating Caas configuration manager files.]]></action>
+    </release>
+    <release date="2013-03-26" description="Stable release" version="2.0.14">
+      <action dev="pgussow" type="fix"><![CDATA[Fixed a bug when creating a user: the description was not set]]></action>
+      <action dev="pgussow" type="add"><![CDATA[Added the option to specify via a -D option where to find the caas.conf. The name of the option is caas.conf.location. You need to specify the full location to the file. Example: c:/temp/mycaas.conf]]></action>
+      <action dev="pgussow" type="add"><![CDATA[Added support for accessing the teams and user assignments from the Organization object. Look at the listteams.groovy example script for usage.]]></action>
+      <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the creation of a user via the caascm template. It was not creating the authenticated user correctly.]]></action>
+      <action dev="pgussow" type="fix"><![CDATA[Bugfix for the connection point when it is exported via the Configuration Manager. The type was set to socket:// instead of just socket]]></action>
+    </release>
+    <release date="2013-03-27" description="Stable release" version="2.0.15">
+      <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the version number]]></action>
+      <action dev="pgussow" type="fix"><![CDATA[Changed the caas.cmd file a bit to be more flexible]]></action>
+    </release>
+  </body>
+</document>

@@ -22,11 +22,13 @@ package org.kisst.cordys.caas.support;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.kisst.cordys.caas.Organization;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
  * This class works like a list, without being a real java.util.List
- * This hack is necessary, because in groovy the propertyMissing method is never used
+ * This hack is necessary, because in groovy the propertyMissing webService is never used
  * on objects that inherit from a List.
  * 
  */
@@ -48,10 +50,11 @@ public class EntryObjectList<T extends LdapObject> extends CordysObjectList<T>  
 	
 	@Override public String getVarName() { return parent.getVarName()+"."+type;}
 	@Override public String getKey() { return parent.getKey()+":Entries:"+group;}
+	@Override public Organization getOrganization() { return parent.getOrganization();}
 	@SuppressWarnings("unchecked")
 	@Override protected void retrieveList() {
 		dangling.clear();
-		XmlNode method=new XmlNode("GetLDAPObject", xmlns_ldap);
+		XmlNode method=new XmlNode(Constants.GET_LDAP_OBJECT, Constants.XMLNS_LDAP);
 		method.add("dn").setText(parent.getDn());
 		XmlNode response=system.call(method);
 		if (response.getName().equals("Envelope"))

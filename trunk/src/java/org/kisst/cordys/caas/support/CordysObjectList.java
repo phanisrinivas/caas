@@ -25,16 +25,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.Organization;
 
 
 /**
  * This class works like a list, without being a real java.util.List
- * This hack is necessary, because in groovy the propertyMissing method is never used
+ * This hack is necessary, because in groovy the propertyMissing webService is never used
  * on objects that inherit from a List.
  * 
  */
 public abstract class CordysObjectList<T extends CordysObject> extends CordysObject implements  Iterable<T> {
-	private static final long serialVersionUID = 1L;
 	protected final CordysSystem system;
 	private final ArrayList<T> list=new ArrayList<T>();
 	private boolean listAvailable=false;
@@ -130,9 +130,8 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
 		return result.toString();
 	}
 	
-	@SuppressWarnings("unchecked")
 	public CordysObjectList <T> like(final String filter) {
-		return new CordysObjectList(system) {
+		return new CordysObjectList<T>(system) {
 			final String expr=filter.toLowerCase();
 			@Override protected void retrieveList() {
 				for(T obj: CordysObjectList.this) {
@@ -141,12 +140,13 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
 				}
 			}
 			@Override public String getKey() { return CordysObjectList.this.getKey()+":like("+filter+")";}
+			
+			@Override public Organization getOrganization() { return CordysObjectList.this.getOrganization();}
 		};
 	}
 	
-	@SuppressWarnings("unchecked")
 	public CordysObjectList<T> sort() {
-		return new CordysObjectList(system) {
+		return new CordysObjectList<T>(system) {
 			@Override protected void retrieveList() {
 				ArrayList<T> tmp=new ArrayList<T>();
 				for (T obj : CordysObjectList.this)
@@ -158,6 +158,8 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
 				
 			}
 			@Override public String getKey() { return CordysObjectList.this.getKey()+":sorted";}
+			
+			@Override public Organization getOrganization() { return CordysObjectList.this.getOrganization();}
 		};
 	}
 	@SuppressWarnings("unchecked")
@@ -189,10 +191,10 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
 		return diffs;
 	}
 
-	// Groovy specific methods
+	// Groovy specific webServices
 	public T propertyMissing(String name) {	return get(name); }
 
-	// Jython specific methods
+	// Jython specific webServices
 	public Object __getattr__(String name) { return get(name); }
 	public Object __getitem__(String key)  { return get(key); }
 	public Object __getitem__(int index)   { return get(index); }

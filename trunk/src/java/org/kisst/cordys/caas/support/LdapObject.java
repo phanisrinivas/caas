@@ -20,11 +20,13 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 package org.kisst.cordys.caas.support;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 import org.kisst.cordys.caas.CordysSystem;
-import org.kisst.cordys.caas.Isvp;
+import org.kisst.cordys.caas.Package;
+import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
 
 
@@ -144,22 +146,24 @@ public abstract class LdapObject extends CordysObject {
 		{
 			checkIfMayBeModified(); 
 			XmlNode newEntry=getEntry().clone();
-			XmlNode n=newEntry.getChild(path);
-			if (n==null)
-				n=newEntry.add(path);
+			XmlNode node=newEntry.getChild(path);
+			if (node==null)
+				node=newEntry.add(path);
 			
-			List<XmlNode> children = n.getChildren();
+			List<XmlNode> children = node.getChildren();
 			for (XmlNode xmlNode : children) {
-				n.remove(xmlNode);
+				node.remove(xmlNode);
 			}
 			for (String value : values) {
-				n.add("string").setText(value);	
+				node.add("string").setText(value);	
 			}			
 			updateLdap(newEntry);
 		}
 	}
 
+	/** Holds the description for the LDAP based entry */
 	public final StringProperty description = new StringProperty("description");
+	/** Alias for the description */
 	public final StringProperty desc = description;
 
 	private final LdapObject parent; 
@@ -189,7 +193,9 @@ public abstract class LdapObject extends CordysObject {
 	}
 
 	public CordysObject getParent() { return parent; }
-	public XmlNode call(XmlNode method) { return getSystem().call(method); }
+	public XmlNode call(XmlNode request) { return getSystem().call(request); }
+
+	public XmlNode call(XmlNode request,HashMap<String, String> queryParams) { return getSystem().call(request, queryParams); }
 	
 	@Override public String getKey() { return "ldap:"+getDn(); }
 	@Override public String getName() {
@@ -235,14 +241,14 @@ public abstract class LdapObject extends CordysObject {
 	
 	static public XmlNode retrieveEntry(CordysSystem system, String dn) {
 		//log("getting dn "+dn);
-		XmlNode  method=new XmlNode("GetLDAPObject", xmlns_ldap);
+		XmlNode  method=new XmlNode(Constants.GET_LDAP_OBJECT, Constants.XMLNS_LDAP);
 		method.add("dn").setText(dn);
 		XmlNode response = system.call(method);
 		return response.getChild("tuple/old/entry");
 	}
 
 	protected XmlNode newEntryXml(String prefix, String name, String ... types) {
-		XmlNode newEntry = new XmlNode("entry",xmlns_ldap);
+		XmlNode newEntry = new XmlNode("entry",Constants.XMLNS_LDAP);
 		newEntry.setAttribute("dn", "cn="+name+","+prefix+getDn());
 		XmlNode child = newEntry.add("objectclass");
 		child.add("string").setText("top");
@@ -253,7 +259,7 @@ public abstract class LdapObject extends CordysObject {
 	}
 	//Added to create Authenticated User XML
 	protected XmlNode newAuthenticatedUserEntryXml(String prefix, String name, String ... types) {
-		XmlNode newEntry = new XmlNode("entry",xmlns_ldap);
+		XmlNode newEntry = new XmlNode("entry",Constants.XMLNS_LDAP);
 		newEntry.setAttribute("dn", "cn="+name+","+prefix+getSystem().getDn());
 		XmlNode child = newEntry.add("objectclass");
 		child.add("string").setText("top");
@@ -266,7 +272,7 @@ public abstract class LdapObject extends CordysObject {
 	protected void createInLdap(XmlNode newEntry) { updateLdap(null, newEntry); }
 	protected void updateLdap(XmlNode newEntry) { updateLdap(entry.clone(), newEntry); }
 	protected void updateLdap(XmlNode oldEntry, XmlNode newEntry) {
-		XmlNode method=new XmlNode("Update", xmlns_ldap);
+		XmlNode method=new XmlNode(Constants.UPDATE, Constants.XMLNS_LDAP);
 		XmlNode tuple=method.add("tuple");
 		if (oldEntry!=null)
 			tuple.add("old").add(oldEntry);
@@ -279,7 +285,7 @@ public abstract class LdapObject extends CordysObject {
 	public void checkIfMayBeModified() {
 		CordysObject obj=this;
 		while (obj!=null && (obj instanceof LdapObject)) {
-			if (obj instanceof Isvp)
+			if (obj instanceof Package)
 				throw new RuntimeException("It is not allowed to delete any part of an ISVP");
 			obj=((LdapObject)obj).getParent();
 		}
@@ -287,7 +293,7 @@ public abstract class LdapObject extends CordysObject {
 	public void delete() {
 		checkIfMayBeModified(); 
 		preDeleteHook();
-		XmlNode method=new XmlNode("DeleteRecursive", xmlns_ldap);
+		XmlNode method=new XmlNode(Constants.DELETE_RECURSIVE, Constants.XMLNS_LDAP);
 		XmlNode tuple=method.add("tuple");
 		tuple.add("old").add(entry.clone());
 		call(method);
@@ -315,4 +321,6 @@ public abstract class LdapObject extends CordysObject {
 				o.dumpXml(children);
 		}
 	}
+
+    public abstract String getCn();
 }

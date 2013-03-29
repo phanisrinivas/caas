@@ -1,0 +1,1047 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<org org="some_customer" xmlns="http://caas.kisst.org/2.0/template" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://caas.kisst.org/2.0/template ../src/schema/template.xsd ">
+<!-- DSO for the factory planner database -->
+  <dso name="${dso.factoryplanner.name}" desc="${dso.factoryplanner.name}" type="Relational">
+    <datasourceconfiguration>
+      <component name="Connection pool">
+        <jdbcDriver>oracle.jdbc.driver.OracleDriver</jdbcDriver>
+        <driverName>JDBC</driverName>
+        <jdbcDriverXAClass>oracle.jdbc.xa.client.OracleXADataSource</jdbcDriverXAClass>
+        <defaultDatabase>${factoryplanner.defaultschema}</defaultDatabase>
+        <connectionString><![CDATA[${factoryplanner.connectionstring}]]></connectionString>
+        <userName>${factoryplanner.username}</userName>
+        <password>${factoryplanner.password}</password>
+        <level />
+      </component>
+    </datasourceconfiguration>
+  </dso>
+  <!-- DSO for the TESB Common database -->
+  <dso name="${dso.tesbcommon.name}" desc="${dso.tesbcommon.name}" type="Relational">
+    <datasourceconfiguration>
+      <component name="Connection pool">
+        <jdbcDriver>oracle.jdbc.driver.OracleDriver</jdbcDriver>
+        <driverName>JDBC</driverName>
+        <jdbcDriverXAClass>oracle.jdbc.xa.client.OracleXADataSource</jdbcDriverXAClass>
+        <defaultDatabase>${tesb.common.defaultschema}</defaultDatabase>
+        <connectionString><![CDATA[${tesb.common.connectionstring}]]></connectionString>
+        <userName>${tesb.common.username}</userName>
+        <password>${tesb.common.password}</password>
+        <level />
+      </component>
+    </datasourceconfiguration>
+  </dso>
+  <dso name="${dso.orderpromise.name}" desc="${dso.orderpromise.name}" type="Relational">
+    <datasourceconfiguration>
+      <component name="Connection pool">
+        <jdbcDriver>oracle.jdbc.driver.OracleDriver</jdbcDriver>
+        <driverName>JDBC</driverName>
+        <jdbcDriverXAClass>oracle.jdbc.xa.client.OracleXADataSource</jdbcDriverXAClass>
+        <defaultDatabase>${orderpromise.defaultschema}</defaultDatabase>
+        <connectionString><![CDATA[${orderpromise.connectionstring}]]></connectionString>
+        <userName>${orderpromise.username}</userName>
+        <password>${orderpromise.password}</password>
+        <level />
+      </component>
+    </datasourceconfiguration>
+  </dso>
+  <dso name="${dso.bus.common.name}" desc="${dso.bus.common.name}" type="Relational">
+    <datasourceconfiguration>
+      <component name="Connection pool">
+        <jdbcDriver>oracle.jdbc.driver.OracleDriver</jdbcDriver>
+        <driverName>JDBC</driverName>
+        <jdbcDriverXAClass>oracle.jdbc.xa.client.OracleXADataSource</jdbcDriverXAClass>
+        <defaultDatabase>${bus.common.defaultschema}</defaultDatabase>
+        <connectionString><![CDATA[${bus.common.connectionstring}]]></connectionString>
+        <userName>${bus.common.username}</userName>
+        <password>${bus.common.password}</password>
+        <level />
+      </component>
+    </datasourceconfiguration>
+  </dso>
+  <!-- The custom endpoints for the external services -->
+  <xmlstoreobject key="/Cordys/WCP/UDDI/webservicecustomization" version="organization" name="webservicecustomization">
+    <accessconfigurations applyToAllMethodSets="true">
+      <accessconfiguration methodsetdn="cn=SAP_JDAP_INTEGRATION_MASTER.SAP_JDAP_INTEGRATION_MASTERbinding,cn=TataSteel apps_tse_op ManageOrderPromise v20121219 1,${LDAP_ROOT}">
+        <urlmappings>
+          <urlmapping existingurl="http://localhost:14444/">
+            <customizedurl>${jda.endpoint}</customizedurl>
+          </urlmapping>
+        </urlmappings>
+      </accessconfiguration>
+    </accessconfigurations>
+  </xmlstoreobject>
+  <!-- JMS proxy user. This user is used whenever the JMS connector sends a SOAP call to the SAO grid -->
+  <user name="jmsproxyuser" au="jmsproxyuser">
+    <role name="Administrator" type="Application" package="Cordys@Work" />
+    <role name="Analyst" type="Application" package="Cordys@Work" />
+    <role name="Common Admin" type="Functional" package="TataSteel Common v20121012 1" />
+    <role name="Deployer" type="Application" package="Cordys@Work" />
+    <role name="Developer" type="Application" package="Cordys@Work" />
+    <role name="ErrorHandling Admin" type="Functional" package="TataSteel ErrorHandling v20121001 1" />
+    <role name="ExecuteJMSConnector" type="Application" package="Cordys JMSConnector 2" />
+    <role name="Routing Admin" type="Functional" package="TataSteel Routing v20121001 1" />
+  </user>
+  <!-- The WS-AppServer container for the TESB Common service -->
+  <servicegroup name="TESBCommon WS-AppServer">
+    <bussoapnodeconfiguration>
+      <configuration>
+        <routing ui_algorithm="failover" ui_type="loadbalancing">
+          <numprocessors>100000</numprocessors>
+          <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+        </routing>
+        <validation>
+          <protocol>false</protocol>
+          <payload>false</payload>
+        </validation>
+        <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+      </configuration>
+    </bussoapnodeconfiguration>
+    <wsi name="WS-AppServer Development Method Set" package="Cordys WS-AppServer" />
+    <wsi name="WS-AppServer Runtime Method Set" package="Cordys WS-AppServer" />
+    <wsi name="Common_v20121012.CommonWebServiceInterface" package="TataSteel Common v20121012 1" />
+    <wsi name="ErrorHandling_v20121001.ErrorHandlingWebServiceInterface" package="TataSteel ErrorHandling v20121001 1" />
+    <wsi name="Routing_v20121001.RoutingWebServiceInterface" package="TataSteel Routing v20121001 1" />
+    <wsi name="JdaDataTranferChecker_Service.JdaDataTransferChecker_Service" package="TataSteel apps_tse_fp ManageFactoryPlan v20130114 1" />
+    <sc name="TESBCommon WS-AppServer" automatic="true">
+      <bussoapprocessorconfiguration>
+        <configurations autoStartCount="3">
+          <cancelReplyInterval>30000</cancelReplyInterval>
+          <gracefulCompleteTime>15</gracefulCompleteTime>
+          <abortTime>5</abortTime>
+          <jreconfig>
+            <param value="-cp ${cordys.installdir}\com-some_customer-tse\common\common\v20121012\java\lib\coelib.jar;${cordys.installdir}\com-some_customer-tse\common\routing\v20121001\java\Routing_v20121001.jar;${cordys.installdir}\com-some_customer-tse\common\common\v20121012\java\Common_v20121012.jar;${cordys.installdir}\com-some_customer-tse\common\errorhandling\v20121001\java\ErrorHandling_v20121001.jar;${cordys.installdir}\com-some_customer-tse\apps\tse\fp\managefactoryplan\v20130114\java\jdadatatransferchecker.jar" />
+            <param value="-Xmx256M" />
+            <param value="-XX:PermSize=5m" />
+          </jreconfig>
+          <routing ui_type="loadbalancing" ui_algorithm="failover">
+            <preference>1</preference>
+          </routing>
+          <configuration implementation="com.cordys.cpc.bsf.connector.BsfConnector" htmfile="/cordys/com/cordys/wsappserver/admin/wsappserverconfig.caf">
+            <startupDependency>
+              <namespace>http://schemas.cordys.com/1.0/xmlstore</namespace>
+            </startupDependency>
+            <ruleEnabled>false</ruleEnabled>
+            <auditEnabled>off</auditEnabled>
+            <initializeDB>true</initializeDB>
+            <multiTenant>false</multiTenant>
+            <initializeEIS>false</initializeEIS>
+            <customInitializer />
+            <applicationInitializer />
+            <autoCleanup>false</autoCleanup>
+            <component name="WS-AppServerConnectionPool">
+              <xmlEncoding>false</xmlEncoding>
+              <precedence />
+              <cursorCacheSize>50</cursorCacheSize>
+              <cursorCacheRefreshInterval>30</cursorCacheRefreshInterval>
+              <queryCacheSize>50</queryCacheSize>
+              <queryCacheRefreshInterval>3600</queryCacheRefreshInterval>
+              <maximumWriteConnections>5</maximumWriteConnections>
+              <maximumReadConnections>5</maximumReadConnections>
+              <minimumReadConnections>1</minimumReadConnections>
+              <minimumWriteConnections>1</minimumWriteConnections>
+              <connectionPoolRefreshInterval>3600</connectionPoolRefreshInterval>
+              <multithreaded>true</multithreaded>
+              <sharedPool>false</sharedPool>
+              <xsiNilForNullData>true</xsiNilForNullData>
+              <readEmptyStringAsNull>false</readEmptyStringAsNull>
+              <writeEmptyStringAsNull>false</writeEmptyStringAsNull>
+              <queryType>DBSQL</queryType>
+              <datasource>
+                <type>Relational</type>
+                <name>${dso.tesbcommon.name}#${organization.name}</name>
+              </datasource>
+            </component>
+          </configuration>
+        </configurations>
+      </bussoapprocessorconfiguration>
+      <cp name="connectionpoint-TESBCommon WS-AppServer" />
+    </sc>
+  </servicegroup>
+  <!-- The WS-AppServer container for the FactoryPlanner database -->
+  <servicegroup name="FactoryPlanner WS-AppServer">
+    <bussoapnodeconfiguration>
+      <configuration>
+        <routing ui_algorithm="failover" ui_type="loadbalancing">
+          <numprocessors>100000</numprocessors>
+          <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+        </routing>
+        <validation>
+          <protocol>false</protocol>
+          <payload>false</payload>
+        </validation>
+        <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+      </configuration>
+    </bussoapnodeconfiguration>
+    <!-- Default web services -->
+    <wsi name="WS-AppServer Development Method Set" package="Cordys WS-AppServer" />
+    <wsi name="WS-AppServer Runtime Method Set" package="Cordys WS-AppServer" />
+    
+    <!-- WSI from the TataSteel apps_tse_fp ManageFactoryPlan v20130114 1 package -->
+    <wsi name="UD_FP_OPERATIONSPLAN_Service.UD_FP_OPERATIONSPLAN_Service" package="TataSteel apps_tse_fp ManageFactoryPlan v20130114 1"/>
+    <wsi name="PKG_Intergration_Webservice.PKG_INTEGRATION" package="TataSteel apps_tse_fp ManageFactoryPlan v20130114 1"/>
+    
+    <sc name="FactoryPlanner WS-AppServer" automatic="true">
+      <bussoapprocessorconfiguration>
+        <configurations autoStartCount="3">
+          <cancelReplyInterval>30000</cancelReplyInterval>
+          <gracefulCompleteTime>15</gracefulCompleteTime>
+          <abortTime>5</abortTime>
+          <jreconfig>
+            <param value="-cp ${cordys.installdir}\com-some_customer-tse\common\common\v20121012\java\lib\coelib.jar;" />
+            <param value="-Xmx256M" />
+            <param value="-XX:PermSize=5m" />
+          </jreconfig>
+          <routing ui_type="loadbalancing" ui_algorithm="failover">
+            <preference>1</preference>
+          </routing>
+          <configuration implementation="com.cordys.cpc.bsf.connector.BsfConnector" htmfile="/cordys/com/cordys/wsappserver/admin/wsappserverconfig.caf">
+            <startupDependency>
+              <namespace>http://schemas.cordys.com/1.0/xmlstore</namespace>
+            </startupDependency>
+            <ruleEnabled>false</ruleEnabled>
+            <auditEnabled>off</auditEnabled>
+            <initializeDB>true</initializeDB>
+            <multiTenant>false</multiTenant>
+            <initializeEIS>false</initializeEIS>
+            <customInitializer />
+            <applicationInitializer />
+            <autoCleanup>false</autoCleanup>
+            <component name="WS-AppServerConnectionPool">
+              <xmlEncoding>false</xmlEncoding>
+              <precedence />
+              <cursorCacheSize>50</cursorCacheSize>
+              <cursorCacheRefreshInterval>30</cursorCacheRefreshInterval>
+              <queryCacheSize>50</queryCacheSize>
+              <queryCacheRefreshInterval>3600</queryCacheRefreshInterval>
+              <maximumWriteConnections>5</maximumWriteConnections>
+              <maximumReadConnections>5</maximumReadConnections>
+              <minimumReadConnections>1</minimumReadConnections>
+              <minimumWriteConnections>1</minimumWriteConnections>
+              <connectionPoolRefreshInterval>3600</connectionPoolRefreshInterval>
+              <multithreaded>true</multithreaded>
+              <sharedPool>false</sharedPool>
+              <xsiNilForNullData>true</xsiNilForNullData>
+              <readEmptyStringAsNull>false</readEmptyStringAsNull>
+              <writeEmptyStringAsNull>false</writeEmptyStringAsNull>
+              <queryType>DBSQL</queryType>
+              <datasource>
+                <type>Relational</type>
+                <name>${dso.factoryplanner.name}#${organization.name}</name>
+              </datasource>
+            </component>
+          </configuration>
+        </configurations>
+      </bussoapprocessorconfiguration>
+      <cp name="connectionpoint-FactoryPlanner WS-AppServer" />
+    </sc>
+  </servicegroup>
+  <!-- The Rule Service Group -->
+  <servicegroup name="Rules">
+    <bussoapnodeconfiguration>
+      <configuration>
+        <routing ui_algorithm="failover" ui_type="loadbalancing">
+          <numprocessors>100000</numprocessors>
+          <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+        </routing>
+        <validation>
+          <protocol>false</protocol>
+          <payload>false</payload>
+        </validation>
+        <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+      </configuration>
+    </bussoapnodeconfiguration>
+    <wsi name="Method Set RuleEngine 4.2" package="Cordys Rule Engine" />
+    <wsi name="Method Set RuleAdmin 4.2" package="Cordys Rule Engine" />
+    <wsi name="Method Set RuleMonitor 1.0" package="Cordys Rule Engine" />
+    <!-- TODO: Add the web services for the rule set -->
+    <sc name="Rules" automatic="true">
+      <bussoapprocessorconfiguration>
+        <configurations autoStartCount="3">
+          <cancelReplyInterval>30000</cancelReplyInterval>
+          <gracefulCompleteTime>15</gracefulCompleteTime>
+          <abortTime>5</abortTime>
+          <routing ui_type="loadbalancing" ui_algorithm="failover">
+            <preference>1</preference>
+          </routing>
+          <configuration implementation="com.cordys.bre.ws.RuleService" htmfile="/cordys/com/cordys/ruleengine/admin/ruleengineconfig.caf">
+            <classpath xmlns="http://schemas.cordys.com/1.0/xmlstore">
+              <location>components/ruleengine/ruleengine.jar</location>
+              <location>components/dbconnection/dbconnection.jar</location>
+              <location>components/audit/auditartifactapi.jar</location>
+              <location>components/audit/auditartifact.jar</location>
+            </classpath>
+            <startupDependency xmlns="http://schemas.cordys.com/1.0/xmlstore">
+              <namespace>http://schemas.cordys.com/1.0/xmlstore</namespace>
+            </startupDependency>
+            <component name="Rule Repository ConnectionPool">
+              <xmlEncoding>false</xmlEncoding>
+              <precedence />
+              <cursorCacheSize>50</cursorCacheSize>
+              <cursorCacheRefreshInterval>30</cursorCacheRefreshInterval>
+              <queryCacheSize>50</queryCacheSize>
+              <queryCacheRefreshInterval>3600</queryCacheRefreshInterval>
+              <maximumWriteConnections>5</maximumWriteConnections>
+              <maximumReadConnections>5</maximumReadConnections>
+              <minimumReadConnections>1</minimumReadConnections>
+              <minimumWriteConnections>1</minimumWriteConnections>
+              <connectionPoolRefreshInterval>3600</connectionPoolRefreshInterval>
+              <multithreaded>true</multithreaded>
+              <sharedPool>false</sharedPool>
+              <xsiNilForNullData>true</xsiNilForNullData>
+              <readEmptyStringAsNull>false</readEmptyStringAsNull>
+              <writeEmptyStringAsNull>false</writeEmptyStringAsNull>
+              <queryType>DBSQL</queryType>
+              <datasource>
+                <type>Relational</type>
+                <name>${dso.cordyssystem.name}</name>
+              </datasource>
+            </component>
+            <component name="Rule Engine">
+              <ruleAudit>false</ruleAudit>
+              <threadPoolSize>5</threadPoolSize>
+              <maxDispatcherQueueSize>50000</maxDispatcherQueueSize>
+              <monitorRequestAndResponse>false</monitorRequestAndResponse>
+              <ruleMonitorListener />
+            </component>
+          </configuration>
+        </configurations>
+      </bussoapprocessorconfiguration>
+      <cp name="connectionpoint-Rule Repository" />
+    </sc>
+  </servicegroup>
+  <!-- The UDDI service -->
+  <servicegroup name="UDDI">
+    <bussoapnodeconfiguration>
+      <configuration>
+        <routing ui_algorithm="failover" ui_type="loadbalancing">
+          <numprocessors>100000</numprocessors>
+          <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+        </routing>
+        <validation>
+          <protocol>false</protocol>
+          <payload>true</payload>
+        </validation>
+        <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+      </configuration>
+    </bussoapnodeconfiguration>
+    <wsi name="Method Set UDDI" package="Cordys UDDI Connector" />
+    <!-- WSI from TataSteel bus_tse_sales ManageOrderPromise v20121219 1 -->
+    <wsi name="SAP_JDAP_INTEGRATION_MASTER.SAP_JDAP_INTEGRATION_MASTERbinding" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1"/>
+    
+    <sc name="UDDI" automatic="true">
+      <bussoapprocessorconfiguration>
+        <configurations autoStartCount="3">
+          <cancelReplyInterval>30000</cancelReplyInterval>
+          <gracefulCompleteTime>15</gracefulCompleteTime>
+          <abortTime>5</abortTime>
+          <routing ui_type="loadbalancing" ui_algorithm="failover">
+            <preference>1</preference>
+          </routing>
+          <configuration implementation="com.eibus.applicationconnector.uddi.UDDIConnector" htmfile="/cordys/com/cordys/uddi/applicationconnector/uddi.caf">
+            <classpath xmlns="http://schemas.cordys.com/1.0/xmlstore">
+              <location>components/uddiconn/uddiconn.jar</location>
+              <location>components/secadmin/ccm.jar</location>
+              <location>ext/uddi4j.jar</location>
+              <location>ext/commons-httpclient-3.1.jar</location>
+              <location>ext/commons-httpclient-contrib-3.1.jar</location>
+              <location>ext/commons-logging-1.1.1.jar</location>
+              <location>ext/commons-codec-1.3.jar</location>
+              <location>ext/jcifs-1.3.16.jar</location>
+              <location>ext/activation.jar</location>
+              <location>ext/mail.jar</location>
+              <location>ext/soap.jar</location>
+              <location>cordyscp.jar</location>
+            </classpath>
+            <startupDependency xmlns="http://schemas.cordys.com/1.0/xmlstore">
+              <namespace>http://schemas.cordys.com/1.0/xmlstore</namespace>
+            </startupDependency>
+            <isProxyEnabled>false</isProxyEnabled>
+            <advancedoptions>
+              <ignorecert>false</ignorecert>
+              <so_timeout>30000</so_timeout>
+            </advancedoptions>
+          </configuration>
+        </configurations>
+      </bussoapprocessorconfiguration>
+      <cp name="connectionpoint-UDDI Service" />
+    </sc>
+  </servicegroup>
+  <!-- The Data transformation service -->
+  <servicegroup name="DataTransformation">
+    <bussoapnodeconfiguration>
+      <configuration>
+        <routing ui_algorithm="failover" ui_type="loadbalancing">
+          <numprocessors>100000</numprocessors>
+          <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+        </routing>
+        <validation>
+          <protocol>false</protocol>
+          <payload>true</payload>
+        </validation>
+        <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+      </configuration>
+    </bussoapnodeconfiguration>
+    <wsi name="Method Set DataTransformation 4.2" package="Cordys Data Transformation" />
+    <!-- WSI from TataSteel apps_tse_op ManageOrderPromise v20121219 1 -->
+    <wsi name="o_ws_dt_addlineitemtopromisedorder.o_ws_dt_addlineitemtopromisedorder" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1"/>
+    <wsi name="o_ws_dt_amendpromisedorder.o_ws_dt_amendpromisedorder" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1"/>
+    <wsi name="o_ws_dt_changeproductforpromisedorder.o_ws_dt_changeproductforpromisedorder" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1"/>
+    <wsi name="o_ws_dt_createpromiseforenquiry.o_ws_dt_createpromiseforenquiry" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1"/>
+    <wsi name="o_ws_dt_createpromiseforneworder.o_ws_dt_createpromiseforneworder" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1"/>
+    <wsi name="o_ws_dt_updatesalesorderid.o_ws_dt_updatesalesorderid" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1"/>
+    <wsi name="o_ws_dt_deletebltags.o_ws_dt_deletebltags" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1"/>
+    <wsi name="o_ws_dt_notifypromisedorder.o_ws_dt_notifypromisedorder" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1"/>
+    <!-- WSI from TataSteel bus_tse_sales ManageOrderPromise v20121219 1 -->
+    <wsi name="i_ws_dt_addlineitemtopromisedorder.i_ws_dt_addlineitemtopromisedorder" package="TataSteel bus_tse_sales ManageOrderPromise v20121219 1"/>
+    <wsi name="i_ws_dt_amendpromisedorder.i_ws_dt_amendpromisedorder" package="TataSteel bus_tse_sales ManageOrderPromise v20121219 1"/>
+    <wsi name="i_ws_dt_changeproductforpromisedorder.i_ws_dt_changeproductforpromisedorder" package="TataSteel bus_tse_sales ManageOrderPromise v20121219 1"/>
+    <wsi name="i_ws_dt_createpromiseforenquiry.i_ws_dt_createpromiseforenquiry" package="TataSteel bus_tse_sales ManageOrderPromise v20121219 1"/>
+    <wsi name="i_ws_dt_createpromiseforneworder.i_ws_dt_createpromiseforneworder" package="TataSteel bus_tse_sales ManageOrderPromise v20121219 1"/>
+    <wsi name="i_ws_dt_updatesalesorderid.i_ws_dt_updatesalesorderid" package="TataSteel bus_tse_sales ManageOrderPromise v20121219 1"/>
+    <wsi name="i_ws_dt_notifypromisedorder.i_ws_dt_notifypromisedorder" package="TataSteel bus_tse_sales ManageOrderPromise v20121219 1"/>
+    <!-- WSI from the TataSteel apps_tse_erp ManageFactoryPlan v20130114 1 -->
+    <wsi name="o_ws_dt_updateplannedorder.o_ws_dt_updateplannedorder" package="TataSteel apps_tse_erp ManageFactoryPlan v20130114 1"/>
+    <wsi name="i_ws_dt_notifyinventory.i_ws_dt_notifyinventory" package="TataSteel apps_tse_erp ManageFactoryPlan v20130114 1"/>
+    <wsi name="i_ws_dt_notifyproductionorder.i_ws_dt_notifyproductionorder" package="TataSteel apps_tse_erp ManageFactoryPlan v20130114 1"/>
+    <wsi name="i_ws_dt_notifypurchaseorder.i_ws_dt_notifypurchaseorder" package="TataSteel apps_tse_erp ManageFactoryPlan v20130114 1"/>
+    <wsi name="i_ws_dt_notifypurchaserequisitionorder.i_ws_dt_notifypurchaserequisitionorder" package="TataSteel apps_tse_erp ManageFactoryPlan v20130114 1"/>
+    <wsi name="i_ws_dt_notifyplannedorder.i_ws_dt_notifyplannedorder" package="TataSteel apps_tse_erp ManageFactoryPlan v20130114 1"/>
+    <!-- WSI from the TataSteel apps_tse_fp ManageFactoryPlan v20130114 1 -->
+    <wsi name="o_ws_dt_notifypurchaserequisitionorder.o_ws_dt_notifypurchaserequisitionorder" package="TataSteel apps_tse_fp ManageFactoryPlan v20130114 1"/>
+    <wsi name="o_ws_dt_notifypurchaseorder.o_ws_dt_notifypurchaseorder" package="TataSteel apps_tse_fp ManageFactoryPlan v20130114 1"/>
+    <wsi name="o_ws_dt_notifyproductionorder.o_ws_dt_notifyproductionorder" package="TataSteel apps_tse_fp ManageFactoryPlan v20130114 1"/>
+    <wsi name="o_ws_dt_notifyplannedorder.o_ws_dt_notifyplannedorder" package="TataSteel apps_tse_fp ManageFactoryPlan v20130114 1"/>
+    <wsi name="o_ws_dt_notifyinventory.o_ws_dt_notifyinventory" package="TataSteel apps_tse_fp ManageFactoryPlan v20130114 1"/>
+    <sc name="DataTransformation" automatic="true">
+      <bussoapprocessorconfiguration>
+        <configurations autoStartCount="3">
+          <cancelReplyInterval>30000</cancelReplyInterval>
+          <gracefulCompleteTime>15</gracefulCompleteTime>
+          <abortTime>5</abortTime>
+          <routing ui_type="loadbalancing" ui_algorithm="failover">
+            <preference>1</preference>
+          </routing>
+          <configuration implementation="com.cordys.cpc.transformation.soap.TransformationMapper" htmfile="/cordys/com/cordys/datatransformation/admin/dtServiceConfig.caf">
+            <classpath xmlns="http://schemas.cordys.com/1.0/xmlstore">
+              <location>components/coboc/coboc.jar</location>
+              <location>components/datamapper/datatransform.jar</location>
+              <location>components/dbconnection/dbconnection.jar</location>
+              <location>components/scheduler/scheduler.jar</location>
+            </classpath>
+            <component name="Data Transformation">
+              <cobocProcessorDN>${coboc.service.group},${LDAP_ROOT}</cobocProcessorDN>
+            </component>
+          </configuration>
+        </configurations>
+      </bussoapprocessorconfiguration>
+      <cp name="connectionpoint-DataTransformation" />
+    </sc>
+  </servicegroup>
+  <!-- BPM Service Group -->
+  <servicegroup name="BPM">
+    <bussoapnodeconfiguration>
+      <configuration>
+        <routing ui_algorithm="failover" ui_type="loadbalancing">
+          <numprocessors>100000</numprocessors>
+          <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+        </routing>
+        <validation>
+          <protocol>false</protocol>
+          <payload>true</payload>
+        </validation>
+        <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+      </configuration>
+    </bussoapnodeconfiguration>
+    <wsi name="Method Set Process Admin and Monitoring 4.2" package="Cordys Business Process Engine" />
+    <!-- WSI from TataSteel bus_tse_sales ManageOrderPromise v20121219 1 -->
+    <wsi name="ManageOrderPromise.ManageOrderPromiseSOAP" package="TataSteel bus_tse_sales ManageOrderPromise v20121219 1"/>
+
+    <sc name="BPM" automatic="true">
+      <bussoapprocessorconfiguration>
+        <configurations autoStartCount="3">
+          <cancelReplyInterval>30000</cancelReplyInterval>
+          <gracefulCompleteTime>15</gracefulCompleteTime>
+          <abortTime>5</abortTime>
+          <jreconfig>
+            <param value="-cp ${cordys.installdir}\com-some_customer-tse\common\common\v20121012\java\lib\coelib.jar;${cordys.installdir}\com-some_customer-tse\common\errorhandling\v20121001\java\ErrorHandling_v20121001.jar" />
+          </jreconfig>
+          <routing ui_type="loadbalancing" ui_algorithm="failover">
+            <preference>1</preference>
+          </routing>
+          <configuration implementation="com.cordys.bpm.service.BPMApplicationConnector" htmfile="/cordys/com/cordys/bpmengine/applicationconnector/bpmengineconfiguration.caf">
+            <classpath xmlns="http://schemas.cordys.com/1.0/xmlstore">
+              <location>components/bpmengine/bpmengine.jar</location>
+              <location>components/dbconnection/dbconnection.jar</location>
+              <location>components/coboc/coboc.jar</location>
+              <location>components/wsappserver/wsappserver.jar</location>
+              <location>components/scheduler/scheduler.jar</location>
+              <location>components/datamapper/datatransform.jar</location>
+              <location>components/datamapper/binarytransform.jar</location>
+              <location>components/ruleengine/ruleengine.jar</location>
+              <location>components/expressioneval/expressioneval.jar</location>
+              <location>components/audit/auditartifactapi.jar</location>
+              <location>components/audit/auditartifact.jar</location>
+              <location>components/statemachine/statemachine.jar</location>
+              <location>ext/xbean.jar</location>
+              <location>components/bpmengine/dom4j.jar</location>
+              <location>components/bpmengine/geronimo-stax.jar</location>
+              <location>components/bpmengine/poi-ooxml.jar</location>
+              <location>components/bpmengine/poi-ooxml-schemas.jar</location>
+              <location>components/search/poi-3.6-20091214.jar</location>
+            </classpath>
+            <startupDependency xmlns="http://schemas.cordys.com/1.0/xmlstore">
+              <namespace>http://schemas.cordys.com/1.0/xmlstore</namespace>
+            </startupDependency>
+            <component name="Process Engine Database Connection Pool">
+              <xmlEncoding>false</xmlEncoding>
+              <precedence />
+              <cursorCacheSize>50</cursorCacheSize>
+              <cursorCacheRefreshInterval>30</cursorCacheRefreshInterval>
+              <queryCacheSize>50</queryCacheSize>
+              <queryCacheRefreshInterval>3600</queryCacheRefreshInterval>
+              <maximumWriteConnections>5</maximumWriteConnections>
+              <maximumReadConnections>5</maximumReadConnections>
+              <minimumReadConnections>1</minimumReadConnections>
+              <minimumWriteConnections>1</minimumWriteConnections>
+              <connectionPoolRefreshInterval>3600</connectionPoolRefreshInterval>
+              <multithreaded>true</multithreaded>
+              <sharedPool>false</sharedPool>
+              <xsiNilForNullData>true</xsiNilForNullData>
+              <readEmptyStringAsNull>false</readEmptyStringAsNull>
+              <writeEmptyStringAsNull>false</writeEmptyStringAsNull>
+              <queryType>DBSQL</queryType>
+              <datasource>
+                <type>Relational</type>
+                <name>${dso.cordyssystem.name}</name>
+              </datasource>
+              <reconnectionAttempts>1</reconnectionAttempts>
+              <requestThreshold>1000</requestThreshold>
+              <conversionConfig>
+                <conversion implementation="com.cordys.conversion.compression.GZipCompression">
+                  <database id="*">
+                    <table id="PROCESS_INSTANCE_DATA">
+                      <field id="INSTANCE_DATA" />
+                    </table>
+                    <table id="PROCESS_INSTANCE">
+                      <field id="MESSAGE" />
+                      <field id="MESSAGE_MAP" />
+                      <field id="OUTPUT_MESSAGE" />
+                      <field id="ERROR_TEXT" />
+                    </table>
+                    <table id="PROCESS_ACTIVITY">
+                      <field id="PARTICIPANT" />
+                      <field id="REQUEST" />
+                      <field id="RESPONSE" />
+                    </table>
+                    <table id="CASE_INSTANCE_DATA">
+                      <field id="INSTANCE_DATA" />
+                    </table>
+                    <table id="CASE_INSTANCE_JOURNAL">
+                      <field id="REQUEST" />
+                    </table>
+                    <table id="ACTIVITY_INSTANCE">
+                      <field id="ACTIVITY_DATA" />
+                    </table>
+                    <table id="CASE_ERROR_INFO">
+                      <field id="ERROR_TEXT" />
+                    </table>
+                    <table id="CASE_ACTIVITY">
+                      <field id="DEFINITION" />
+                    </table>
+                    <table id="CASE_MODEL_REVISION">
+                      <field id="RUNTIME_MODEL" />
+                    </table>
+                    <table id="CASE_MODEL_IDENTIFIER">
+                      <field id="LOOKUP" />
+                    </table>
+                    <table id="ARCHIVE_POLICY">
+                      <field id="POLICY_QUERY" />
+                      <field id="SCHEDULE_XML" />
+                    </table>
+                    <table id="ARCHIVE_LOG">
+                      <field id="ERROR_LOG" />
+                    </table>
+                    <table id="ARCHIVE_REGISTRY">
+                      <field id="LOADED_TRANSACTIONS" />
+                      <field id="ERROR_TEXT" />
+                      <field id="ARCHIVE_INFO" />
+                      <field id="LOADED_FILES" />
+                    </table>
+                  </database>
+                </conversion>
+              </conversionConfig>
+            </component>
+            <component name="Business Process Engine">
+              <threadPoolSize>5</threadPoolSize>
+              <notificationService />
+              <clientConnectionPoint />
+              <adminEnabled>true</adminEnabled>
+              <crashRecovery>true</crashRecovery>
+              <activateDebugPoints>true</activateDebugPoints>
+              <priorityEnabled>true</priorityEnabled>
+              <binaryParserEnabled>false</binaryParserEnabled>
+              <ruleEngineEnabled>false</ruleEngineEnabled>
+              <dataMapperEnabled>false</dataMapperEnabled>
+              <enableAging>true</enableAging>
+              <inProcProcessExecution>true</inProcProcessExecution>
+              <QThresholdLimit>5</QThresholdLimit>
+              <priorityLevels>5</priorityLevels>
+              <defaultPriority>3</defaultPriority>
+              <priorityAlgorithm>com.cordys.bpm.utils.priorityqueue.algorithm.AgingAlgorithm</priorityAlgorithm>
+              <agingTime>3600</agingTime>
+            </component>
+            <component name="Scheduler DBConnectionPool">
+              <xmlEncoding>false</xmlEncoding>
+              <precedence />
+              <cursorCacheSize>50</cursorCacheSize>
+              <cursorCacheRefreshInterval>30</cursorCacheRefreshInterval>
+              <queryCacheSize>50</queryCacheSize>
+              <queryCacheRefreshInterval>3600</queryCacheRefreshInterval>
+              <maximumWriteConnections>5</maximumWriteConnections>
+              <maximumReadConnections>5</maximumReadConnections>
+              <minimumReadConnections>1</minimumReadConnections>
+              <minimumWriteConnections>1</minimumWriteConnections>
+              <connectionPoolRefreshInterval>3600</connectionPoolRefreshInterval>
+              <multithreaded>true</multithreaded>
+              <sharedPool>false</sharedPool>
+              <xsiNilForNullData>true</xsiNilForNullData>
+              <readEmptyStringAsNull>false</readEmptyStringAsNull>
+              <writeEmptyStringAsNull>false</writeEmptyStringAsNull>
+              <queryType>DBSQL</queryType>
+              <datasource>
+                <type>Relational</type>
+                <name>Cordys System#system</name>
+              </datasource>
+              <reconnectionAttempts>1</reconnectionAttempts>
+              <requestThreshold>1000</requestThreshold>
+            </component>
+          </configuration>
+        </configurations>
+      </bussoapprocessorconfiguration>
+      <cp name="connectionpoint-BPM" />
+    </sc>
+  </servicegroup>
+  <!-- 
+    Order Promise JDA WS-AppServer
+  -->
+  <servicegroup name="WS-AppServer-OP">
+    <bussoapnodeconfiguration>
+      <configuration>
+        <routing ui_algorithm="failover" ui_type="loadbalancing">
+          <numprocessors>100000</numprocessors>
+          <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+        </routing>
+        <validation>
+          <protocol>false</protocol>
+          <payload>false</payload>
+        </validation>
+        <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+      </configuration>
+    </bussoapnodeconfiguration>
+    <wsi name="WS-AppServer Development Method Set" package="Cordys WS-AppServer" />
+    <wsi name="WS-AppServer Runtime Method Set" package="Cordys WS-AppServer" />
+    <wsi name="PKG_INTEGRATION_OPWebservice.PKG_INTEGRATION_OP" package="TataSteel apps_tse_op ManageOrderPromise v20121219 1" />
+    <sc name="WS-AppServer-OP" automatic="true">
+      <bussoapprocessorconfiguration>
+        <configurations autoStartCount="3">
+          <cancelReplyInterval>30000</cancelReplyInterval>
+          <gracefulCompleteTime>15</gracefulCompleteTime>
+          <abortTime>5</abortTime>
+          <jreconfig>
+            <param value="-Xmx256M" />
+            <param value="-XX:PermSize=5m" />
+          </jreconfig>
+          <routing ui_type="loadbalancing" ui_algorithm="failover">
+            <preference>1</preference>
+          </routing>
+          <configuration implementation="com.cordys.cpc.bsf.connector.BsfConnector" htmfile="/cordys/com/cordys/wsappserver/admin/wsappserverconfig.caf">
+            <startupDependency>
+              <namespace>http://schemas.cordys.com/1.0/xmlstore</namespace>
+            </startupDependency>
+            <ruleEnabled>false</ruleEnabled>
+            <auditEnabled>off</auditEnabled>
+            <initializeDB>true</initializeDB>
+            <multiTenant>false</multiTenant>
+            <initializeEIS>false</initializeEIS>
+            <customInitializer />
+            <applicationInitializer />
+            <autoCleanup>false</autoCleanup>
+            <component name="WS-AppServerConnectionPool">
+              <xmlEncoding>false</xmlEncoding>
+              <precedence />
+              <cursorCacheSize>50</cursorCacheSize>
+              <cursorCacheRefreshInterval>30</cursorCacheRefreshInterval>
+              <queryCacheSize>50</queryCacheSize>
+              <queryCacheRefreshInterval>3600</queryCacheRefreshInterval>
+              <maximumWriteConnections>5</maximumWriteConnections>
+              <maximumReadConnections>5</maximumReadConnections>
+              <minimumReadConnections>1</minimumReadConnections>
+              <minimumWriteConnections>1</minimumWriteConnections>
+              <connectionPoolRefreshInterval>3600</connectionPoolRefreshInterval>
+              <multithreaded>true</multithreaded>
+              <sharedPool>false</sharedPool>
+              <xsiNilForNullData>true</xsiNilForNullData>
+              <readEmptyStringAsNull>false</readEmptyStringAsNull>
+              <writeEmptyStringAsNull>false</writeEmptyStringAsNull>
+              <queryType>DBSQL</queryType>
+              <datasource>
+                <type>Relational</type>
+                <name>${dso.orderpromise.name}#${organization.name}</name>
+              </datasource>
+            </component>
+          </configuration>
+        </configurations>
+      </bussoapprocessorconfiguration>
+      <cp name="connectionpoint-WS-AppServer-OP" />
+    </sc>
+  </servicegroup>
+  <servicegroup name="WS-AppServer bus-common">
+    <bussoapnodeconfiguration>
+      <configuration>
+        <routing ui_algorithm="failover" ui_type="loadbalancing">
+          <numprocessors>100000</numprocessors>
+          <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+        </routing>
+        <validation>
+          <protocol>false</protocol>
+          <payload>false</payload>
+        </validation>
+        <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+      </configuration>
+    </bussoapnodeconfiguration>
+    <wsi name="WS-AppServer Development Method Set" package="Cordys WS-AppServer" />
+    <wsi name="WS-AppServer Runtime Method Set" package="Cordys WS-AppServer" />
+    <wsi name="bus.common.common.v20130311.BusinessDataDomainService.BusinessDataDomainInterface" package="TataSteel bus_common Common v20130311 1" />
+    <sc name="WS-AppServer bus-common" automatic="true">
+      <bussoapprocessorconfiguration>
+        <configurations autoStartCount="3">
+          <cancelReplyInterval>30000</cancelReplyInterval>
+          <gracefulCompleteTime>15</gracefulCompleteTime>
+          <abortTime>5</abortTime>
+          <jreconfig>
+            <param value="-cp ${cordys.installdir}\com-some_customer-tse\common\common\v20121012\java\lib\coelib.jar;${cordys.installdir}\com-some_customer-tse/bus/common/common/v20130311/java/common.jar;" />
+            <param value="-Xmx256M" />
+            <param value="-XX:PermSize=5m" />
+          </jreconfig>
+          <routing ui_type="loadbalancing" ui_algorithm="failover">
+            <preference>1</preference>
+          </routing>
+          <configuration implementation="com.cordys.cpc.bsf.connector.BsfConnector">
+            <startupDependency>
+              <namespace>http://schemas.cordys.com/1.0/xmlstore</namespace>
+            </startupDependency>
+            <ruleEnabled>false</ruleEnabled>
+            <auditEnabled>off</auditEnabled>
+            <initializeDB>true</initializeDB>
+            <multiTenant>false</multiTenant>
+            <initializeEIS>false</initializeEIS>
+            <customInitializer />
+            <applicationInitializer />
+            <autoCleanup>false</autoCleanup>
+            <component name="WS-AppServerConnectionPool">
+              <xmlEncoding>false</xmlEncoding>
+              <precedence />
+              <cursorCacheSize>50</cursorCacheSize>
+              <cursorCacheRefreshInterval>30</cursorCacheRefreshInterval>
+              <queryCacheSize>50</queryCacheSize>
+              <queryCacheRefreshInterval>3600</queryCacheRefreshInterval>
+              <maximumWriteConnections>5</maximumWriteConnections>
+              <maximumReadConnections>5</maximumReadConnections>
+              <minimumReadConnections>1</minimumReadConnections>
+              <minimumWriteConnections>1</minimumWriteConnections>
+              <connectionPoolRefreshInterval>3600</connectionPoolRefreshInterval>
+              <multithreaded>true</multithreaded>
+              <sharedPool>false</sharedPool>
+              <xsiNilForNullData>true</xsiNilForNullData>
+              <readEmptyStringAsNull>false</readEmptyStringAsNull>
+              <writeEmptyStringAsNull>false</writeEmptyStringAsNull>
+              <queryType>DBSQL</queryType>
+              <datasource>
+                <type>Relational</type>
+                <name>${dso.bus.common.name}#${organization.name}</name>
+              </datasource>
+            </component>
+          </configuration>
+        </configurations>
+      </bussoapprocessorconfiguration>
+      <cp name="connectionpoint-WS-AppServer bus-common" />
+    </sc>
+  </servicegroup>
+  <!-- 
+    JMS Connector 
+    
+    The JMS Connector contains queues for the following projects:
+    - ManageOrderPromise
+    - ManageFactoryPlan
+  -->
+  <servicegroup name="JMS">
+    <bussoapnodeconfiguration>
+      <configuration>
+        <routing ui_algorithm="failover" ui_type="loadbalancing">
+          <numprocessors>100000</numprocessors>
+          <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+        </routing>
+        <validation>
+          <protocol>false</protocol>
+          <payload>false</payload>
+        </validation>
+        <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+      </configuration>
+    </bussoapnodeconfiguration>
+    <wsi name="JMSConnectorInterface.JMSConnector" package="Cordys JMSConnector 2" />
+    <sc name="JMS" automatic="true">
+      <bussoapprocessorconfiguration>
+        <configurations autoStartCount="3">
+          <cancelReplyInterval>30000</cancelReplyInterval>
+          <gracefulCompleteTime>15</gracefulCompleteTime>
+          <abortTime>5</abortTime>
+          <jreconfig>
+            <param value="-Djava.security.policy=&quot;C:\Program Files (x86)\ibm\WebSphere MQ\java\lib\fscontext.jar;C:\Program Files (x86)\ibm\WebSphere MQ\java\lib\com.ibm.mq.jar;C:\Program Files (x86)\ibm\WebSphere MQ\java\lib\com.ibm.mqjms.jar;C:\Program Files (x86)\ibm\WebSphere MQ\java\lib\providerutil.jar;C:\Program Files (x86)\ibm\WebSphere MQ\java\lib\connector.jar;C:\Program Files (x86)\ibm\WebSphere MQ\java\lib\jms.jar;C:\Program Files (x86)\ibm\WebSphere MQ\java\lib\com.ibm.mq.jmqi.jar&quot;" />
+            <param value="-Xmx256M" />
+            <param value="-XX:PermSize=5m" />
+          </jreconfig>
+          <routing ui_type="loadbalancing" ui_algorithm="failover">
+            <preference>1</preference>
+          </routing>
+          <configuration implementation="com.cordys.coe.ac.jmsconnector.JMSConnector" htmfile="/cordys/com-cordys-coe/jmsconnector/ui/JMSConnectorConfig.caf">
+            <classpath>
+              <location>com-cordys-coe/jmsconnector/java/classes</location>
+              <location>com-cordys-coe/jmsconnector/java/jmsconnector.jar</location>
+              <location>com-cordys-coe/jmsconnector/java/lib/coelib.jar</location>
+              <location>components/datamapper/binarytransform.jar</location>
+              <location>com-cordys-coe/jmsconnector/java/lib/jms.jar</location>
+            </classpath>
+            <startupDependency xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/" xmlns:c="http://schemas.cordys.com/cws/1.0" />
+            <tns:configuration xmlns:tns="http://schemas.cordys.com/2.0/jmsconnector/configuration">
+              <tns:RunWithConfigError>false</tns:RunWithConfigError>
+              <tns:Timeout>10000</tns:Timeout>
+              <tns:DisableMessageSelectors>true</tns:DisableMessageSelectors>
+              <tns:CheckConnectionOnRequest>true</tns:CheckConnectionOnRequest>
+              <tns:DestinationManagers>
+                <tns:DestinationManager name="Cordys">
+                  <tns:JMSVendor>com.sun.jndi.fscontext.RefFSContextFactory</tns:JMSVendor>
+                  <tns:ProviderURL>file://${cordys.installdir}\com-cordys-coe</tns:ProviderURL>
+                  <tns:JNDICFName>Cordys</tns:JNDICFName>
+                  <tns:AuthenticationType>none</tns:AuthenticationType>
+                  <tns:Destinations>
+                    <tns:Destination name="QA.SAP_MANUF.MANAGEFACTPLAN_MSG_FROM_ESB.OUTPUT">
+                      <tns:Access>both</tns:Access>
+                      <tns:JNDIName>QA.SAP_MANUF.MANAGEFACTPLAN_MSG_FROM_ESB.OUTPUT</tns:JNDIName>
+                    </tns:Destination>
+                    <!-- START: Inbound SAP -->
+                    <tns:Destination name="QA.SAP_OP.NOTIFYPROMISEDORDER_FROM_SAP.INPUT">
+                      <tns:Access>both</tns:Access>
+                      <tns:JNDIName>QA.SAP_OP.NOTIFYPROMISEDORDER_FROM_SAP.INPUT</tns:JNDIName>
+                      <tns:InboundMessageTrigger>prp_ notifypromisedorder</tns:InboundMessageTrigger>
+                    </tns:Destination>
+                    <tns:Destination name="QA.SAP_FP.PURCHAGEREQUISTORDER_FROM_SAP.INPUT">
+                      <tns:Access>both</tns:Access>
+                      <tns:JNDIName>QA.SAP_FP.PURCHAGEREQUISTORDER_FROM_SAP.INPUT</tns:JNDIName>
+                      <tns:InboundMessageTrigger>prp_purchaserequisitionorder</tns:InboundMessageTrigger>
+                    </tns:Destination>
+                    <tns:Destination name="QA.SAP_FP.NOTIFYPURCHASEORDER_FROM_SAP.INPUT">
+                      <tns:Access>both</tns:Access>
+                      <tns:JNDIName>QA.SAP_FP.NOTIFYPURCHASEORDER_FROM_SAP.INPUT</tns:JNDIName>
+                      <tns:InboundMessageTrigger>prp_notifypurchaseorder</tns:InboundMessageTrigger>
+                    </tns:Destination>
+                    <tns:Destination name="QA.SAP_FP.NOTIFYPRODUCTIONORDER_FROM_SAP.INPUT">
+                      <tns:Access>both</tns:Access>
+                      <tns:JNDIName>QA.SAP_FP.NOTIFYPRODUCTIONORDER_FROM_SAP.INPUT</tns:JNDIName>
+                      <tns:InboundMessageTrigger>prp_notifyproductionorder</tns:InboundMessageTrigger>
+                    </tns:Destination>
+                    <tns:Destination name="QA.SAP_FP.NOTIFYPLANNEDORDER_FROM_SAP.INPUT">
+                      <tns:Access>both</tns:Access>
+                      <tns:JNDIName>QA.SAP_FP.NOTIFYPLANNEDORDER_FROM_SAP.INPUT</tns:JNDIName>
+                      <tns:InboundMessageTrigger>prp_notifyplannedorder</tns:InboundMessageTrigger>
+                    </tns:Destination>
+                    <tns:Destination name="QA.SAP_FP.NOTIFYINVENTORY_FROM_SAP.INPUT">
+                      <tns:Access>both</tns:Access>
+                      <tns:JNDIName>QA.SAP_FP.NOTIFYINVENTORY_FROM_SAP.INPUT</tns:JNDIName>
+                      <tns:InboundMessageTrigger>prp_notifyinventory</tns:InboundMessageTrigger>
+                    </tns:Destination>
+                    <!-- END: Inbound SAP -->
+                  </tns:Destinations>
+                </tns:DestinationManager>
+              </tns:DestinationManagers>
+              <tns:JMSPollingInterval>5000</tns:JMSPollingInterval>
+              <tns:Triggers>
+                <!-- START: Manage Order Promise -->
+                <tns:Trigger name="prp_ notifypromisedorder">
+                  <tns:Operation>ExecuteProcess</tns:Operation>
+                  <tns:Namespace>http://schemas.cordys.com/bpm/execution/1.0</tns:Namespace>
+                  <tns:OrganizationDN>o=${organization.name},${LDAP_ROOT}</tns:OrganizationDN>
+                  <tns:UserDN>cn=${jms.proxy.user},cn=organizational users,o=${organization.name},${LDAP_ROOT}</tns:UserDN>
+                  <tns:Parameters>
+                    <type>definition</type>
+                    <receiver>com-some_customer-tse/bus/tse/sales/manageorderpromise/v20121219/bpm/prp_notifypromisedorder</receiver>
+                    <source>Triggered via JMS</source>
+                    <message>
+                      <JMS_INPUT xmlns="http://schemas.cordys.com/default">
+                        <JMS_TRIGGER_XML xmlns="http://tse.some_customer.com/common/jms/v20130130">
+                          <InputMessageInXml>{${dollar}inputmessage}</InputMessageInXml>
+                          <QueueName>{${dollar}fromdestination}</QueueName>
+                          <MessageId>{${dollar}messageid}</MessageId>
+                        </JMS_TRIGGER_XML>
+                      </JMS_INPUT>
+                    </message>
+                  </tns:Parameters>
+                </tns:Trigger>
+                <!-- START: Manage Factory Plan -->
+                <tns:Trigger name="prp_purchaserequisitionorder">
+                  <tns:Operation>ExecuteProcess</tns:Operation>
+                  <tns:Namespace>http://schemas.cordys.com/bpm/execution/1.0</tns:Namespace>
+                  <tns:OrganizationDN>o=${organization.name},${LDAP_ROOT}</tns:OrganizationDN>
+                  <tns:UserDN>cn=${jms.proxy.user},cn=organizational users,o=${organization.name},${LDAP_ROOT}</tns:UserDN>
+                  <tns:Parameters>
+                    <type>definition</type>
+                    <receiver>com-some_customer-tse/apps/tse/erp/managefactoryplan/v20130114/bpm/prp_purchaserequisitionorder</receiver>
+                    <source>Triggered via JMS</source>
+                    <message>
+                      <JMS_INPUT xmlns="http://schemas.cordys.com/default">
+                        <JMS_TRIGGER_XML xmlns="http://tse.some_customer.com/common/jms/v20130130">
+                          <InputMessageInXml>{${dollar}inputmessage}</InputMessageInXml>
+                          <QueueName>{${dollar}fromdestination}</QueueName>
+                          <MessageId>{${dollar}messageid}</MessageId>
+                        </JMS_TRIGGER_XML>
+                      </JMS_INPUT>
+                    </message>
+                  </tns:Parameters>
+                </tns:Trigger>
+                <tns:Trigger name="prp_notifypurchaseorder">
+                  <tns:Operation>ExecuteProcess</tns:Operation>
+                  <tns:Namespace>http://schemas.cordys.com/bpm/execution/1.0</tns:Namespace>
+                  <tns:OrganizationDN>o=${organization.name},${LDAP_ROOT}</tns:OrganizationDN>
+                  <tns:UserDN>cn=${jms.proxy.user},cn=organizational users,o=${organization.name},${LDAP_ROOT}</tns:UserDN>
+                  <tns:Parameters>
+                    <type>definition</type>
+                    <receiver>com-some_customer-tse/apps/tse/erp/managefactoryplan/v20130114/bpm/prp_notifypurchaseorder</receiver>
+                    <source>Triggered via JMS</source>
+                    <message>
+                      <JMS_INPUT xmlns="http://schemas.cordys.com/default">
+                        <JMS_TRIGGER_XML xmlns="http://tse.some_customer.com/common/jms/v20130130">
+                          <InputMessageInXml>{${dollar}inputmessage}</InputMessageInXml>
+                          <QueueName>{${dollar}fromdestination}</QueueName>
+                          <MessageId>{${dollar}messageid}</MessageId>
+                        </JMS_TRIGGER_XML>
+                      </JMS_INPUT>
+                    </message>
+                  </tns:Parameters>
+                </tns:Trigger>
+                <tns:Trigger name="prp_notifyproductionorder">
+                  <tns:Operation>ExecuteProcess</tns:Operation>
+                  <tns:Namespace>http://schemas.cordys.com/bpm/execution/1.0</tns:Namespace>
+                  <tns:OrganizationDN>o=${organization.name},${LDAP_ROOT}</tns:OrganizationDN>
+                  <tns:UserDN>cn=${jms.proxy.user},cn=organizational users,o=${organization.name},${LDAP_ROOT}</tns:UserDN>
+                  <tns:Parameters>
+                    <type>definition</type>
+                    <receiver>com-some_customer-tse/apps/tse/erp/managefactoryplan/v20130114/bpm/prp_notifyproductionorder</receiver>
+                    <source>Triggered via JMS</source>
+                    <message>
+                      <JMS_INPUT xmlns="http://schemas.cordys.com/default">
+                        <JMS_TRIGGER_XML xmlns="http://tse.some_customer.com/common/jms/v20130130">
+                          <InputMessageInXml>{${dollar}inputmessage}</InputMessageInXml>
+                          <QueueName>{${dollar}fromdestination}</QueueName>
+                          <MessageId>{${dollar}messageid}</MessageId>
+                        </JMS_TRIGGER_XML>
+                      </JMS_INPUT>
+                    </message>
+                  </tns:Parameters>
+                </tns:Trigger>
+                <tns:Trigger name="prp_notifyplannedorder">
+                  <tns:Operation>ExecuteProcess</tns:Operation>
+                  <tns:Namespace>http://schemas.cordys.com/bpm/execution/1.0</tns:Namespace>
+                  <tns:OrganizationDN>o=${organization.name},${LDAP_ROOT}</tns:OrganizationDN>
+                  <tns:UserDN>cn=${jms.proxy.user},cn=organizational users,o=${organization.name},${LDAP_ROOT}</tns:UserDN>
+                  <tns:Parameters>
+                    <type>definition</type>
+                    <receiver>com-some_customer-tse/apps/tse/erp/managefactoryplan/v20130114/bpm/prp_notifyplannedorder</receiver>
+                    <source>Triggered via JMS</source>
+                    <message>
+                      <JMS_INPUT xmlns="http://schemas.cordys.com/default">
+                        <JMS_TRIGGER_XML xmlns="http://tse.some_customer.com/common/jms/v20130130">
+                          <InputMessageInXml>{${dollar}inputmessage}</InputMessageInXml>
+                          <QueueName>{${dollar}fromdestination}</QueueName>
+                          <MessageId>{${dollar}messageid}</MessageId>
+                        </JMS_TRIGGER_XML>
+                      </JMS_INPUT>
+                    </message>
+                  </tns:Parameters>
+                </tns:Trigger>
+                <tns:Trigger name="prp_notifyinventory">
+                  <tns:Operation>ExecuteProcess</tns:Operation>
+                  <tns:Namespace>http://schemas.cordys.com/bpm/execution/1.0</tns:Namespace>
+                  <tns:OrganizationDN>o=${organization.name},${LDAP_ROOT}</tns:OrganizationDN>
+                  <tns:UserDN>cn=${jms.proxy.user},cn=organizational users,o=${organization.name},${LDAP_ROOT}</tns:UserDN>
+                  <tns:Parameters>
+                    <type>definition</type>
+                    <receiver>com-some_customer-tse/apps/tse/erp/managefactoryplan/v20130114/bpm/prp_notifyinventory</receiver>
+                    <source>Triggered via JMS</source>
+                    <message>
+                      <JMS_INPUT xmlns="http://schemas.cordys.com/default">
+                        <JMS_TRIGGER_XML xmlns="http://tse.some_customer.com/common/jms/v20130130">
+                          <InputMessageInXml>{${dollar}inputmessage}</InputMessageInXml>
+                          <QueueName>{${dollar}fromdestination}</QueueName>
+                          <MessageId>{${dollar}messageid}</MessageId>
+                        </JMS_TRIGGER_XML>
+                      </JMS_INPUT>
+                    </message>
+                  </tns:Parameters>
+                </tns:Trigger>
+                <!-- END: Manage Order Promise -->
+              </tns:Triggers>
+              <tns:Charset>UTF8</tns:Charset>
+            </tns:configuration>
+          </configuration>
+          <loggerconfiguration>
+            <systempolicy>true</systempolicy>
+            <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j">
+              <renderer renderedClass="com.eibus.util.logger.internal.LocalizableLogMessage" renderingClass="com.eibus.util.logger.internal.TextRenderer" />
+              <renderer renderedClass="com.eibus.util.logger.internal.LogMessage" renderingClass="com.eibus.util.logger.internal.TextRenderer" />
+              <root>
+                <priority value="error" />
+                <appender-ref ref="DailyRollingFileAppender" />
+                <appender-ref ref="dbappender" />
+              </root>
+              <category name="com.eibus.security.acl">
+                <priority value="error" />
+              </category>
+              <category name="com.eibus.license">
+                <priority value="error" />
+              </category>
+              <category name="com.eibus.directory">
+                <priority value="error" />
+              </category>
+              <category name="com.eibus.soap">
+                <priority value="error" />
+              </category>
+              <category name="com.eibus.transport.SOAPMessage">
+                <priority value="error" />
+              </category>
+              <category name="com.eibus.transport">
+                <priority value="error" />
+              </category>
+              <category name="com.eibus.tools">
+                <priority value="error" />
+              </category>
+              <category name="com.eibus.util">
+                <priority value="error" />
+              </category>
+              <category name="com.eibus.xml.nom">
+                <priority value="error" />
+              </category>
+              <appender name="DailyRollingFileAppender" class="org.apache.log4j.DailyRollingFileAppender">
+                <param name="File" value="system#jms#jms_connector.xml" />
+                <param name="DatePattern" value=".yyyy-MM-dd" />
+                <layout class="org.apache.log4j.xml.XMLLayout">
+                  <param name="locationInfo" value="true" />
+                </layout>
+              </appender>
+              <appender class="com.cordys.logger.appender.CordysZeroConfJDBCAppender" name="dbappender" />
+            </log4j:configuration>
+          </loggerconfiguration>
+        </configurations>
+      </bussoapprocessorconfiguration>
+      <cp name="connectionpoint-JMS Connector" />
+    </sc>
+  </servicegroup>
+</org>
