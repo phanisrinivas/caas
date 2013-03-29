@@ -38,7 +38,13 @@ final class PackageDefinitionList extends CordysObjectList<PackageDefinition>
         SoapCaller c = system.getSoapCaller();
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("isvpackage", null);
-        String baseURL = c.getUrlBase() + "system/com.eibus.web.application.ListISVPackages.wcp";
+
+        String baseURL = c.getUrlBase();
+        if (c.isOLDEnabled())
+        {
+            baseURL += "system/";
+        }
+        baseURL += "com.eibus.web.application.ListISVPackages.wcp";
 
         // Execute the request. For this URL we cannot add the SAML token, so in case of the SAML client we need to call a
         // different method.
@@ -70,7 +76,7 @@ final class PackageDefinitionList extends CordysObjectList<PackageDefinition>
                 grow(pd);
             }
         }
-        
+
         // Next step is to get the list of deployed CAP packages
         request = new XmlNode("GetDeployedCapSummary", "http://schemas.cordys.com/cap/1.0");
         response = c.call(request);
@@ -143,7 +149,7 @@ final class PackageDefinitionList extends CordysObjectList<PackageDefinition>
     {
         return getSystem().getKey() + ":packageDefinitions";
     }
-    
+
     /**
      * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
      */
