@@ -30,5 +30,9 @@
       <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the version number]]></action>
       <action dev="pgussow" type="fix"><![CDATA[Changed the caas.cmd file a bit to be more flexible]]></action>
     </release>
+    <release date="2013-03-30" description="Stable release" version="2.0.16">
+      <action dev="pgussow" type="add"><![CDATA[Added 2 sample scripts: 1 to get all the CAP packages that are currently loaded on a system and 1 script to upload and deploy all CAPs in a certain folder.]]></action>
+      <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the packages list. It did not obey whether or not the server supports OLD.]]></action>
+    </release>
   </body>
 </document>
