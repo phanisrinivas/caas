@@ -175,7 +175,7 @@ public abstract class BaseCaller implements SoapCaller
         // Execute the web service.
         return httpCall(baseGatewayUrl, input, filtered);
     }
-    
+
     /**
      * This method gets the username to use for connecting.
      * 
@@ -185,7 +185,7 @@ public abstract class BaseCaller implements SoapCaller
     {
         return userName;
     }
-    
+
     /**
      * This method gets the password to use for authenticating the user.
      * 
@@ -195,9 +195,10 @@ public abstract class BaseCaller implements SoapCaller
     {
         return password;
     }
-    
+
     /**
-     * This method returns the gateway URL that should be used to post to. In case of OLD it will return the URL of the System org.
+     * This method returns the gateway URL that should be used to post to. In case of OLD it will return the URL of the System
+     * org.
      * 
      * @return The gateway URL that should be used.
      */
@@ -205,9 +206,10 @@ public abstract class BaseCaller implements SoapCaller
     {
         return getFinalGatewayURL(null, null);
     }
-    
+
     /**
-     * This method returns the gateway URL that should be used to post to. In case of OLD it will return the URL of the System org.
+     * This method returns the gateway URL that should be used to post to. In case of OLD it will return the URL of the System
+     * org.
      * 
      * @return The gateway URL that should be used.
      */
@@ -215,7 +217,7 @@ public abstract class BaseCaller implements SoapCaller
     {
         return getFinalGatewayURL(organization, null);
     }
-    
+
     /**
      * This method returns the gateway URL that should be used to post to.
      * 
@@ -255,7 +257,7 @@ public abstract class BaseCaller implements SoapCaller
             {
                 org = queryParameters.remove("organization");
             }
-            
+
             if (organization != null)
             {
                 org = organization;
@@ -268,16 +270,22 @@ public abstract class BaseCaller implements SoapCaller
         }
         else
         {
-            //For non-OLD we need to add it to the query parameters.
+            // For non-OLD we need to add it to the query parameters.
             if (queryParameters != null)
             {
                 queryParameters.put("organization", organization);
             }
         }
-        
-        //If applicable, add the organization
+
+        // If applicable, add the organization
         if (org != null)
         {
+            // If the organization name contains a space, we need to URL encode it.
+            if (org.indexOf(' ') >= 0)
+            {
+                org = org.replaceAll(" ", "%20");
+            }
+
             baseGatewayUrl += org + "/";
         }
 

@@ -130,17 +130,6 @@ public class Organization extends LdapObjectBase
         };
         dso = dsos;
         d = dsos;
-
-        // Now we need to read the Assignment Root for this organization for the user/team assignments
-        XmlNode request = new XmlNode(Constants.INITIALIZE_ASSIGNMENT_ROOT, Constants.XMLNS_USER_ASSIGNMENT);
-        request.add("WorkspaceID").setText("__Organization Staging__");
-        request.add("AssignmentRoot").setText("CIUIRoot");
-        request.add("Create").setText("true");
-
-        XmlNode response = call(request);
-
-        m_assignmentRoot = response
-                .xpathSingle("//ua:InitializeAssignmentRootResponse/ua:InitializeAssignmentRoot", Constants.NS).getText();
     }
 
     @Override
@@ -475,6 +464,26 @@ public class Organization extends LdapObjectBase
      */
     public String getAssignmentRoot()
     {
+        if (m_assignmentRoot == null)
+        {
+            synchronized (this)
+            {
+                if (m_assignmentRoot == null)
+                {
+                    // Now we need to read the Assignment Root for this organization for the user/team assignments
+                    XmlNode request = new XmlNode(Constants.INITIALIZE_ASSIGNMENT_ROOT, Constants.XMLNS_USER_ASSIGNMENT);
+                    request.add("WorkspaceID").setText("__Organization Staging__");
+                    request.add("AssignmentRoot").setText("CIUIRoot");
+                    request.add("Create").setText("true");
+
+                    XmlNode response = call(request);
+
+                    m_assignmentRoot = response.xpathSingle("//ua:InitializeAssignmentRootResponse/ua:InitializeAssignmentRoot",
+                            Constants.NS).getText();
+                }
+            }
+        }
+
         return m_assignmentRoot;
     }
 

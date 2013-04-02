@@ -34,5 +34,9 @@
       <action dev="pgussow" type="add"><![CDATA[Added 2 sample scripts: 1 to get all the CAP packages that are currently loaded on a system and 1 script to upload and deploy all CAPs in a certain folder.]]></action>
       <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the packages list. It did not obey whether or not the server supports OLD.]]></action>
     </release>
+    <release description="Stable release" version="2.0.17">
+      <action dev="pgussow" type="change"><![CDATA[Reading the assignment root only when requested instad of when the organization is loaded.]]></action>
+      <action dev="pgussow" type="fix"><![CDATA[If the organization anme contained a space and OLD was enabled the URL construction failed.]]></action>
+    </release>
   </body>
 </document>
