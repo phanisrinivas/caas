@@ -9,13 +9,15 @@
 
 package org.kisst.cordys.caas;
 
+import static org.kisst.cordys.caas.main.Environment.debug;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
+
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
-import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
@@ -32,8 +34,6 @@ public class Machine extends CordysObject
     private final String hostname;
     /** Holds the cordys install dir. */
     private final String cordysInstallDir;
-    /** Holds the env. */
-    private Environment env;
 
     /**
      * Instantiates a new machine.
@@ -46,7 +46,6 @@ public class Machine extends CordysObject
         String tmp = monitor.getName();
         this.hostname = tmp.substring(tmp.indexOf("monitor@") + 8);
         this.cordysInstallDir = readEIBProperty("CORDYS_INSTALL_DIR");
-        this.env = getSystem().getEnv();
     }
 
     /**
@@ -172,14 +171,14 @@ public class Machine extends CordysObject
         }
         request.add(isvpPackageNode.detach());
 
-        env.debug("LoadISVP Request " + request.toString());
+        debug("LoadISVP Request " + request.toString());
 
         // Load the ISVP on the specific monitor. Required in case of HA installation
         HashMap<String, String> queryParams = new HashMap<String, String>();
         queryParams.put("receiver", monitor.getDn());
         XmlNode response = monitor.call(request, queryParams);
 
-        env.debug("LoadISVP Response " + response.toString());
+        debug("LoadISVP Response " + response.toString());
 
         return response.getChildText("status");
     }
@@ -275,14 +274,14 @@ public class Machine extends CordysObject
         request.add("url").setText("http://" + hostname + "/cordys/wcp/isvcontent/packages/" + isvpName);
         request.add(isvPackageNode.detach());
 
-        env.debug("UpgradeISVP Request " + request.toString());
+        debug("UpgradeISVP Request " + request.toString());
 
         // Upgrade the ISVP on the specific monitor. Required in case of HA installation
         HashMap<String, String> queryParams = new HashMap<String, String>();
         queryParams.put("receiver", monitor.getDn());
         XmlNode response = monitor.call(request, queryParams);
 
-        env.debug("UpgradeISVP Response " + response.toString());
+        debug("UpgradeISVP Response " + response.toString());
 
         // Read the status message
         return response.getChildText("status");

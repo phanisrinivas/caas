@@ -19,6 +19,8 @@ along with the Caas tool.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.kisst.cordys.caas.soap;
 
+import static org.kisst.cordys.caas.main.Environment.debug;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,9 +33,9 @@ import java.net.PasswordAuthentication;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.HashMap;
+
 import org.apache.commons.httpclient.util.URIUtil;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
-import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.util.StringUtil;
 
 public class NativeCaller extends BaseCaller {
@@ -46,7 +48,7 @@ public class NativeCaller extends BaseCaller {
 			this.password=password;
 		}
 		@Override public PasswordAuthentication getPasswordAuthentication() {
-			Environment.get().debug("getPasswordAuthentication"
+			debug("getPasswordAuthentication"
 					+"\n\t"+this.getRequestingHost()
 					+"\n\t"+this.getRequestingPort()
 					+"\n\t"+this.getRequestingPrompt()

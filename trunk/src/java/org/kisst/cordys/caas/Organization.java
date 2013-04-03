@@ -210,7 +210,7 @@ public class Organization extends LdapObjectBase
         AuthenticatedUser au = getSystem().authenticatedUsers.getByName(auName);
         if (au == null)
         {
-            Environment.get().info("Cound not find authenticated user for '" + name + "'. Hence creating it");
+            Environment.info("Cound not find authenticated user for '" + name + "'. Hence creating it");
             getSystem().createAuthenticatedUser(name, this.getDn());
             au = getSystem().authenticatedUsers.getByName(name);
         }

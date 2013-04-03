@@ -35,6 +35,11 @@
       <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the packages list. It did not obey whether or not the server supports OLD.]]></action>
     </release>
     <release description="Stable release" version="2.0.17">
+      <action dev="pgussow" type="change"><![CDATA[Removed all the direct System.out calls. They are now through Log4J.]]></action>
+      <action dev="pgussow" type="add"><![CDATA[Added the option to layer the system.properties that are used in the template.
+
+You can have system-org-user.properties, system-org.properties, system-user.properties and system.properties]]></action>
+      <action dev="pgussow" type="add"><![CDATA[Added the option to 'layer' the configuration properties. In the folder where you have the caas.conf you can also have a file caas-user.conf with customizations. This is usefull if you want to have the systems in Subversion, but not usernames/passwords.]]></action>
       <action dev="pgussow" type="change"><![CDATA[Reading the assignment root only when requested instad of when the organization is loaded.]]></action>
       <action dev="pgussow" type="fix"><![CDATA[If the organization anme contained a space and OLD was enabled the URL construction failed.]]></action>
     </release>

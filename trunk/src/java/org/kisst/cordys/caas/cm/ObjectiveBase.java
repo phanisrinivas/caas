@@ -14,15 +14,13 @@ import java.util.HashSet;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.Role;
-import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.EntryObjectList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.util.XmlNode;
+import static org.kisst.cordys.caas.main.Environment.*;
 
 public abstract class ObjectiveBase extends CompositeObjective
 {
-    private static final Environment env = Environment.get();
-
     private final boolean otherEntriesAllowed;
 
     protected final Organization org;
@@ -104,7 +102,7 @@ public abstract class ObjectiveBase extends CompositeObjective
             {
                 otherEntries = true;
                 String msg = "Unknown existing entry " + obj + " in target " + this;
-                env.error(msg);
+                error(msg);
                 if (message == null)
                     message = msg;
                 else
@@ -130,7 +128,7 @@ public abstract class ObjectiveBase extends CompositeObjective
     {
         if (!exists())
         {
-            env.error("unknown target " + this);
+            error("unknown target " + this);
             return;
         }
         super.purge(ui);

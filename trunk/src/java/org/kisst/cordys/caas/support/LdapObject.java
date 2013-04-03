@@ -26,9 +26,9 @@ import java.util.List;
 
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Package;
+import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.XmlNode;
-
 
 public abstract class LdapObject extends CordysObject {
 	public abstract class AbstractProperty {
@@ -179,10 +179,10 @@ public abstract class LdapObject extends CordysObject {
 	}
 	abstract public String getDn();
 	@Override public void myclear() { super.myclear(); entry=null; }
-	public void debug(String msg) { getSystem().getEnv().debug(msg); } 
-	public void info(String msg)  { getSystem().getEnv().info(msg); } 
-	public void warn(String msg)  { getSystem().getEnv().warn(msg); } 
-	public void error(String msg) { getSystem().getEnv().error(msg); } 
+	public void debug(String msg) { Environment.debug(msg); } 
+	public void info(String msg)  { Environment.info(msg); } 
+	public void warn(String msg)  { Environment.warn(msg); } 
+	public void error(String msg) { Environment.error(msg); } 
 
 	@Override public String getVarName() {
 		String name= getName();

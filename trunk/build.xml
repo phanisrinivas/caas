@@ -11,10 +11,7 @@
 		<property name="builddir" value="build" />
 		<mkdir dir="${builddir}" />
 		<mkdir dir="${builddir}/classes" />
-
-		<!-- Read the version.properties file to determine the version -->
-		<property file="version.properties"/>
-		<property name="project.version" value="${base.version}.${build.number}" />
+		<property name="version.postfix" value=""/>
 	</target>
 
 	<target name="compile" description="Compiles Java files" depends="init">
@@ -36,11 +33,16 @@
 		<manifestclasspath jarfile="${basedir}/caas.jar" property="manifest.cp">
 			<classpath>
 				<fileset dir="${libdir}">
-					<include name="*.jar"/>
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</manifestclasspath>
-		
+
+		<!-- Read the version.properties file to determine the version -->
+		<property file="version.properties" />
+		<property name="project.version" value="${base.version}.${build.number}${version.postfix}" />
+
+
 		<jar jarfile="${builddir}/caas.jar" basedir="${builddir}/classes">
 			<manifest>
 				<attribute name="Implementation-Vendor" value="kisst.org" />
@@ -53,7 +55,17 @@
 		<copy file="${builddir}/caas.jar" todir="${basedir}" />
 	</target>
 
-	<target name="dist" description="creates a zip file for distribution" depends="-inc-buildnumber,jar">
+	<target name="dist" description="creates a zip file for distribution" depends="jar,-inc-buildnumber">
+		<zip destfile="${builddir}/caas-${project.version}.zip">
+			<fileset dir="." includes="COPYING" />
+			<zipfileset dir="build" includes="caas.jar" />
+			<zipfileset dir="src/groovy" prefix="scripts" />
+			<zipfileset dir="bin" prefix="bin" />
+			<zipfileset dir="src/schema" prefix="schema" />
+		</zip>
+	</target>
+
+	<target name="dist-dev" description="creates a zip file for distribution" depends="-set-postfix,jar">
 		<zip destfile="${builddir}/caas-${project.version}.zip">
 			<fileset dir="." includes="COPYING" />
 			<zipfileset dir="build" includes="caas.jar" />
@@ -69,7 +81,18 @@
 			<zipfileset dir="build" includes="caas.jar" />
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
-            <zipfileset dir="src/schema" prefix="schema" />
+			<zipfileset dir="src/schema" prefix="schema" />
+			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
+		</zip>
+	</target>
+
+	<target name="dist-dev-full" description="creates a zip file for distribution" depends="dist-dev">
+		<zip destfile="${builddir}/caas-${project.version}-full.zip">
+			<fileset dir="." includes="COPYING" />
+			<zipfileset dir="build" includes="caas.jar" />
+			<zipfileset dir="src/groovy" prefix="scripts" />
+			<zipfileset dir="bin" prefix="bin" />
+			<zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
 		</zip>
 	</target>
@@ -80,13 +103,17 @@
 			<zipfileset dir="build" includes="caas.jar" />
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
-            <zipfileset dir="src/schema" prefix="schema" />
+			<zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" excludes="jython.jar" />
 		</zip>
 	</target>
-	
+
 	<target name="-inc-buildnumber">
-		<buildnumber file="version.properties"/>
+		<buildnumber file="version.properties" />
+	</target>
+
+	<target name="-set-postfix">
+		<property name="version.postfix" value="-dev"/>
 	</target>
 
 	<target name="dist-all" description="creates all distribution files" depends="dist, dist-full, dist-groovy" />
