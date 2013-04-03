@@ -76,19 +76,17 @@ public class CaasMainCommand extends CompositeCommand
         }
         
         // Initialize the environment
-        Environment env = Environment.get();
-
         if (debug.isSet())
         {
-            env.debug = true;
+            Environment.debug = true;
         }
         if (verbose.isSet())
         {
-            env.verbose = true;
+            Environment.verbose = true;
         }
         if (quiet.isSet())
         {
-            env.quiet = true;
+            Environment.quiet = true;
         }
         if (version.isSet())
         {
@@ -96,7 +94,7 @@ public class CaasMainCommand extends CompositeCommand
             return;
         }
 
-        if (!env.quiet)
+        if (!Environment.quiet)
         {
             System.out.println("caas: Cordys Administration Automation Scripting, version " + Caas.getVersion());
         }

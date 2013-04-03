@@ -19,20 +19,19 @@ import org.kisst.cordys.caas.ServiceGroup;
 import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.XMLStoreObject;
-import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
+import static org.kisst.cordys.caas.main.Environment.*;
+
 
 /**
  * This class is used to create the template of a given organization.
  */
 public class Template
 {
-    /** The environment that is used. */
-    private static final Environment env = Environment.get();
     /** Holds the created template */
     private final String template;
     /** Holds whether or not the template is empty. */
@@ -69,7 +68,7 @@ public class Template
      */
     public Template(Organization org, String targetPackageName, Package pkg, User u)
     {
-        env.info("Exporting template for " + org.getName() + " organization");
+        info("Exporting template for " + org.getName() + " organization");
         XmlNode result = new XmlNode("org", Constants.XMLNS_TEMPLATE);
         if (targetPackageName != null)
         {
@@ -79,7 +78,7 @@ public class Template
         result.setAttribute("org", org.getName());
 
         // First we export all the non-Cordys packages.
-        env.info("Exporting non-Cordys packages... ");
+        info("Exporting non-Cordys packages... ");
         CordysSystem system = org.getSystem();
         for (Package p : system.packages)
         {
@@ -87,7 +86,7 @@ public class Template
 
             if (pi != null && !"Cordys".equals(pi.getVendor()))
             {
-                env.debug("Found non-standard package: " + pi.getPackageName());
+                debug("Found non-standard package: " + pi.getPackageName());
 
                 XmlNode node = result.add("package");
                 node.setAttribute("name", pi.getPackageName());
@@ -101,7 +100,7 @@ public class Template
         }
 
         // Export the DSOs in the given organization
-        env.info("Exporting " + org.dsos.getSize() + " dso objects ... ");
+        info("Exporting " + org.dsos.getSize() + " dso objects ... ");
         for (DsoType dsotype : org.dsotypes)
         {
             for (Dso dso : dsotype.dsos)
@@ -116,7 +115,7 @@ public class Template
         }
 
         // Export XML Store objects
-        env.info("Exporting " + org.xmlStoreObjects.getSize() + " xmlstore objects ... ");
+        info("Exporting " + org.xmlStoreObjects.getSize() + " xmlstore objects ... ");
         for (XMLStoreObject xso : org.xmlStoreObjects)
         {
             XmlNode node = result.add("xmlstoreobject");
@@ -127,7 +126,7 @@ public class Template
         }
 
         // Exporting local roles
-        env.info("Exporting " + org.roles.getSize() + " roles ... ");
+        info("Exporting " + org.roles.getSize() + " roles ... ");
         for (Role role : org.roles)
         {
             XmlNode node = result.add("role");
@@ -159,7 +158,7 @@ public class Template
         }
 
         // Exporting users in the organization
-        env.info("Exporting " + org.users.getSize() + " users ... ");
+        info("Exporting " + org.users.getSize() + " users ... ");
         for (User user : org.users)
         {
             if ("SYSTEM".equals(user.getName().toUpperCase()))
@@ -190,7 +189,7 @@ public class Template
         }
 
         // Exporting service groups.
-        env.info("Exporting " + org.serviceGroups.getSize() + " service groups ... ");
+        info("Exporting " + org.serviceGroups.getSize() + " service groups ... ");
         for (ServiceGroup serviceGroup : org.serviceGroups)
         {
             XmlNode node = result.add("servicegroup");
@@ -278,7 +277,7 @@ public class Template
     public void save(String filename, Map<String, String> vars)
     {
         FileUtil.saveString(new File(filename), StringUtil.reverseSubstitute(template, vars));
-        env.info("Template successfully exported to " + filename);
+        info("Template successfully exported to " + filename);
     }
 
     /**
@@ -325,7 +324,7 @@ public class Template
      */
     public void apply(Organization org, Map<String, String> vars)
     {
-        env.info("Importing template to " + org.getName() + " organization");
+        info("Importing template to " + org.getName() + " organization");
         XmlNode template = xml(vars);
         for (XmlNode node : template.getChildren())
         {
@@ -342,9 +341,9 @@ public class Template
             else if (node.getName().equals("package"))
                 processPackage(org, node);
             else
-                env.warn("Unknown organization element " + node.getPretty());
+                warn("Unknown organization element " + node.getPretty());
         }
-        env.info("Template successfully imported to " + org.getName() + " organization");
+        info("Template successfully imported to " + org.getName() + " organization");
     }
 
     /**
@@ -355,7 +354,7 @@ public class Template
      */
     private void processPackage(Organization org, XmlNode node)
     {
-        env.warn("Automatic deployment of package " + node.getAttribute("name") + " not supported.");
+        warn("Automatic deployment of package " + node.getAttribute("name") + " not supported.");
     }
 
     /**
@@ -377,21 +376,21 @@ public class Template
         XMLStoreObject obj = new XMLStoreObject(key, version, org);
         if (operationFlag != null && operationFlag.equals("overwrite"))
         {
-            env.info("Overwriting " + name + " xmlstore object ... ");
+            info("Overwriting " + name + " xmlstore object ... ");
             obj.overwriteXML(newXml.clone());
         }
         else if (operationFlag != null && operationFlag.equals("append"))
         {
-            env.info("Appending " + name + " xmlstore object ... ");
+            info("Appending " + name + " xmlstore object ... ");
             obj.appendXML(newXml.clone());
         }
         else
         // By default overwrite the XMStore object
         {
-            env.info("Overwriting " + name + " xmlstore object ... ");
+            info("Overwriting " + name + " xmlstore object ... ");
             obj.overwriteXML(newXml.clone());
         }
-        env.info("OK");
+        info("OK");
     }
 
     /**
@@ -409,25 +408,25 @@ public class Template
         DsoType dsotype = org.dsotypes.getByName(type);
         if (dsotype == null) // Holds true only once per dsotype of org
         {
-            env.info("creating dsotype " + type + " ... ");
+            info("creating dsotype " + type + " ... ");
             org.createDsoType(type);
-            env.info("OK");
+            info("OK");
             dsotype = org.dsotypes.getByName(type);
         }
         Dso dso = dsotype.dsos.getByName(name);
         if (dso == null) // Create DSO
         {
-            env.info("creating dso " + name + " ... ");
+            info("creating dso " + name + " ... ");
             dsotype = org.dsotypes.getByName(type);
             dsotype.createDso(name, desc, config);
-            env.info("OK");
+            info("OK");
         }
         else
         // Update DSO
         {
-            env.info("updating dso " + name + " ... ");
+            info("updating dso " + name + " ... ");
             dsotype.updateDso(dso, config);
-            env.info("OK");
+            info("OK");
         }
     }
 
@@ -445,16 +444,16 @@ public class Template
         ServiceGroup serviceGroup = org.serviceGroups.getByName(name);
         if (serviceGroup == null) // Create SG
         {
-            env.info("creating servicegroup " + name + " ... ");
+            info("creating servicegroup " + name + " ... ");
             XmlNode config = serviceGroupNode.getChild("bussoapnodeconfiguration").getChildren().get(0).clone();
             org.createServiceGroup(name, config, getWebServiceInterfaces(org, serviceGroupNode));
             serviceGroup = org.serviceGroups.getByName(name);
-            env.info("OK");
+            info("OK");
         }
         else
         // Update SG
         {
-            env.info("updating servicegroup " + name + " ... ");
+            info("updating servicegroup " + name + " ... ");
             WebServiceInterface[] newWebServiceInterfaces = getWebServiceInterfaces(org, serviceGroupNode);
             if ((newWebServiceInterfaces != null) && (newWebServiceInterfaces.length > 0))
             {
@@ -468,7 +467,7 @@ public class Template
                     }
                 }
                 serviceGroup.namespaces.update(namepsaces);
-                env.info("OK");
+                info("OK");
             }
         }
         // Process SCs
@@ -476,7 +475,7 @@ public class Template
         int i = 0;
         if (serviceGroupNode.getChildren("sc").size() != machines.getSize())
         {
-            env.warn("Template says " + serviceGroupNode.getChildren("sc").size() + " servicecontainers for " + name
+            warn("Template says " + serviceGroupNode.getChildren("sc").size() + " servicecontainers for " + name
                     + " but the no of machines are " + org.getSystem().machines.getSize());
         }
         for (XmlNode serviceContainerNode : serviceGroupNode.getChildren("sc"))
@@ -499,7 +498,7 @@ public class Template
                         int index = Integer.parseInt(machineName);
                         if (index > machines.getSize())
                         {
-                            env.warn("Service container " + scName
+                            warn("Service container " + scName
                                     + " is configured to run on a node which is not present. Skipping the creation of this node");
                             processContainer = false;
                         }
@@ -510,7 +509,7 @@ public class Template
                     }
                     catch (Exception e)
                     {
-                        env.warn("Could not find machine with identification '" + machineName + "' in the environment");
+                        warn("Could not find machine with identification '" + machineName + "' in the environment");
                     }
                 }
             }
@@ -530,7 +529,7 @@ public class Template
                 ServiceContainer serviceContainer = serviceGroup.serviceContainers.getByName(scName);
                 if (serviceContainer == null) // Create SC
                 {
-                    env.info("creating servicecontainer " + scName + " for machine " + machineName + " ... ");
+                    info("creating servicecontainer " + scName + " for machine " + machineName + " ... ");
                     boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
                     serviceGroup.createServiceContainer(scName, machineName, automatic, configsNode.clone());
                     for (XmlNode subchild : serviceContainerNode.getChildren())
@@ -552,15 +551,15 @@ public class Template
                             newSC.createConnectionPoint(cpName, type, machineName, description, labeledURI);
                         }
                     }
-                    env.info("OK");
+                    info("OK");
                 }
                 else
                 // Update SC
                 {
-                    env.info("updating servicecontainer " + scName + " for machine " + machineName + " ... ");
+                    info("updating servicecontainer " + scName + " for machine " + machineName + " ... ");
                     boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
                     serviceGroup.updateServiceContainer(scName, machineName, automatic, configsNode.clone(), serviceContainer);
-                    env.info("OK");
+                    info("OK");
                 }
             }
         }
@@ -603,7 +602,7 @@ public class Template
                 }
                 else
                 {
-                    env.error("Skipping unknown web service interface " + wsiName);
+                    error("Skipping unknown web service interface " + wsiName);
                 }
             }
         }
@@ -625,17 +624,17 @@ public class Template
              * Whenever I had a SYSTEM user in my template, Cordys would crash pretty hard. It would not be possible to start the
              * monitor anymore. I had to use the CMC to remove the organization before the Monitor would start again.
              */
-            env.error("Ignoring user " + name + " because the SYSTEM user should not be modified from a template");
+            error("Ignoring user " + name + " because the SYSTEM user should not be modified from a template");
             return;
         }
         if (org.users.getByName(name) == null) // Create User
         {
-            env.info("creating user " + name + " ... ");
+            info("creating user " + name + " ... ");
             org.createUser(name, userNode.getAttribute("au")); // Create Org User
-            env.info("OK");
+            info("OK");
         }
 
-        env.info("configuring user " + name + " with roles ... ");
+        info("configuring user " + name + " with roles ... ");
         // Assigning roles
         User user = org.users.getByName(name);
         ArrayList<String> newRoles = new ArrayList<String>();
@@ -666,12 +665,12 @@ public class Template
                     newRoles.add(dnRole);
             }
             else
-                env.warn("Unknown user subelement " + child.getPretty());
+                warn("Unknown user subelement " + child.getPretty());
         }
         // Assign all the roles to the user at once
         if (newRoles != null && newRoles.size() > 0)
             user.roles.add(newRoles.toArray(new String[newRoles.size()]));
-        env.info("OK");
+        info("OK");
     }
 
     /**
@@ -686,11 +685,11 @@ public class Template
         String type = roleNode.getAttribute("type");
         if (org.roles.getByName(name) == null)
         {
-            env.info("creating role " + name + " ... ");
+            info("creating role " + name + " ... ");
             org.createRole(name, type);
-            env.info("OK");
+            info("OK");
         }
-        env.info("configuring role " + name + " ... ");
+        info("configuring role " + name + " ... ");
         Role role = org.roles.getByName(name);
         for (XmlNode child : roleNode.getChildren())
         {
@@ -719,9 +718,9 @@ public class Template
                     role.roles.add(dnRole);
             }
             else
-                env.warn("Unknown role subelement " + child.getPretty());
+                warn("Unknown role subelement " + child.getPretty());
         }
-        env.info("OK");
+        info("OK");
     }
 
     /**
@@ -763,15 +762,15 @@ public class Template
         ServiceGroup serviceGroup = org.serviceGroups.getByName(name);
         if (serviceGroup == null)
         {
-            env.error("Missing ServiceGroup " + name);
+            error("Missing ServiceGroup " + name);
             return;
         }
-        env.info("Checking configuration of ServiceGroup " + name);
+        info("Checking configuration of ServiceGroup " + name);
         WebServiceInterface[] target = getWebServiceInterfaces(org, node);
         for (WebServiceInterface wsi : target)
         {
             if (!serviceGroup.webServiceInterfaces.contains(wsi))
-                env.error("ServiceGroup " + serviceGroup + " does not contain WebServiceInterface " + wsi);
+                error("ServiceGroup " + serviceGroup + " does not contain WebServiceInterface " + wsi);
         }
         for (WebServiceInterface wsi : serviceGroup.webServiceInterfaces)
         {
@@ -782,7 +781,7 @@ public class Template
                     found = true;
             }
             if (!found)
-                env.error("ServiceGroup " + serviceGroup + " contains WebServiceInterface " + wsi + " that is not in template");
+                error("ServiceGroup " + serviceGroup + " contains WebServiceInterface " + wsi + " that is not in template");
         }
         for (XmlNode child : node.getChildren())
         {
@@ -794,24 +793,24 @@ public class Template
                 ServiceContainer serviceContainer = serviceGroup.serviceContainers.getByName(scName);
                 if (serviceContainer == null)
                 {
-                    env.error("Missing ServiceContainer " + scName);
+                    error("Missing ServiceContainer " + scName);
                     continue;
                 }
                 boolean automatic = "true".equals(child.getAttribute("automatic"));
                 if (serviceContainer.automatic.getBool() != automatic)
-                    env.error("  " + serviceContainer + " property automatic, template says " + automatic
+                    error("  " + serviceContainer + " property automatic, template says " + automatic
                             + " while current value is " + serviceContainer.automatic.get());
                 XmlNode config = child.getChild("bussoapprocessorconfiguration").getChildren().get(0);
                 XmlNode configsc = serviceContainer.config.getXml();
                 for (String msg : config.diff(configsc))
-                    env.error(msg);
+                    error(msg);
             }
             else if (child.getName().equals("bussoapnodeconfiguration"))
             {
                 // do nothing
             }
             else
-                env.error("Unknown servicegroup subelement " + child.getPretty());
+                error("Unknown servicegroup subelement " + child.getPretty());
         }
     }
 
@@ -825,10 +824,10 @@ public class Template
         User user = org.users.getByName(name);
         if (user == null)
         {
-            env.info("Unknown user " + name);
+            info("Unknown user " + name);
             return;
         }
-        env.info("Checking roles of user " + name);
+        info("Checking roles of user " + name);
         for (XmlNode child : node.getChildren())
         {
             if (child.getName().equals("role"))
@@ -836,7 +835,7 @@ public class Template
                 Role role = null;
                 String isvpName = child.getAttribute("package");
                 String roleName = child.getAttribute("name");
-                env.info("Checking role " + roleName);
+                info("Checking role " + roleName);
                 String dnRole = null;
                 if (isvpName == null)
                 {
@@ -852,12 +851,12 @@ public class Template
                         dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
                 }
                 if (role == null)
-                    env.error("User " + user + " should have unknown role " + dnRole);
+                    error("User " + user + " should have unknown role " + dnRole);
                 else if (!user.roles.contains(role))
-                    env.error("User " + user + " does not have role " + role);
+                    error("User " + user + " does not have role " + role);
             }
             else
-                env.error("Unknown user subelement " + child.getPretty());
+                error("Unknown user subelement " + child.getPretty());
         }
     }
 
@@ -871,10 +870,10 @@ public class Template
         Role role = org.roles.getByName(name);
         if (role == null)
         {
-            env.info("Unknowm role " + name);
+            info("Unknowm role " + name);
             return;
         }
-        env.info("Checking roles of role " + name);
+        info("Checking roles of role " + name);
         for (XmlNode child : node.getChildren())
         {
             if (child.getName().equals("role"))
@@ -882,7 +881,7 @@ public class Template
                 Role subRole = null;
                 String isvpName = child.getAttribute("package");
                 String roleName = child.getAttribute("name");
-                env.info("  adding role " + roleName);
+                info("  adding role " + roleName);
 
                 String dnRole = null;
                 if (isvpName == null)
@@ -899,12 +898,12 @@ public class Template
                         dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
                 }
                 if (subRole == null)
-                    env.error("Role " + role + " should have unknown role " + dnRole);
+                    error("Role " + role + " should have unknown role " + dnRole);
                 else if (!role.roles.contains(subRole))
-                    env.error("Role " + role + " does not have role " + subRole);
+                    error("Role " + role + " does not have role " + subRole);
             }
             else
-                env.error("Unknown role subelement " + child.getPretty());
+                error("Unknown role subelement " + child.getPretty());
         }
     }
 }

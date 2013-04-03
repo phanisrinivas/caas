@@ -1,17 +1,19 @@
 package org.kisst.cordys.caas.cm;
 
+import static org.kisst.cordys.caas.main.Environment.error;
+import static org.kisst.cordys.caas.main.Environment.info;
+import static org.kisst.cordys.caas.main.Environment.warn;
+
 import java.util.List;
 
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.Package;
-import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.util.XmlNode;
 
 public class EntryObjective implements Objective {
-	private static final Environment env=Environment.get();
 
 	private final ObjectiveBase parent;
 	public final String propName;
@@ -35,14 +37,14 @@ public class EntryObjective implements Objective {
 			CordysSystem system=org.getSystem();
 			Package pkg = system.packages.getByName(packageName);
 			if (pkg==null) {
-				env.error(parent+" should refer to UNKNOWN package \""+packageName+"\" in entry "+this);
+				error(parent+" should refer to UNKNOWN package \""+packageName+"\" in entry "+this);
 				return null;
 			}
 			if (pkg!=null)
 				result=((ChildList<?>) pkg.getProp(propName)).getByName(name);
 		}
 		if (result==null)
-			env.error(parent+" should refer to UNKNOWN entry "+this);
+			error(parent+" should refer to UNKNOWN entry "+this);
 		return result;
 	}
 	
@@ -75,9 +77,9 @@ public class EntryObjective implements Objective {
 		ui.configuring(this);
 		LdapObject entry=findEntry(); 
 		if (entry==null)
-			env.warn("target "+parent+" should have unknown entry "); // TODO: +entry.getVarName());
+			warn("target "+parent+" should have unknown entry "); // TODO: +entry.getVarName());
 		else if (parent.contains(entry))
-			env.info("target "+parent+" already has entry "+entry.getVarName());
+			info("target "+parent+" already has entry "+entry.getVarName());
 		else
 			parent.add(entry);
 		ui.readyWith(this);
@@ -86,9 +88,9 @@ public class EntryObjective implements Objective {
 	public void purge(Ui ui) {
 		LdapObject entry=findEntry(); 
 		if (entry==null)
-			env.warn("target "+this+" should have unknown entry "); // TODO: +entry.getVarName());
+			warn("target "+this+" should have unknown entry "); // TODO: +entry.getVarName());
 		else if (! parent.contains(entry))
-			env.warn("target "+this+" does not have entry "+entry.getVarName());
+			warn("target "+this+" does not have entry "+entry.getVarName());
 		else
 			parent.remove(entry); 
 	}

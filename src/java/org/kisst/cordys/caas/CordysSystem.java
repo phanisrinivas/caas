@@ -10,7 +10,6 @@
 package org.kisst.cordys.caas;
 
 import java.io.File;
-
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -242,7 +241,7 @@ public class CordysSystem extends LdapObject
     }
 
     /**
-     * This method gets the env.
+     * This method gets the 
      * 
      * @return The env
      */
@@ -503,17 +502,17 @@ public class CordysSystem extends LdapObject
         for (Machine machine : machines)
         {
             // Upload the ISVP on to the machine
-            env.info("Uploading application " + isvpName + " to " + machine.getName() + " ... ");
+            info("Uploading application " + isvpName + " to " + machine.getName() + " ... ");
             machine.uploadIsvp(isvpFilePath);
-            env.info("OK");
+            info("OK");
 
             // TODO: check if dependent isvps are installed
             // Install the ISVP
-            env.info("Installing application " + isvpName + " on " + machine.getName() + " ... ");
+            info("Installing application " + isvpName + " on " + machine.getName() + " ... ");
 
             String status = machine.loadIsvp(isvpName, prompSetsXMLNode, timeOutInMillis);
-            env.info("OK");
-            env.info("STATUS:: " + status);
+            info("OK");
+            info("STATUS:: " + status);
         }
         isvp.clear();
     }
@@ -584,15 +583,15 @@ public class CordysSystem extends LdapObject
         for (Machine machine : machines)
         {
             // TODO: Upload the ISVP only when it is not present on the machine
-            env.info("Uploading application " + isvpName + " to " + machine.getName() + " ... ");
+            info("Uploading application " + isvpName + " to " + machine.getName() + " ... ");
             machine.uploadIsvp(isvpFilePath);
-            env.info("OK");
+            info("OK");
             // Upgrade the ISVP
-            env.info("Upgrading application " + isvpName + " on " + machine.getName() + " ... ");
+            info("Upgrading application " + isvpName + " on " + machine.getName() + " ... ");
 
             String status = machine.upgradeIsvp(isvpName, prompSetsXMLNode, deleteReferences, timeOutInMillis);
-            env.info("OK");
-            env.info("STATUS:: " + status);
+            info("OK");
+            info("STATUS:: " + status);
         }
         isvp.clear();
     }
@@ -614,10 +613,10 @@ public class CordysSystem extends LdapObject
         // TODO: machine class should be a list of its own installed isvps
         for (Machine machine : machines)
         {
-            env.info("Unloading " + isvp.getName() + " on " + machine.getName() + " with deleteReference=" + deleteReferences
+            info("Unloading " + isvp.getName() + " on " + machine.getName() + " with deleteReference=" + deleteReferences
                     + " ... ");
             machine.unloadIsvp(isvp, deleteReferences);
-            env.info("OK");
+            info("OK");
         }
         isvp.clear();
         return true;

@@ -9,6 +9,8 @@
 
 package org.kisst.cordys.caas.cm;
 
+import static org.kisst.cordys.caas.main.Environment.debug;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,7 +18,6 @@ import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.IDeployedPackageInfo;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.Package;
-import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -79,7 +80,7 @@ public class PackageObjective extends AbstractObjective
         boolean foundMatchingVersion = false;
         for (Version v : versions)
         {
-            Environment.get().debug("Checking " + pkg.getCn() + " against version " + v.getVersion());
+            debug("Checking " + pkg.getCn() + " against version " + v.getVersion());
 
             if (v.matches(dpi.getFullVersion()))
             {

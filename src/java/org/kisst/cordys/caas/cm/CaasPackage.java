@@ -53,13 +53,13 @@ public class CaasPackage implements Objective
         this.name = ccmfile;
         this.system = system;
         String content = FileUtil.loadString(ccmfile);
-        
-        //The content of the file contains the variables. So we need to replace them which the actual properties.
+
+        // The content of the file contains the variables. So we need to replace them which the actual properties.
         Properties p = system.getProperties();
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        Map<String, String> variables = new LinkedHashMap<String, String>((Map)p);
+        Map<String, String> variables = new LinkedHashMap<String, String>((Map) p);
         content = StringUtil.substitute(content, variables);
-        
+
         XmlNode pm = new XmlNode(content);
         orgName = pm.getAttribute("org");
         Organization org = system.organizations.get(orgName);
@@ -84,7 +84,7 @@ public class CaasPackage implements Objective
             }
             else
             {
-                Environment.get().warn("Unknown objective: " + child.getName());
+                Environment.warn("Unknown objective: " + child.getName());
             }
         }
     }

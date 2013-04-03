@@ -103,7 +103,7 @@ public class SamlClientCaller extends BaseCaller
         {
             // Set the query string after encoding it
             method.setQueryString(URIUtil.encodeQuery(queryString));
-            Environment.get().debug("URL:: " + method.getURI().getURI().toString());
+            Environment.debug("URL:: " + method.getURI().getURI().toString());
             method.setRequestEntity(new StringRequestEntity(inputSoapRequest, "text/xml", "UTF-8"));
             HttpClient client = new HttpClient();
             if (this.proxyPort != null)

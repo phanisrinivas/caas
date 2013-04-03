@@ -3,6 +3,7 @@ package org.kisst.cordys.caas.support;
 import java.util.LinkedHashMap;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
+import static org.kisst.cordys.caas.main.Environment.*;
 import org.kisst.cordys.caas.soap.BaseCaller;
 import org.kisst.cordys.caas.soap.HttpClientCaller;
 import org.kisst.cordys.caas.util.DateUtil;
@@ -77,7 +78,7 @@ public class SamlClient
     {
         this.systemName = systemName;
         this.caller = caller;
-        
+
         sendSamlRequest();
     }
 
@@ -157,9 +158,8 @@ public class SamlClient
      */
     private void handleSamlResponse(String response)
     {
-        Environment env = Environment.get();
-        if (env.debug)
-            env.debug(response);
+        if (Environment.debug)
+            debug(response);
         XmlNode soapBodyNode = null, soapFaultNode = null;
         XmlNode output = new XmlNode(response);
 
@@ -222,9 +222,8 @@ public class SamlClient
         requestXML = builder.toString();
         builder.setLength(0);
 
-        Environment env = Environment.get();
-        if (env.debug)
-            env.debug(requestXML);
+        if (Environment.debug)
+            debug(requestXML);
         return requestXML;
     }
 }

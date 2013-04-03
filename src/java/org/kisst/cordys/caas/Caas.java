@@ -18,7 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Properties;
 
 import org.kisst.cordys.caas.cm.Template;
-import org.kisst.cordys.caas.main.Environment;
+import static org.kisst.cordys.caas.main.Environment.*;
 import org.kisst.cordys.caas.soap.DummyCaller;
 import org.kisst.cordys.caas.soap.HttpClientCaller;
 import org.kisst.cordys.caas.soap.NativeCaller;
@@ -196,12 +196,11 @@ public class Caas
             return result;
         }
 
-        Environment env = Environment.get();
-        String classname = env.getProp("system." + name + ".gateway.class", null);
+        String classname = get().getProp("system." + name + ".gateway.class", null);
 
         try
         {
-            System.out.print("Connecting to system " + name + " ... ");
+            info("Connecting to system " + name + " ... ");
 
             SoapCaller caller;
 
@@ -222,11 +221,12 @@ public class Caas
                 throw new RuntimeException("Unknown SoapCaller class " + classname);
             }
             result = new CordysSystem(name, caller);
-            System.out.println("OK");
+            
+            System.out.println("Connected to system " + name);
 
             if (result.getPropsFile() != null)
             {
-                env.info("Using " + result.getPropsFile() + " as property file");
+                info("Using " + result.getPropsFile() + " as property file");
             }
             // Put it in cache
             systemCache.put(name, result);
@@ -234,15 +234,7 @@ public class Caas
         }
         catch (Exception e)
         {
-            System.out.println("FAILED");
-
-            // Catch any exceptions so it won't be a problem if anything fails in the Startup script
-            // if (! (e.getCause() instanceof ConnectException))
-            if (Environment.get().debug)
-            {
-                e.printStackTrace();
-            }
-            Environment.get().error(e.getMessage());
+            error("Failed: " + e.getMessage(), e);
             return null;
         }
     }
@@ -256,7 +248,7 @@ public class Caas
     {
         if (defaultSystem == null)
         {
-            defaultSystem = Environment.get().getProp("caas.defaultSystem", "default");
+            defaultSystem = get().getProp("caas.defaultSystem", "default");
         }
         return getSystem(defaultSystem);
     }
