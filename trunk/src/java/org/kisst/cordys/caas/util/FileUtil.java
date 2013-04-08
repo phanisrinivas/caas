@@ -23,8 +23,6 @@ import java.util.Properties;
 
 import static org.kisst.cordys.caas.main.Environment.*;
 
-
-
 import sun.misc.BASE64Encoder;
 
 public class FileUtil
@@ -214,12 +212,12 @@ public class FileUtil
                         if (!retVal.containsKey(key))
                         {
                             retVal.put((String) key, (String) tmp.get(key));
-                            debug("  LOAD: property " + key + " from file " + file.getAbsolutePath() + " with value "
+                            trace("  LOAD: property " + key + " from file " + file.getAbsolutePath() + " with value "
                                     + tmp.get(key));
                         }
                         else
                         {
-                            debug("IGNORE: property " + key + " from file " + file.getAbsolutePath()
+                            trace("IGNORE: property " + key + " from file " + file.getAbsolutePath()
                                     + " because it is already defined");
                         }
                     }

@@ -158,8 +158,8 @@ public class SamlClient
      */
     private void handleSamlResponse(String response)
     {
-        if (Environment.debug)
-            debug(response);
+        if (Environment.trace)
+            trace(response);
         XmlNode soapBodyNode = null, soapFaultNode = null;
         XmlNode output = new XmlNode(response);
 
@@ -192,6 +192,8 @@ public class SamlClient
         this.setIssueTime(issueTime);
         this.setExipryTime(expiryTime);
         this.setArtifactID(artifactId);
+        
+        debug("SAML artifact ID: " + artifactId);
     }
 
     /**
@@ -222,8 +224,8 @@ public class SamlClient
         requestXML = builder.toString();
         builder.setLength(0);
 
-        if (Environment.debug)
-            debug(requestXML);
+        if (Environment.trace)
+            trace(requestXML);
         return requestXML;
     }
 }

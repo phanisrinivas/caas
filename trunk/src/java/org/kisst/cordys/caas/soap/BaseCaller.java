@@ -9,7 +9,7 @@
 
 package org.kisst.cordys.caas.soap;
 
-import static org.kisst.cordys.caas.main.Environment.debug;
+import static org.kisst.cordys.caas.main.Environment.trace;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -321,11 +321,11 @@ public abstract class BaseCaller implements SoapCaller
         String soap = "<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP:Body>" + input
                 + "</SOAP:Body></SOAP:Envelope>";
 
-        debug(soap);
+        trace(soap);
 
         String response = httpCall(soap, map);
 
-        debug(response);
+        trace(response);
 
         if (response.indexOf("SOAP:Fault") > 0)
         {
