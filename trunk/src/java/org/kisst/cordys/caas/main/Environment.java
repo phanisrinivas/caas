@@ -52,11 +52,13 @@ public class Environment
 
     }
 
-    /** Holds whether or not to display the debug (TRACE) messages */
+    /** Holds whether or not to display the debug messages */
     public static boolean debug = false;
+    /** Holds whether or not to display the trace messages */
+    public static boolean trace = false;
     /** Holds whether or not to hold all the messages */
     public static boolean quiet = false;
-    /** Holds whether or not to display the verbose messages (DEBUG) */
+    /** Holds whether or not to display the verbose messages*/
     public static boolean verbose = false;
     /** Holds the properties loaded for this environment. */
     private Properties props = new Properties();
@@ -102,6 +104,17 @@ public class Environment
     {
         return m_caasConfFolder;
     }
+    
+    /**
+     * Trace.
+     * 
+     * @param msg The msg
+     */
+    public static void trace(String msg)
+    {
+        if (trace && !quiet)
+            m_log.trace(msg);
+    }
 
     /**
      * Debug.
@@ -111,7 +124,7 @@ public class Environment
     public static void debug(String msg)
     {
         if (debug && !quiet)
-            m_log.trace(msg);
+            m_log.debug(msg);
     }
 
     /**
