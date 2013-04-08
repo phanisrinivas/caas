@@ -9,7 +9,7 @@
 
 package org.kisst.cordys.caas.soap;
 
-import static org.kisst.cordys.caas.main.Environment.debug;
+import static org.kisst.cordys.caas.main.Environment.trace;
 
 import java.util.HashMap;
 
@@ -53,8 +53,8 @@ public class DummyCaller implements SoapCaller
 
     public XmlNode call(XmlNode method, String org, String processor)
     {
-        if (Environment.debug)
-            debug(method.getPretty());
+        if (Environment.trace)
+            trace(method.getPretty());
         XmlNode output;
         if (method.getName().equals("GetLDAPObject"))
             output = getObject(method);
@@ -65,8 +65,8 @@ public class DummyCaller implements SoapCaller
         else
             throw new RuntimeException("Unknown calls " + method.getPretty());
 
-        if (Environment.debug)
-            debug(output.getPretty());
+        if (Environment.trace)
+            trace(output.getPretty());
         return output;
     }
 

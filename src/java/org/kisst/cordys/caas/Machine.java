@@ -9,7 +9,7 @@
 
 package org.kisst.cordys.caas;
 
-import static org.kisst.cordys.caas.main.Environment.debug;
+import static org.kisst.cordys.caas.main.Environment.trace;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -171,14 +171,14 @@ public class Machine extends CordysObject
         }
         request.add(isvpPackageNode.detach());
 
-        debug("LoadISVP Request " + request.toString());
+        trace("LoadISVP Request " + request.toString());
 
         // Load the ISVP on the specific monitor. Required in case of HA installation
         HashMap<String, String> queryParams = new HashMap<String, String>();
         queryParams.put("receiver", monitor.getDn());
         XmlNode response = monitor.call(request, queryParams);
 
-        debug("LoadISVP Response " + response.toString());
+        trace("LoadISVP Response " + response.toString());
 
         return response.getChildText("status");
     }
@@ -274,14 +274,14 @@ public class Machine extends CordysObject
         request.add("url").setText("http://" + hostname + "/cordys/wcp/isvcontent/packages/" + isvpName);
         request.add(isvPackageNode.detach());
 
-        debug("UpgradeISVP Request " + request.toString());
+        trace("UpgradeISVP Request " + request.toString());
 
         // Upgrade the ISVP on the specific monitor. Required in case of HA installation
         HashMap<String, String> queryParams = new HashMap<String, String>();
         queryParams.put("receiver", monitor.getDn());
         XmlNode response = monitor.call(request, queryParams);
 
-        debug("UpgradeISVP Response " + response.toString());
+        trace("UpgradeISVP Response " + response.toString());
 
         // Read the status message
         return response.getChildText("status");
