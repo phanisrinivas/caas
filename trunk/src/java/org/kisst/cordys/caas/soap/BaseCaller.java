@@ -53,6 +53,8 @@ public abstract class BaseCaller implements SoapCaller
     protected boolean orgLevelDeployment = false;
     /** Holds the default query parameters that should ALWAYS be sent. */
     protected final HashMap<String, String> queryStringMap = new HashMap<String, String>();
+    private long m_startTime;
+    private long m_endTime;
 
     /**
      * Instantiates a new base caller.
@@ -354,6 +356,48 @@ public abstract class BaseCaller implements SoapCaller
         {
             output = output.getChild("Body").getChildren().get(0);
         }
+
         return output;
+    }
+
+    /**
+     * This method should be called right before making a call. It is used to record the start time of a request.
+     */
+    protected void logStart()
+    {
+        m_startTime = System.currentTimeMillis();
+    }
+
+    /**
+     * This method should be called to record the end time of a request. It will log the time the request took and the request
+     * itself
+     * 
+     * @param url The URL to with the call was posted.
+     * @param request The request that was executed.
+     */
+    protected void logEnd(String url, String request)
+    {
+        m_endTime = System.currentTimeMillis();
+
+        if (Environment.verbose)
+        {
+            StringBuilder sb = new StringBuilder(1024);
+
+            if (m_startTime == -1)
+            {
+                sb.append("No start time recorded.");
+            }
+            else
+            {
+                sb.append("Request took ").append((m_endTime - m_startTime)).append(" miliseconds.");
+            }
+
+            sb.append(" URL: ").append(url).append(". Request: ");
+            sb.append(request.replaceAll("\r{0,1}\n", ""));
+
+            Environment.info(sb.toString());
+        }
+
+        m_startTime = -1;
     }
 }
