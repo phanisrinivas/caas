@@ -241,7 +241,7 @@ public class CordysSystem extends LdapObject
     }
 
     /**
-     * This method gets the 
+     * This method gets the
      * 
      * @return The env
      */
@@ -335,7 +335,23 @@ public class CordysSystem extends LdapObject
      */
     public synchronized LdapObject getLdap(String dn)
     {
-        LdapObject result = ldapcache.get(dn);
+        return getLdap(dn, true);
+    }
+
+    /**
+     * This method gets the ldap.
+     * 
+     * @param dn The dn
+     * @return The ldap
+     */
+    public synchronized LdapObject getLdap(String dn, boolean useCache)
+    {
+        LdapObject result = null;
+
+        if (useCache == true)
+        {
+            result = ldapcache.get(dn);
+        }
 
         if (result != null)
         {
