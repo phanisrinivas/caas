@@ -59,7 +59,15 @@ public class StringUtil
             buff.append(str.substring(prevpos));
             str = buff.toString();
         }
-        return buff.toString();
+
+        if (vars == null || vars.size() == 0)
+        {
+            return str;
+        }
+        else
+        {
+            return buff.toString();
+        }
     }
 
     /*
@@ -318,7 +326,7 @@ public class StringUtil
     {
         if ((str == null) || str.matches("^\\s*$"))
         {
-            return true; 
+            return true;
         }
         else
         {
