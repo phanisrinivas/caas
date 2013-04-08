@@ -254,6 +254,22 @@ public class Caas
         }
         return getSystem(defaultSystem);
     }
+    
+    /**
+     * This method enables trace logging for CAAS.
+     */
+    public static void enableTrace()
+    {
+        Environment.trace = true;
+    }
+
+    /**
+     * This method disables trace logging for CAAS.
+     */
+    public static void disableTrace()
+    {
+        Environment.trace = false;
+    }
 
     /**
      * This method enables debug logging for CAAS.

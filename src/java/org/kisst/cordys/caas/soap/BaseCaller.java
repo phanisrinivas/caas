@@ -379,7 +379,7 @@ public abstract class BaseCaller implements SoapCaller
     {
         m_endTime = System.currentTimeMillis();
 
-        if (Environment.verbose)
+        if (Environment.debug)
         {
             StringBuilder sb = new StringBuilder(1024);
 
@@ -395,7 +395,7 @@ public abstract class BaseCaller implements SoapCaller
             sb.append(" URL: ").append(url).append(". Request: ");
             sb.append(request.replaceAll("\r{0,1}\n", ""));
 
-            Environment.info(sb.toString());
+            Environment.debug(sb.toString());
         }
 
         m_startTime = -1;
