@@ -19,6 +19,8 @@ import java.util.Properties;
 
 import org.kisst.cordys.caas.cm.Template;
 import static org.kisst.cordys.caas.main.Environment.*;
+
+import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.soap.DummyCaller;
 import org.kisst.cordys.caas.soap.HttpClientCaller;
 import org.kisst.cordys.caas.soap.NativeCaller;
@@ -221,7 +223,7 @@ public class Caas
                 throw new RuntimeException("Unknown SoapCaller class " + classname);
             }
             result = new CordysSystem(name, caller);
-            
+
             System.out.println("Connected to system " + name);
 
             if (result.getPropsFile() != null)
@@ -251,5 +253,53 @@ public class Caas
             defaultSystem = get().getProp("caas.defaultSystem", "default");
         }
         return getSystem(defaultSystem);
+    }
+
+    /**
+     * This method enables debug logging for CAAS.
+     */
+    public static void enableDebug()
+    {
+        Environment.debug = true;
+    }
+
+    /**
+     * This method disables debug logging for CAAS.
+     */
+    public static void disableDebug()
+    {
+        Environment.debug = false;
+    }
+
+    /**
+     * This method enables verbose logging for CAAS.
+     */
+    public static void enableVerbose()
+    {
+        Environment.verbose = true;
+    }
+
+    /**
+     * This method disables verbose logging for CAAS.
+     */
+    public static void disableVerbose()
+    {
+        Environment.verbose = false;
+    }
+
+    /**
+     * This method enables quiet logging for CAAS.
+     */
+    public static void enableQuiet()
+    {
+        Environment.quiet = true;
+    }
+
+    /**
+     * This method disables quiet logging for CAAS.
+     */
+    public static void disableQuiet()
+    {
+        Environment.quiet = false;
     }
 }

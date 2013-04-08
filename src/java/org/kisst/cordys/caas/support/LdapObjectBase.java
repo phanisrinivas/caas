@@ -10,10 +10,11 @@
 package org.kisst.cordys.caas.support;
 
 import java.lang.reflect.Constructor;
-
+import java.util.ArrayList;
 import java.util.HashMap;
-
+import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.ConnectionPoint;
@@ -50,6 +51,8 @@ public abstract class LdapObjectBase extends LdapObject
     private String cn;
     /** Holds the Constant ldapObjectTypes. */
     private static final HashMap<String, Class<?>> ldapObjectTypes = new HashMap<String, Class<?>>();
+    /** Holds the list of dummy LDAP entries which are not stored as real LDAP objects, because they are just 'wrappers'. */
+    private static final List<Pattern> dummyParents = new ArrayList<Pattern>();
 
     static
     {
@@ -67,6 +70,11 @@ public abstract class LdapObjectBase extends LdapObject
         ldapObjectTypes.put("busosprocess", OsProcess.class);
         ldapObjectTypes.put("datasource", Dso.class);
         ldapObjectTypes.put("datasourcetype", DsoType.class); // Lets not make it complex
+
+        dummyParents.add(Pattern.compile("^cn=organizational users,o=[^,]+,cn=cordys,cn=[^,]+,o=[^,]+$"));
+        dummyParents.add(Pattern.compile("^cn=organizational roles,o=[^,]+,cn=cordys,cn=[^,]+,o=[^,]+$"));
+        dummyParents.add(Pattern.compile("^cn=soap nodes,o=[^,]+,cn=cordys,cn=[^,]+,o=[^,]+$"));
+        dummyParents.add(Pattern.compile("^cn=method sets,o=[^,]+,cn=cordys,cn=[^,]+,o=[^,]+$"));
     }
 
     /**
@@ -107,9 +115,9 @@ public abstract class LdapObjectBase extends LdapObject
         // We need to figure out what the organizational context is for this object. We determine this by examining the parent
         // until we find the organization object. If we can't determine it we'll use the system or of the CordysSystem.
         Organization retVal = null;
-        
+
         LdapObject current = this;
-        
+
         while (current != null && retVal != null)
         {
             if (current instanceof Organization)
@@ -117,8 +125,8 @@ public abstract class LdapObjectBase extends LdapObject
                 retVal = (Organization) current;
                 break;
             }
-            
-            //Get the parent
+
+            // Get the parent
             CordysObject tmp = current.getParent();
             if (tmp instanceof LdapObjectBase)
             {
@@ -126,7 +134,7 @@ public abstract class LdapObjectBase extends LdapObject
             }
             else
             {
-                //The parent is no longer an LDAP object
+                // The parent is no longer an LDAP object
                 current = null;
                 retVal = tmp.getOrganization();
             }
@@ -267,6 +275,24 @@ public abstract class LdapObjectBase extends LdapObject
             if (parent != null)
             {
                 return parent;
+            }
+
+            // There are a couple of entries that are in LDAP, but that we do not want to retrieve as we've not modeled them
+            // directly into an object. Examples are like 'organizational users', 'soap nodes', 'method sets' or 'organizational
+            // roles'. These are ignored to avoid unneeded calls to the GetLDAPObject for each underlying object.
+            boolean dummy = false;
+            for (Pattern p : dummyParents)
+            {
+                if (p.matcher(dn).matches())
+                {
+                    dummy = true;
+                    break;
+                }
+            }
+
+            if (dummy == true)
+            {
+                continue;
             }
 
             XmlNode entry = retrieveEntry(system, dn);

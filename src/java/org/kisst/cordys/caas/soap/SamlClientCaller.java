@@ -10,7 +10,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
-import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.SamlClient;
 import org.kisst.cordys.caas.util.StringUtil;
 
@@ -99,11 +98,12 @@ public class SamlClientCaller extends BaseCaller
         // Create a PostMethod by passing the Cordys Gateway URL to its constructor
         PostMethod method = new PostMethod(baseURL);
         method.setDoAuthentication(true);
+
+        logStart();
         try
         {
             // Set the query string after encoding it
             method.setQueryString(URIUtil.encodeQuery(queryString));
-            Environment.debug("URL:: " + method.getURI().getURI().toString());
             method.setRequestEntity(new StringRequestEntity(inputSoapRequest, "text/xml", "UTF-8"));
             HttpClient client = new HttpClient();
             if (this.proxyPort != null)
@@ -123,6 +123,11 @@ public class SamlClientCaller extends BaseCaller
         {
             throw new CaasRuntimeException(e);
         }
+        finally
+        {
+            logEnd(baseURL, inputSoapRequest);
+        }
+
         if (statusCode != HttpStatus.SC_OK)
         {
             throw new CaasRuntimeException("\nWebService failed: " + method.getStatusLine() + "\n" + response);
