@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.Configuration;
 import org.kisst.cordys.caas.ConnectionPoint;
 import org.kisst.cordys.caas.CordysSystem;
@@ -25,7 +26,6 @@ import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 import static org.kisst.cordys.caas.main.Environment.*;
-
 
 /**
  * This class is used to create the template of a given organization.
@@ -68,6 +68,8 @@ public class Template
      */
     public Template(Organization org, String targetPackageName, Package pkg, User u)
     {
+        long overallStartTime = System.currentTimeMillis();
+
         info("Exporting template for " + org.getName() + " organization");
         XmlNode result = new XmlNode("org", Constants.XMLNS_TEMPLATE);
         if (targetPackageName != null)
@@ -78,6 +80,7 @@ public class Template
         result.setAttribute("org", org.getName());
 
         // First we export all the non-Cordys packages.
+        long startTime = System.currentTimeMillis();
         info("Exporting non-Cordys packages... ");
         CordysSystem system = org.getSystem();
         for (Package p : system.packages)
@@ -98,8 +101,10 @@ public class Template
                 version.add("warning").setAttribute("message", "Package " + pi.getPackageName() + " should be loaded");
             }
         }
+        info("Finished exporting non-Cordys packages in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
 
         // Export the DSOs in the given organization
+        startTime = System.currentTimeMillis();
         info("Exporting " + org.dsos.getSize() + " dso objects ... ");
         for (DsoType dsotype : org.dsotypes)
         {
@@ -113,8 +118,10 @@ public class Template
                 node.add("datasourceconfiguration").add(configNode);
             }
         }
+        info("Finished exporting dsos in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
 
         // Export XML Store objects
+        startTime = System.currentTimeMillis();
         info("Exporting " + org.xmlStoreObjects.getSize() + " xmlstore objects ... ");
         for (XMLStoreObject xso : org.xmlStoreObjects)
         {
@@ -124,8 +131,10 @@ public class Template
             node.setAttribute("name", xso.getName());
             node.add(xso.getXML().clone());
         }
+        info("Finished exporting xmlstore objects in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
 
         // Exporting local roles
+        startTime = System.currentTimeMillis();
         info("Exporting " + org.roles.getSize() + " roles ... ");
         for (Role role : org.roles)
         {
@@ -156,8 +165,10 @@ public class Template
                     child.setAttribute("package", isvpName);
             }
         }
+        info("Finished exporting roles in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
 
         // Exporting users in the organization
+        startTime = System.currentTimeMillis();
         info("Exporting " + org.users.getSize() + " users ... ");
         for (User user : org.users)
         {
@@ -165,7 +176,22 @@ public class Template
                 continue; // SYSTEM user should not be part of the template
             XmlNode node = result.add("user");
             node.setAttribute("name", user.getName());
-            node.setAttribute("au", user.au.getRef().getName());
+            AuthenticatedUser authUser = user.au.getRef();
+            node.setAttribute("au", authUser.getName());
+
+            if (authUser.authenticationtype != null && !StringUtil.isEmptyOrNull(authUser.authenticationtype.get()))
+            {
+                node.setAttribute("type", authUser.authenticationtype.get());
+            }
+
+            if (authUser.userPassword != null && !StringUtil.isEmptyOrNull(authUser.userPassword.get()))
+            {
+                node.setAttribute("password", authUser.userPassword.get());
+            }
+            
+            //For the osIdentity we only support the first one.
+            node.setAttribute("osidentity", authUser.osidentity.getAt(0));
+
             for (Role role : user.roles)
             {
                 String isvpName = null;
@@ -187,8 +213,10 @@ public class Template
                     child.setAttribute("package", isvpName);
             }
         }
+        info("Finished exporting users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
 
         // Exporting service groups.
+        startTime = System.currentTimeMillis();
         info("Exporting " + org.serviceGroups.getSize() + " service groups ... ");
         for (ServiceGroup serviceGroup : org.serviceGroups)
         {
@@ -198,13 +226,13 @@ public class Template
             XmlNode keyStoreNode = configNode.getChild("soapnode_keystore");
             if (keyStoreNode != null)
                 configNode.remove(keyStoreNode);
-            
-            //If no namespace is defined on the given XML node we need to explicitly set it to ""
+
+            // If no namespace is defined on the given XML node we need to explicitly set it to ""
             if (configNode.getNamespace() == null)
             {
                 configNode.setNamespace("");
             }
-            
+
             node.add("bussoapnodeconfiguration").add(configNode);
             for (WebServiceInterface wsi : serviceGroup.webServiceInterfaces)
             {
@@ -262,6 +290,10 @@ public class Template
                 }
             }
         }
+        info("Finished exporting service groups in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+
+        info("Finished exporting entire template in " + ((System.currentTimeMillis() - overallStartTime) / 1000)
+                + " seconds ... ");
 
         String str = result.getPretty();
         this.template = str.replace("$", "${dollar}");
@@ -620,17 +652,15 @@ public class Template
         String name = userNode.getAttribute("name");
         if ("SYSTEM".equals(name.toUpperCase()))
         {
-            /*
-             * Whenever I had a SYSTEM user in my template, Cordys would crash pretty hard. It would not be possible to start the
-             * monitor anymore. I had to use the CMC to remove the organization before the Monitor would start again.
-             */
+            // Whenever I had a SYSTEM user in my template, Cordys would crash pretty hard. It would not be possible to start the
+            // monitor anymore. I had to use the CMC to remove the organization before the Monitor would start again.
             error("Ignoring user " + name + " because the SYSTEM user should not be modified from a template");
             return;
         }
         if (org.users.getByName(name) == null) // Create User
         {
             info("creating user " + name + " ... ");
-            org.createUser(name, userNode.getAttribute("au")); // Create Org User
+            org.createUser(name, userNode.getAttribute("au"), userNode.getAttribute("type"), userNode.getAttribute("osidentity"), userNode.getAttribute("password")); // Create Org User
             info("OK");
         }
 

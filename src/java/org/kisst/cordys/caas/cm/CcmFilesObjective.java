@@ -14,7 +14,7 @@ public class CcmFilesObjective extends CompositeObjective {
 		for (String path: files) {
 			File f=new File(path);
 			if (f.isFile())
-				entries.add(new CaasPackage(path, system));
+				entries.add(new CaasPackage(path, system, null));
 			else if (f.isDirectory()) {
 				if (files.length==1) // prevents one layer
 					addFlatDirectory(f);
@@ -36,7 +36,7 @@ public class CcmFilesObjective extends CompositeObjective {
 		for (String p: dir.list()) {
 			File f=new File(dir,p);
 			if (f.isFile())
-				entries.add(new CaasPackage(f.getPath(), system));
+				entries.add(new CaasPackage(f.getPath(), system, null));
 		}
 	}
 

@@ -18,6 +18,7 @@ public class CaasMainCommand extends CompositeCommand
     Cli cli = new Cli();
     Cli.Flag quiet = cli.flag("q", "quiet", "don't output anything unless errors happen");
     Cli.Flag verbose = cli.flag("v", "verbose", "be verbose about what you are doing");
+    Cli.Flag trace = cli.flag("t", "trace", "if this option is set trace logging will be shown");
     Cli.Flag debug = cli.flag("d", "debug", "if this option is set debug logging will be shown");
     Cli.StringOption config = cli.stringOption("c", "config", "location of config file with connection properties", null);
     Cli.Flag showhelp = cli.flag("h", "help", "show this help information");
@@ -44,6 +45,9 @@ public class CaasMainCommand extends CompositeCommand
         commands.put("setup", new SetupCommand());
     }
 
+    /**
+     * @see org.kisst.cordys.caas.main.CompositeCommand#getSyntax()
+     */
     @Override
     public String getSyntax()
     {
@@ -58,12 +62,18 @@ public class CaasMainCommand extends CompositeCommand
         return result;
     }
 
+    /**
+     * @see org.kisst.cordys.caas.main.CompositeCommand#getHelp()
+     */
     @Override
     public String getHelp()
     {
         return super.getHelp() + "\nOPTIONS\n" + cli.getSyntax("\t");
     }
 
+    /**
+     * @see org.kisst.cordys.caas.main.CompositeCommand#run(java.lang.String[])
+     */
     @Override
     public void run(String[] args)
     {
@@ -74,20 +84,28 @@ public class CaasMainCommand extends CompositeCommand
         {
             System.setProperty(Constants.CAAS_CONF_LOCATION, config.get());
         }
-        
+
         // Initialize the environment
         if (debug.isSet())
         {
             Environment.debug = true;
         }
+
         if (verbose.isSet())
         {
             Environment.verbose = true;
         }
+
+        if (trace.isSet())
+        {
+            Environment.trace = true;
+        }
+
         if (quiet.isSet())
         {
             Environment.quiet = true;
         }
+
         if (version.isSet())
         {
             System.out.println(Caas.getVersion());
@@ -98,6 +116,7 @@ public class CaasMainCommand extends CompositeCommand
         {
             System.out.println("caas: Cordys Administration Automation Scripting, version " + Caas.getVersion());
         }
+
         if (showhelp.isSet())
         {
             help.run(args);

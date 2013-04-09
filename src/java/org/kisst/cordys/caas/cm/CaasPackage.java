@@ -9,11 +9,9 @@
 
 package org.kisst.cordys.caas.cm;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
@@ -48,16 +46,14 @@ public class CaasPackage implements Objective
      * 
      * @param ccmfile The pmfile to parse.
      */
-    public CaasPackage(String ccmfile, CordysSystem system)
+    public CaasPackage(String ccmfile, CordysSystem system, String organization)
     {
         this.name = ccmfile;
         this.system = system;
         String content = FileUtil.loadString(ccmfile);
 
         // The content of the file contains the variables. So we need to replace them which the actual properties.
-        Properties p = system.getProperties();
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Map<String, String> variables = new LinkedHashMap<String, String>((Map) p);
+        Map<String, String> variables = Environment.get().loadSystemProperties(system.getName(), organization);
         content = StringUtil.substitute(content, variables);
 
         XmlNode pm = new XmlNode(content);
