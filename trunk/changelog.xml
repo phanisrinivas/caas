@@ -34,7 +34,7 @@
       <action dev="pgussow" type="add"><![CDATA[Added 2 sample scripts: 1 to get all the CAP packages that are currently loaded on a system and 1 script to upload and deploy all CAPs in a certain folder.]]></action>
       <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the packages list. It did not obey whether or not the server supports OLD.]]></action>
     </release>
-    <release description="Stable release" version="2.0.17">
+    <release date="2013-04-09" description="Stable release" version="2.0.17">
       <action dev="pgussow" type="fix"><![CDATA[For each user in an organization it was executing a call to the GetLDAPObject because the 'organizational users' entry is not mapped to an LDAP object. This is now removed.]]></action>
       <action dev="pgussow" type="add"><![CDATA[When debug is enabled it will log the response times of all the requests. The category is caas.http]]></action>
       <action dev="pgussow" type="change"><![CDATA[Removed all the direct System.out calls. They are now through Log4J.]]></action>
