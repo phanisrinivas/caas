@@ -20,6 +20,7 @@ import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.util.Constants;
+import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
@@ -189,29 +190,31 @@ public class Organization extends LdapObjectBase
      */
     public void createUser(String name)
     {
-        AuthenticatedUser authUser = getSystem().authenticatedUsers.getByName(name);
-        String au = null;
-        if (authUser != null)
-        {
-            au = authUser.getName();
-        }
-
-        createUser(name, au);
+        createUser(name, null, null, null, null);
     }
 
     /**
-     * Creates an organization user with the given name
+     * Creates an organization user with the given name.
      * 
-     * @param name Name of the user
-     * @param authUser Authenticated user object
+     * @param name The name of the organizational user.
+     * @param auName The name of the authenticated user.
+     * @param type The type for the authenticated user in case it should be created.
+     * @param osIdentity The os identity for the authenticated user in case it should be created.
+     * @param password The password for the authenticated user in case it should be created.
      */
-    public void createUser(String name, String auName)
+    public void createUser(String name, String auName, String type, String osIdentity, String password)
     {
+        if (StringUtil.isEmptyOrNull(auName))
+        {
+            auName = name;
+        }
+        
+        //See if the authenticated user is there.
         AuthenticatedUser au = getSystem().authenticatedUsers.getByName(auName);
         if (au == null)
         {
             Environment.info("Cound not find authenticated user for '" + name + "'. Hence creating it");
-            getSystem().createAuthenticatedUser(name, this.getDn());
+            getSystem().createAuthenticatedUser(name, this.getDn(), type, osIdentity, password);
             au = getSystem().authenticatedUsers.getByName(name);
         }
 

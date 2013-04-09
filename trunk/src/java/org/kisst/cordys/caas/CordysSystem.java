@@ -162,13 +162,49 @@ public class CordysSystem extends LdapObject
      */
     public void createAuthenticatedUser(String name, String defaultOrgContext)
     {
+        createAuthenticatedUser(name, defaultOrgContext, null, null, null);
+    }
+
+    /**
+     * Creates an authenticated user.
+     * 
+     * @param name Name of the authenticated user
+     * @param defaultOrgContext Name of the default organization
+     * @param type The type for the
+     * @param osIdentity The os identity to use.
+     * @param password The password for the user. If the password starts with {SHA1} then the password is added as is. Otherwise
+     *            it is assumed to be plain text and thus a SHA1 hash will be calculated.
+     */
+    public void createAuthenticatedUser(String name, String defaultOrgContext, String type, String osIdentity, String password)
+    {
+        if (StringUtil.isEmptyOrNull(type))
+        {
+            type = "custom";
+        }
+        
+        if (StringUtil.isEmptyOrNull(osIdentity))
+        {
+            osIdentity = name;
+        }
+        
+        if (StringUtil.isEmptyOrNull(password))
+        {
+            password = name;
+        }
+        
+        if (!password.startsWith("{SHA1}"))
+        {
+            password = PasswordHasher.encryptPassword(password);
+        }
+        
         XmlNode newEntry = newAuthenticatedUserEntryXml("cn=authenticated users,", name, "busauthenticationuser");
         newEntry.add("defaultcontext").add("string").setText(defaultOrgContext);
         newEntry.add("description").add("string").setText(name);
-        newEntry.add("osidentity").add("string").setText(name);
+        newEntry.add("osidentity").add("string").setText(osIdentity);
+        newEntry.add("authenticationtype").add("string").setText(type);
         newEntry.add("cn").add("string").setText(name);
         // Set the userPassword same as the osidentity
-        newEntry.add("userPassword").add("string").setText(PasswordHasher.encryptPassword(name));
+        newEntry.add("userPassword").add("string").setText(password);
         createInLdap(newEntry);
         authenticatedUsers.clear();
     }

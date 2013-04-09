@@ -21,6 +21,10 @@ public class AuthenticatedUser extends LdapObjectBase
     public final RefProperty<Organization> defaultOrg = new RefProperty<Organization>("defaultcontext");
     /** Holds the osidentity. */
     public final StringList osidentity = new StringList("osidentity");
+    /** Holds the authentication type. */
+    public final StringProperty authenticationtype = new StringProperty("authenticationtype");
+    /** Holds the password of the user. */
+    public final StringProperty userPassword = new StringProperty("userPassword");
 
     /**
      * Instantiates a new authenticated user.

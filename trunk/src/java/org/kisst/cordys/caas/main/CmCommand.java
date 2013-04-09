@@ -37,8 +37,8 @@ public class CmCommand extends CompositeCommand
         }
 
         protected final Cli cli = new Cli();
-        private final Cli.StringOption systemOption = cli.stringOption("s", "system", "the system to use", null);
-        private final Cli.StringOption orgOption = cli.stringOption("o", "organization", "the organization to use", null);
+        protected final Cli.StringOption systemOption = cli.stringOption("s", "system", "the system to use", null);
+        protected final Cli.StringOption orgOption = cli.stringOption("o", "organization", "the organization to use", null);
 
         protected CordysSystem getSystem()
         {
@@ -101,7 +101,7 @@ public class CmCommand extends CompositeCommand
             Organization org = null;
             for (String path : getFiles(args))
             {
-                CaasPackage p = new CaasPackage(path, getSystem());
+                CaasPackage p = new CaasPackage(path, getSystem(), orgOption.get());
                 if (org == null || !org.getName().equals(p.getDefaultOrgName()))
                     org = getOrg(p.getDefaultOrgName());
                 boolean result = p.check(ui) == 0;
@@ -129,7 +129,7 @@ public class CmCommand extends CompositeCommand
             Organization org = null;
             for (String path : getFiles(args))
             {
-                CaasPackage p = new CaasPackage(path, getSystem());
+                CaasPackage p = new CaasPackage(path, getSystem(), orgOption.get());
                 if (org == null || !org.getName().equals(p.getDefaultOrgName()))
                     org = getOrg(p.getDefaultOrgName());
                 p.configure(ui);
@@ -144,7 +144,7 @@ public class CmCommand extends CompositeCommand
             Organization org = null;
             for (String path : getFiles(args))
             {
-                CaasPackage p = new CaasPackage(path, getSystem());
+                CaasPackage p = new CaasPackage(path, getSystem(), orgOption.get());
                 if (org == null || !org.getName().equals(p.getDefaultOrgName()))
                     org = getOrg(p.getDefaultOrgName());
                 p.purge(ui);

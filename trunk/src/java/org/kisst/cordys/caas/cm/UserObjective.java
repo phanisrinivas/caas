@@ -20,6 +20,12 @@ public class UserObjective extends ObjectiveBase
 {
     /** Holds the name of the authenticated user. */
     private final String auName;
+    /** Holds the type of the authenticated user. */
+    private final String type;
+    /** Holds the osidentity for the user */
+    private final String osidentity;
+    /** Holds the password for the user */
+    private final String password;
 
     /**
      * Instantiates a new user objective.
@@ -31,6 +37,9 @@ public class UserObjective extends ObjectiveBase
     {
         super(org, "roles", node, false);
         this.auName = node.getAttribute("au", name);
+        this.type = node.getAttribute("type", null);
+        this.osidentity = node.getAttribute("osidentity", null);
+        this.password = node.getAttribute("password", null);
     }
 
     /**
@@ -73,6 +82,6 @@ public class UserObjective extends ObjectiveBase
             // if (! auName.equals(user.authenticatedUser.get()))
             // user.au.set(auName);
         }
-        org.createUser(name, auName);
+        org.createUser(name, auName, type, osidentity, password);
     }
 }
