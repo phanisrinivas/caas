@@ -79,14 +79,18 @@ public class Assignment<T extends CordysObject> extends CordysObject
         team = getOrganization().teams.findByUnitID(unitId.get());
         user = getOrganization().users.findByDn(userDn.get());
 
+        Role tmp = null;
         if (!StringUtil.isEmptyOrNull(unitRoleId.get()))
         {
-            role = getOrganization().roles.get(unitRoleId.get());
+            tmp = getOrganization().roles.get(unitRoleId.get());
         }
-        else
+        
+        if (tmp == null && (roleDn != null && !StringUtil.isEmptyOrNull(roleDn.get())))
         {
-            role = null;
+            tmp = (Role) getSystem().getLdap(roleDn.get());
         }
+        
+        role = tmp;
     }
 
     /**
@@ -155,6 +159,23 @@ public class Assignment<T extends CordysObject> extends CordysObject
     public String getKey()
     {
         return id.get();
+    }
+    
+    /**
+     * This method gets the plain username of the assignment.
+     * 
+     * @return The plain username of the assignment.
+     */
+    public String getUsername()
+    {
+        String retVal = null;
+        
+        if (userDn != null && !StringUtil.isEmptyOrNull(userDn.get()))
+        {
+            retVal = StringUtil.getCN(userDn.get());
+        }
+        
+        return retVal;
     }
 
     /**

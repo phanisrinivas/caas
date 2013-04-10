@@ -21,7 +21,7 @@ public class StringUtil
      */
     public static String quotedName(String name)
     {
-        if ((name.indexOf(' ') >= 0) || (name.indexOf('.') >= 0))
+        if ((name.indexOf(' ') >= 0) || (name.indexOf('.') >= 0) || (name.indexOf('-') >= 0))
         {
             return '"' + name + '"';
         }
@@ -69,13 +69,6 @@ public class StringUtil
             return buff.toString();
         }
     }
-
-    /*
-     * public static String reverseSubstitute(String str, Map<String, String> vars){ String patternString = "(" +
-     * StringUtil.join(vars.values().iterator(), "|") + ")"; Pattern pattern = Pattern.compile(patternString); Matcher matcher =
-     * pattern.matcher(str); StringBuffer buff = new StringBuffer(); while(matcher.find()){ matcher.appendReplacement(buff,
-     * "\\${"+StringUtil.getKeyByValue(vars, matcher.group(1))+"}"); } matcher.appendTail(buff); return buff.toString(); }
-     */
 
     /**
      * Returns a key matching the given value from the givem Map.
@@ -365,5 +358,19 @@ public class StringUtil
         }
 
         return retVal;
+    }
+
+    /**
+     * This method gets the cn from a LDAP DN.
+     * 
+     * @param dn The dn
+     * @return The cn
+     */
+    public static String getCN(String dn)
+    {
+        int pos = dn.indexOf("=");
+        int pos2 = dn.indexOf(",", pos);
+
+        return dn.substring(pos + 1, pos2);
     }
 }

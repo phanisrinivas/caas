@@ -95,7 +95,10 @@ public class XmlProperty<T>
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
                 try
                 {
-                    res = (T) sdf.parse(value);
+                    if (!StringUtil.isEmptyOrNull(value))
+                    {
+                        res = (T) sdf.parse(value);
+                    }
                 }
                 catch (ParseException e)
                 {
@@ -159,7 +162,7 @@ public class XmlProperty<T>
             else if (m_dataClass == Date.class)
             {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-                _set(sdf.format((T)value));
+                _set(sdf.format((T) value));
             }
             else if (m_dataClass == Boolean.class)
             {
