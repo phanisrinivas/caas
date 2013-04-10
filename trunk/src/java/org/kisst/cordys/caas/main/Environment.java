@@ -36,7 +36,7 @@ public class Environment
     static
     {
         // Initialize the Log4J logging system.
-        Layout layout = new PatternLayout("%-5p: %m%n");
+        Layout layout = new PatternLayout("%-5p [%c]: %m%n");
         ConsoleAppender ca = new ConsoleAppender(layout);
 
         if (!Logger.getRootLogger().getAllAppenders().hasMoreElements())
@@ -44,12 +44,13 @@ public class Environment
             BasicConfigurator.configure(ca);
         }
 
+        Logger.getRootLogger().setLevel(Level.ERROR);
+        
         m_log = Logger.getLogger("caas");
 
         m_log.setLevel(Level.ALL);
 
         singleton = new Environment();
-
     }
 
     /** Holds whether or not to display the debug messages */

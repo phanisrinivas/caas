@@ -242,6 +242,7 @@
             <documentation>The roles that this user should have</documentation>
           </annotation>
         </element>
+        <element name="assignment" type="tns:ctAssignment" maxOccurs="unbounded" minOccurs="0"></element>
       </sequence>
       <attribute name="name" type="string" use="required">
         <annotation>
@@ -466,4 +467,8 @@
         <enumeration value="append"></enumeration>
       </restriction>
     </simpleType>
+
+    <complexType name="ctAssignment">
+      <attribute name="team" type="string"></attribute>
+    </complexType>
 </schema>

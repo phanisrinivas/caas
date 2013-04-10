@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.kisst.cordys.caas.Assignment;
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.Configuration;
 import org.kisst.cordys.caas.ConnectionPoint;
@@ -136,6 +137,43 @@ public class Template
         // Exporting local roles
         startTime = System.currentTimeMillis();
         info("Exporting " + org.roles.getSize() + " roles ... ");
+
+        exportRoles(org, targetPackageName, result);
+
+        info("Finished exporting roles in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+
+        // Exporting users in the organization
+        startTime = System.currentTimeMillis();
+        info("Exporting " + org.users.getSize() + " users ... ");
+
+        exportUsers(org, targetPackageName, result);
+
+        info("Finished exporting users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+
+        // Exporting service groups.
+        startTime = System.currentTimeMillis();
+        info("Exporting " + org.serviceGroups.getSize() + " service groups ... ");
+
+        exportServiceGroups(org, targetPackageName, result);
+
+        info("Finished exporting service groups in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+
+        info("Finished exporting entire template in " + ((System.currentTimeMillis() - overallStartTime) / 1000)
+                + " seconds ... ");
+
+        String str = result.getPretty();
+        this.template = str.replace("$", "${dollar}");
+    }
+
+    /**
+     * Export roles.
+     * 
+     * @param org The org
+     * @param targetPackageName The target package name
+     * @param result The result
+     */
+    private void exportRoles(Organization org, String targetPackageName, XmlNode result)
+    {
         for (Role role : org.roles)
         {
             XmlNode node = result.add("role");
@@ -165,59 +203,17 @@ public class Template
                     child.setAttribute("package", isvpName);
             }
         }
-        info("Finished exporting roles in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+    }
 
-        // Exporting users in the organization
-        startTime = System.currentTimeMillis();
-        info("Exporting " + org.users.getSize() + " users ... ");
-        for (User user : org.users)
-        {
-            if ("SYSTEM".equals(user.getName().toUpperCase()))
-                continue; // SYSTEM user should not be part of the template
-            XmlNode node = result.add("user");
-            node.setAttribute("name", user.getName());
-            AuthenticatedUser authUser = user.au.getRef();
-            node.setAttribute("au", authUser.getName());
-
-            if (authUser.authenticationtype != null && !StringUtil.isEmptyOrNull(authUser.authenticationtype.get()))
-            {
-                node.setAttribute("type", authUser.authenticationtype.get());
-            }
-
-            if (authUser.userPassword != null && !StringUtil.isEmptyOrNull(authUser.userPassword.get()))
-            {
-                node.setAttribute("password", authUser.userPassword.get());
-            }
-            
-            //For the osIdentity we only support the first one.
-            node.setAttribute("osidentity", authUser.osidentity.getAt(0));
-
-            for (Role role : user.roles)
-            {
-                String isvpName = null;
-                if (role.getParent() instanceof Organization)
-                {
-                    if (role.getName().equals("everyoneIn" + org.getName()))
-                        continue;
-                    isvpName = targetPackageName;
-                }
-                else
-                    isvpName = role.getParent().getName();
-                XmlNode child = node.add("role");
-                child.setAttribute("name", role.getName());
-                if (role.type.get() != null)
-                {
-                    child.setAttribute("type", role.type.get());
-                }
-                if (isvpName != null)
-                    child.setAttribute("package", isvpName);
-            }
-        }
-        info("Finished exporting users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
-
-        // Exporting service groups.
-        startTime = System.currentTimeMillis();
-        info("Exporting " + org.serviceGroups.getSize() + " service groups ... ");
+    /**
+     * Export service groups.
+     * 
+     * @param org The org
+     * @param targetPackageName The target package name
+     * @param result The result
+     */
+    private void exportServiceGroups(Organization org, String targetPackageName, XmlNode result)
+    {
         for (ServiceGroup serviceGroup : org.serviceGroups)
         {
             XmlNode node = result.add("servicegroup");
@@ -290,13 +286,111 @@ public class Template
                 }
             }
         }
-        info("Finished exporting service groups in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+    }
 
-        info("Finished exporting entire template in " + ((System.currentTimeMillis() - overallStartTime) / 1000)
-                + " seconds ... ");
+    /**
+     * Export users.
+     * 
+     * @param org The org
+     * @param targetPackageName The target package name
+     * @param result The result
+     */
+    private void exportUsers(Organization org, String targetPackageName, XmlNode result)
+    {
+        for (User user : org.users)
+        {
+            if ("SYSTEM".equals(user.getName().toUpperCase()))
+                continue; // SYSTEM user should not be part of the template
+            XmlNode node = result.add("user");
+            node.setAttribute("name", user.getName());
+            AuthenticatedUser authUser = user.au.getRef();
+            node.setAttribute("au", authUser.getName());
 
-        String str = result.getPretty();
-        this.template = str.replace("$", "${dollar}");
+            if (authUser.authenticationtype != null && !StringUtil.isEmptyOrNull(authUser.authenticationtype.get()))
+            {
+                node.setAttribute("type", authUser.authenticationtype.get());
+            }
+
+            if (authUser.userPassword != null && !StringUtil.isEmptyOrNull(authUser.userPassword.get()))
+            {
+                node.setAttribute("password", authUser.userPassword.get());
+            }
+
+            // For the osIdentity we only support the first one.
+            node.setAttribute("osidentity", authUser.osidentity.getAt(0));
+
+            for (Role role : user.roles)
+            {
+                String isvpName = null;
+                if (role.getParent() instanceof Organization)
+                {
+                    if (role.getName().equals("everyoneIn" + org.getName()))
+                        continue;
+                    isvpName = targetPackageName;
+                }
+                else
+                    isvpName = role.getParent().getName();
+                XmlNode child = node.add("role");
+                child.setAttribute("name", role.getName());
+                if (role.type.get() != null)
+                {
+                    child.setAttribute("type", role.type.get());
+                }
+                if (isvpName != null)
+                    child.setAttribute("package", isvpName);
+            }
+
+            // Export the assignments. The difficulty is to figure out which role the user plays in the assignment.
+            for (Assignment<User> a : user.assignments)
+            {
+                XmlNode assignment = node.add("assignment");
+
+                assignment.setAttribute("team", a.team.getName());
+                if (a.effectiveDate.get() != null)
+                {
+                    assignment.setAttribute("effectivedate", String.valueOf(a.effectiveDate.get().getTime()));
+                }
+
+                if (a.isPrincipal.get() == true)
+                {
+                    assignment.setAttribute("principal", "true");
+                }
+
+                if (a.isLead.get() == true)
+                {
+                    assignment.setAttribute("lead", "true");
+                }
+
+                if (a.role != null)
+                {
+                    String packageName = null;
+
+                    if (a.role.getParent() instanceof Organization)
+                    {
+                        if (a.role.getName().equals("everyoneIn" + org.getName()))
+                        {
+                            continue;
+                        }
+                        packageName = targetPackageName;
+                    }
+                    else
+                    {
+                        packageName = a.role.getParent().getName();
+                    }
+
+                    assignment.setAttribute("rolename", a.role.getName());
+                    if (a.role.type.get() != null)
+                    {
+                        assignment.setAttribute("roletype", a.role.type.get());
+                    }
+                    if (packageName != null)
+                    {
+                        assignment.setAttribute("rolepackage", packageName);
+                    }
+                }
+            }
+
+        }
     }
 
     /**
@@ -660,7 +754,8 @@ public class Template
         if (org.users.getByName(name) == null) // Create User
         {
             info("creating user " + name + " ... ");
-            org.createUser(name, userNode.getAttribute("au"), userNode.getAttribute("type"), userNode.getAttribute("osidentity"), userNode.getAttribute("password")); // Create Org User
+            org.createUser(name, userNode.getAttribute("au"), userNode.getAttribute("type"), userNode.getAttribute("osidentity"),
+                    userNode.getAttribute("password")); // Create Org User
             info("OK");
         }
 
