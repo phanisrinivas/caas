@@ -42,7 +42,7 @@ public class User extends LdapObjectBase
     public final AssignmentList<User> assignment;
     /** Alias for the assignments */
     public final AssignmentList<User> a;
-
+    
     /**
      * Instantiates a new user.
      * 

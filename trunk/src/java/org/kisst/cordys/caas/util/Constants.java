@@ -39,6 +39,9 @@ public class Constants
     public static final String INITIALIZE_ASSIGNMENT_ROOT = "InitializeAssignmentRoot";
     public static final String GET_UNITS_FOR_ASSIGNMENT = "GetUnitsForAssignments";
     public static final String GET_ASSIGNMENTS = "GetAssignments";
+    public static final String GET_WORKLISTS = "GetWorklists";
+    public static final String GET_WORKLISTS_BY_TEAM = "GetWorklistsByTeam";
+    public static final String GET_USERS_BY_WORKLIST = "GetUsersByWorklist";
 
     public static final String XMLNS_TEMPLATE = "http://caas.kisst.org/2.0/template";
     public final static String XMLNS_MONITOR = "http://schemas.cordys.com/1.0/monitor";
@@ -49,9 +52,12 @@ public class Constants
     public final static String XMLNS_NOTIFICATION = "http://schemas.cordys.com/1.0/notification";
     public final static String XMLNS_CAP = "http://schemas.cordys.com/cap/1.0";
     public static final String XMLNS_USER_ASSIGNMENT = "http://schemas.cordys.com/userassignment/UserAssignmentService/1.0";
+    public static final String XMLNS_NOTIFICATION_WORKFLOW = "http://schemas.cordys.com/notification/workflow/1.0";
 
     public static final String[][] NS = new String[][] { { "mon", XMLNS_MONITOR }, { "ldap", XMLNS_LDAP }, { "isv", XMLNS_ISV },
-            { "xs", XMLNS_XMLSTORE }, { "coboc", XMLNS_COBOC }, { "cap", XMLNS_CAP }, {"ua", XMLNS_USER_ASSIGNMENT} };
+            { "xs", XMLNS_XMLSTORE }, { "coboc", XMLNS_COBOC }, { "cap", XMLNS_CAP }, { "ua", XMLNS_USER_ASSIGNMENT },
+            { "nw", XMLNS_NOTIFICATION_WORKFLOW } };
+    
     /** Holds the regex to get the CN of the current entry. */
     public static final Pattern GET_CN = Pattern.compile("^cn=([^,]+)");
 
