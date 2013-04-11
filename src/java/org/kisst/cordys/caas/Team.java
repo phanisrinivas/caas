@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.kisst.cordys.caas.Assignment.AssignmentList;
+import org.kisst.cordys.caas.Worklist.WorklistList;
 import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.support.XmlProperty;
@@ -43,6 +44,12 @@ public class Team extends CordysObject
     public final AssignmentList<Team> assignment;
     /** Alias for the assignments */
     public final AssignmentList<Team> a;
+    /** Holds the worklists that are attached to this team */
+    public final WorklistList<Team> worklists;
+    /** Alias for the worklists */
+    public final WorklistList<Team> worklist;
+    /** Alias for the worklists */
+    public final WorklistList<Team> w;
 
     /**
      * Instantiates a new team.
@@ -66,6 +73,10 @@ public class Team extends CordysObject
         assignments = new AssignmentList<Team>(this);
         assignment = assignments;
         a = assignments;
+
+        worklists = new WorklistList<Team>(org, this);
+        worklist = worklists;
+        w = worklists;
     }
 
     @Override
@@ -190,7 +201,7 @@ public class Team extends CordysObject
         {
             return m_organization;
         }
-        
+
         /**
          * This method will search for the team with the given Unit ID.
          * 
@@ -200,10 +211,10 @@ public class Team extends CordysObject
         public Team findByUnitID(String unitId)
         {
             Team retVal = null;
-            
-            //Make sure the list is available
+
+            // Make sure the list is available
             ArrayList<Team> allTeams = fetchList();
-            
+
             for (Team team : allTeams)
             {
                 if (team.id.get().equals(unitId))
@@ -212,7 +223,7 @@ public class Team extends CordysObject
                     break;
                 }
             }
-            
+
             return retVal;
         }
     }

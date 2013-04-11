@@ -70,11 +70,21 @@ public class Organization extends LdapObjectBase
     public final ChildList<Dso> d;
     /** Holds the assignment root that is used for assigning teams and users. */
     private String m_assignmentRoot;
-    // Collections to hold the teams
+    
+    /** Holds the teams in this organization */
     public final Team.TeamList teams = new Team.TeamList(this);
+    /** Alias for the teams */
     public final Team.TeamList team = teams;
+    /** Alias for the teams */
     public final Team.TeamList t = teams;
+    /** Alias for the teams */
     public final Team.TeamList ou = teams;
+    /** Holds all the worklists in this organization */
+    public final Worklist.WorklistList<Organization> worklists = new Worklist.WorklistList<Organization>(this);
+    /** Alias for the worklists */
+    public final Worklist.WorklistList<Organization> worklist = worklists;
+    /** Alias for the worklists */
+    public final Worklist.WorklistList<Organization> w = worklists;
 
     /**
      * Instantiates a new organization.
