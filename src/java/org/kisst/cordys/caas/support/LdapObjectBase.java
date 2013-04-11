@@ -193,7 +193,6 @@ public abstract class LdapObjectBase extends LdapObject
         }
 
         String newdn = entry.getAttribute("dn");
-        // System.out.println("createObject ["+newdn+"]");
         LdapObject parent = calcParent(system, entry.getAttribute("dn"));
         Class<?> resultClass = determineClass(system, entry);
 
@@ -231,7 +230,6 @@ public abstract class LdapObjectBase extends LdapObject
             return null;
         }
 
-        // System.out.println("calcParent:: "+entry.getPretty());
         XmlNode objectclass = entry.getChild("objectclass");
 
         for (XmlNode o : objectclass.getChildren("string"))
@@ -262,7 +260,6 @@ public abstract class LdapObjectBase extends LdapObject
      */
     private static LdapObject calcParent(CordysSystem system, String dn)
     {
-        // System.out.println("calcParent ["+dn+"]");
         String origdn = dn;
         int pos;
 

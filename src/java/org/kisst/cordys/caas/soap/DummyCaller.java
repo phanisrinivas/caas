@@ -92,7 +92,6 @@ public class DummyCaller implements SoapCaller
     {
         String dn = method.getChildText("dn");
         XmlNode result = new XmlNode("GetChildrenResponse");
-        // System.out.println(dn+index.get(dn));
         XmlNode ldap = null;
         String tmp = dn;
         while (ldap == null && tmp.indexOf(",") > 0)
@@ -113,7 +112,6 @@ public class DummyCaller implements SoapCaller
         XmlNode result = env.add("Body").add("GetVersionResponse");
         result.add("version").setText(dump.getAttribute("version"));
         result.add("build").setText(dump.getAttribute("build"));
-        // System.out.println(env.getPretty());
         return result;
     }
 

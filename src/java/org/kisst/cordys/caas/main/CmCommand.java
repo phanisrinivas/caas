@@ -105,7 +105,7 @@ public class CmCommand extends CompositeCommand
                 if (org == null || !org.getName().equals(p.getDefaultOrgName()))
                     org = getOrg(p.getDefaultOrgName());
                 boolean result = p.check(ui) == 0;
-                System.out.println(path + "\t" + result);
+                Environment.debug(path + "\t" + result);
             }
         }
     };
@@ -164,7 +164,7 @@ public class CmCommand extends CompositeCommand
                 File f = new File(filename);
                 if (f.exists())
                 {
-                    System.out.println("skipping file " + filename + ", already exists");
+                    Environment.debug("skipping file " + filename + ", already exists");
                     continue;
                 }
                 Template tpl = new Template(org, null, null, u);
@@ -190,7 +190,7 @@ public class CmCommand extends CompositeCommand
                 File f = new File(filename);
                 if (f.exists())
                 {
-                    System.out.println("skipping file " + filename + ", already exists");
+                    Environment.debug("skipping file " + filename + ", already exists");
                     continue;
                 }
                 Template tpl = new Template(org, null, isvp, null);

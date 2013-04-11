@@ -191,7 +191,6 @@ public class Machine extends CordysObject
      */
     private void checkIfDependentIsvpsInstalled(String isvpName, XmlNode isvpPackageNode)
     {
-        // System.out.print("Checking if dependent ISVPs of '"+isvpName+"' are installed on '"+hostname+"' Node ... ");
         List<XmlNode> dependentIsvps = null;
         List<XmlNode> installedIsvps = getInstalledIsvps();
         XmlNode dependenciesNode = isvpPackageNode.getChild("dependencies");
@@ -213,11 +212,9 @@ public class Machine extends CordysObject
             }
             if (!installed)
             {
-                System.out.println("FAILED");
                 throw new CaasRuntimeException("Dependent ISVP '" + dependentIsvpName + "' is not installed on " + hostname);
             }
         }
-        // System.out.println("OK");
     }
 
     /**

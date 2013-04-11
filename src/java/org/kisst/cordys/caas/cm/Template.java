@@ -21,6 +21,7 @@ import org.kisst.cordys.caas.ServiceGroup;
 import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.XMLStoreObject;
+import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
@@ -873,7 +874,7 @@ public class Template
             else if (node.getName().equals("role"))
                 checkRole(org, node);
             else
-                System.out.println("Unknown organization element " + node.getPretty());
+                Environment.warn("Unknown organization element " + node.getPretty());
         }
     }
 
