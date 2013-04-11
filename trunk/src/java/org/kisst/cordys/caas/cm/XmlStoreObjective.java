@@ -111,9 +111,7 @@ public class XmlStoreObjective extends CompositeObjective
             }
             status = OK;
 
-            // System.out.println(xml.getPretty());
             String text = xml.getText();
-            // System.out.println(text);
             message = "";
 
             if (text.indexOf(actual) < 0)

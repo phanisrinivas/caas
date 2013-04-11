@@ -93,11 +93,11 @@ public class Caas
     {
         try
         {
-            System.out.print("Connecting to system " + name + " (" + filename + ") ... ");
+            Environment.info("Connecting to system " + name + " (" + filename + ") ... ");
 
             HttpClientCaller caller = new HttpClientCaller(filename);
             CordysSystem result = new CordysSystem(name, caller);
-            System.out.println("OK");
+            Environment.info("OK");
             return result;
         }
         catch (Exception e)
@@ -107,7 +107,8 @@ public class Caas
             {
                 e.printStackTrace();
             }
-            System.out.println("FAILED");
+            Environment.error("Failed to connect to system " + name, e);
+            
             return null;
         }
     }
@@ -224,7 +225,7 @@ public class Caas
             }
             result = new CordysSystem(name, caller);
 
-            System.out.println("Connected to system " + name);
+            info("Connected to system " + name);
 
             if (result.getPropsFile() != null)
             {

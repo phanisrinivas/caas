@@ -26,8 +26,7 @@ public class CaasMain
             }
             catch (NoClassDefFoundError e)
             {
-                System.out.println("not all libraries available");
-                e.printStackTrace();
+                Environment.error("Not all libraries available", e);
                 missingJar();
             }
         }

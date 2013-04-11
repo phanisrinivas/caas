@@ -114,7 +114,7 @@ public class CaasMainCommand extends CompositeCommand
 
         if (!Environment.quiet)
         {
-            System.out.println("caas: Cordys Administration Automation Scripting, version " + Caas.getVersion());
+            Environment.info("caas: Cordys Administration Automation Scripting, version " + Caas.getVersion());
         }
 
         if (showhelp.isSet())
