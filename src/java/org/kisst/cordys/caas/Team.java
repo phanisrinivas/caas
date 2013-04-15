@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.kisst.cordys.caas.Assignment.AssignmentList;
+import org.kisst.cordys.caas.TeamRole.TeamRoleList;
 import org.kisst.cordys.caas.Worklist.WorklistList;
 import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.support.CordysObjectList;
@@ -50,6 +51,12 @@ public class Team extends CordysObject
     public final WorklistList<Team> worklist;
     /** Alias for the worklists */
     public final WorklistList<Team> w;
+    /** Holds the roles applicable for this team. */
+    public final TeamRoleList roles;
+    /** Alias for the team roles */
+    public final TeamRoleList role;
+    /** Alias for the team roles */
+    public final TeamRoleList r;
 
     /**
      * Instantiates a new team.
@@ -77,8 +84,15 @@ public class Team extends CordysObject
         worklists = new WorklistList<Team>(org, this);
         worklist = worklists;
         w = worklists;
+
+        roles = new TeamRoleList(this);
+        role = roles;
+        r = roles;
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getSystem()
+     */
     @Override
     public CordysSystem getSystem()
     {
