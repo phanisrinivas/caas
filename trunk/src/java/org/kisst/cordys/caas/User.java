@@ -10,12 +10,15 @@
 package org.kisst.cordys.caas;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.kisst.cordys.caas.Assignment.AssignmentList;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.EntryObjectList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
+import org.kisst.cordys.caas.util.StringUtil;
 
 /**
  * This object holds the configuration information for a specific organizational user.
@@ -42,7 +45,7 @@ public class User extends LdapObjectBase
     public final AssignmentList<User> assignment;
     /** Alias for the assignments */
     public final AssignmentList<User> a;
-    
+
     /**
      * Instantiates a new user.
      * 
@@ -81,6 +84,71 @@ public class User extends LdapObjectBase
     protected String prefix()
     {
         return "user";
+    }
+
+    /**
+     * This method will assign the current user to the given team using the role. 
+     * 
+     * @param teamName The fully qualified name of the team to assign this user to
+     * @param roleName The name of the role to use.
+     * @param rolePackage The role package
+     * @param principal The principal
+     * @param effectiveDate The effective date
+     * @param finidhDate The finidh date
+     */
+    public void assignToTeam(String teamName, String roleName, String rolePackage, boolean principal, Date effectiveDate,
+            Date finidhDate)
+    {
+        Organization o = (Organization) getParent();
+
+        // Find the actual team
+        Team team = o.teams.get(teamName);
+        if (team == null)
+        {
+            // Maybe they forgot to add the FQN of the team?
+            StringBuilder sb = new StringBuilder(1024);
+            sb.append("Could not find team with name ").append(teamName);
+
+            for (Team tmp : o.teams)
+            {
+                if (tmp.getName().endsWith("/"))
+                {
+                    sb.append(". Did you mean ").append(tmp.getName()).append("?");
+                }
+            }
+
+            throw new CaasRuntimeException(sb.toString());
+        }
+
+        // Find the actual role to play within the team
+        Role role = null;
+        if (StringUtil.isEmptyOrNull(rolePackage))
+        {
+            role = o.roles.get(roleName);
+        }
+        else
+        {
+            Package p = getSystem().packages.get(rolePackage);
+            if (p == null)  
+            {
+                throw new CaasRuntimeException("Cannot find package with name " + rolePackage);
+            }
+            
+            role = p.roles.get(roleName);
+        }
+        
+        if (role == null)
+        {
+            throw new CaasRuntimeException("Cannot find role with name " + roleName + (StringUtil.isEmptyOrNull(rolePackage) ? "" : " in package " + rolePackage));
+        }
+        
+        //Now we have all required information, so let's assign the team to the user.
+        assignToTeam(team, role, principal, effectiveDate, finidhDate);
+    }
+
+    public void assignToTeam(Team t, Role r, boolean principal, Date effectiveDate, Date finidhDate)
+    {
+
     }
 
     /**
