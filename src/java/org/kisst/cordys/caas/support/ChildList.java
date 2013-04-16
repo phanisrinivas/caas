@@ -34,7 +34,7 @@ public class ChildList<T extends LdapObject> extends CordysObjectList<T>
      * @param parent The parent
      * @param clz The clz
      */
-    public ChildList(LdapObject parent, Class<? extends LdapObject> clz)
+    public ChildList(LdapObject parent, Class<T> clz)
     {
         this(parent, "", clz);
     }
@@ -91,6 +91,16 @@ public class ChildList<T extends LdapObject> extends CordysObjectList<T>
     public String getVarName()
     {
         return parent.getVarName() + "." + getName();
+    }
+    
+    /**
+     * This method gets the parent object.
+     * 
+     * @return The parent object.
+     */
+    public LdapObject getParent()
+    {
+        return parent;
     }
 
     /**

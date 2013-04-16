@@ -57,11 +57,11 @@ public class CordysSystem extends LdapObject
     /** Holds whether or not the cache should be used. */
     public boolean useCache = true;
     /** Holds all the organizations in this Cordys instance. */
-    public final ChildList<Organization> organizations = new ChildList<Organization>(this, Organization.class);
+    public final Organization.OrganizationList organizations = new Organization.OrganizationList(this);
     /** Holds an alias for the organizations. */
-    public final ChildList<Organization> org = organizations;
+    public final Organization.OrganizationList org = organizations;
     /** Holds an alias for the organizations. */
-    public final ChildList<Organization> o = organizations;
+    public final Organization.OrganizationList o = organizations;
     /** Holds the packages that are installed on the system. */
     public final CordysObjectList<PackageDefinition> packageDefinitions = new PackageDefinitionList(this);
     /** Holds an alias for the package definitions. */
