@@ -29,61 +29,102 @@ import org.kisst.cordys.caas.util.XmlNode;
 public class Organization extends LdapObjectBase
 {
     // Collection to hold the users
+    /** Holds the users. */
     public final UserList users = new UserList(this);
+
+    /** Holds the user. */
     public final UserList user = users;
+
+    /** Holds the u. */
     public final UserList u = users;
 
     // Collection to hold the roles
+    /** Holds the roles. */
     public final ChildList<Role> roles = new ChildList<Role>(this, "cn=organizational roles,", Role.class);
+
+    /** Holds the role. */
     public final ChildList<Role> role = roles;
+
+    /** Holds the r. */
     public final ChildList<Role> r = roles;
 
     // Collection to hold the web service interfaces
+    /** Holds the web service interfaces. */
     public final ChildList<WebServiceInterface> webServiceInterfaces = new ChildList<WebServiceInterface>(this,
             "cn=method sets,", WebServiceInterface.class);
+
+    /** Holds the wsi. */
     public final ChildList<WebServiceInterface> wsi = webServiceInterfaces;
 
     // Collection to hold the service groups
+    /** Holds the service groups. */
     public final ChildList<ServiceGroup> serviceGroups = new ChildList<ServiceGroup>(this, "cn=soap nodes,", ServiceGroup.class);
+
+    /** Holds the sg. */
     public final ChildList<ServiceGroup> sg = serviceGroups;
 
     // Collection to hold the dso types
+    /** Holds the dsotypes. */
     public final ChildList<DsoType> dsotypes = new ChildList<DsoType>(this, "cn=data sources,", DsoType.class);
+
+    /** Holds the dsotype. */
     public final ChildList<DsoType> dsotype = dsotypes;
 
     // Collection to hold the service containers
+    /** Holds the service containers. */
     public final CordysObjectList<ServiceContainer> serviceContainers;
+
+    /** Holds the sc. */
     public final CordysObjectList<ServiceContainer> sc;
 
     // Collection to hold the bpms
+    /** Holds the processes. */
     public final ProcessModel.List processes = new ProcessModel.List(this);
+
+    /** Holds the proc. */
     public final ProcessModel.List proc = processes;
 
     // Collection to hold the xmlstore objects
+    /** Holds the xml store objects. */
     public final XMLStoreObject.List xmlStoreObjects = new XMLStoreObject.List(this);
+
+    /** Holds the xso. */
     public final XMLStoreObject.List xso = xmlStoreObjects;
+
+    /** Holds the x. */
     public final XMLStoreObject.List x = xmlStoreObjects;
 
     // Collection to hold the dsos
+    /** Holds the dsos. */
     public final ChildList<Dso> dsos;
+
+    /** Holds the dso. */
     public final ChildList<Dso> dso;
+
+    /** Holds the d. */
     public final ChildList<Dso> d;
     /** Holds the assignment root that is used for assigning teams and users. */
     private String m_assignmentRoot;
-    
-    /** Holds the teams in this organization */
+
+    /** Holds the teams in this organization. */
     public final Team.TeamList teams = new Team.TeamList(this);
-    /** Alias for the teams */
+
+    /** Alias for the teams. */
     public final Team.TeamList team = teams;
-    /** Alias for the teams */
+
+    /** Alias for the teams. */
     public final Team.TeamList t = teams;
-    /** Alias for the teams */
+
+    /** Alias for the teams. */
     public final Team.TeamList ou = teams;
-    /** Holds all the worklists in this organization */
+
+    /** Holds all the worklists in this organization. */
     public final Worklist.WorklistList<Organization> worklists = new Worklist.WorklistList<Organization>(this);
-    /** Alias for the worklists */
+
+    /** Alias for the worklists. */
     public final Worklist.WorklistList<Organization> worklist = worklists;
-    /** Alias for the worklists */
+
+    /** Alias for the worklists. */
     public final Worklist.WorklistList<Organization> w = worklists;
 
     /**
@@ -143,12 +184,21 @@ public class Organization extends LdapObjectBase
         d = dsos;
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#prefix()
+     */
     @Override
     protected String prefix()
     {
         return "org";
     }
 
+    /**
+     * Call.
+     * 
+     * @param request The request
+     * @return The string
+     */
     public String call(String request)
     {
         HashMap<String, String> queryParams = new HashMap<String, String>();
@@ -157,6 +207,10 @@ public class Organization extends LdapObjectBase
     }
 
     /**
+     * Call.
+     * 
+     * @param request The request
+     * @return The xml node
      * @see org.kisst.cordys.caas.support.LdapObject#call(org.kisst.cordys.caas.util.XmlNode)
      */
     @Override
@@ -170,6 +224,9 @@ public class Organization extends LdapObjectBase
         return super.call(request, org);
     }
 
+    /**
+     * @see org.kisst.cordys.caas.support.LdapObject#preDeleteHook()
+     */
     @Override
     protected void preDeleteHook()
     {
@@ -178,11 +235,11 @@ public class Organization extends LdapObjectBase
     }
 
     /**
-     * Creates a web service interface
+     * Creates a web service interface.
      * 
      * @param name Name of the web service interface
      * @param namespace Namespace of the web service
-     * @param implementationclass
+     * @param implementationclass The implementationclass
      */
     public void createWebServiceInterface(String name, String namespace, String implementationclass)
     {
@@ -218,8 +275,8 @@ public class Organization extends LdapObjectBase
         {
             auName = name;
         }
-        
-        //See if the authenticated user is there.
+
+        // See if the authenticated user is there.
         AuthenticatedUser au = getSystem().authenticatedUsers.getByName(auName);
         if (au == null)
         {
@@ -240,9 +297,10 @@ public class Organization extends LdapObjectBase
     }
 
     /**
-     * Creates a role with the given name
+     * Creates a role with the given name.
      * 
      * @param name Role name
+     * @param type The type
      */
     public void createRole(String name, String type)
     {
@@ -257,7 +315,7 @@ public class Organization extends LdapObjectBase
     }
 
     /**
-     * Creates dso type
+     * Creates dso type.
      * 
      * @param name Type of dso
      */
@@ -270,7 +328,7 @@ public class Organization extends LdapObjectBase
     }
 
     /**
-     * Creates a service group with the given name, configuration and web service interfaces
+     * Creates a service group with the given name, configuration and web service interfaces.
      * 
      * @param name Service group name
      * @param config XmlNode representing service group configuration
@@ -300,7 +358,7 @@ public class Organization extends LdapObjectBase
     }
 
     /**
-     * Creates service group with given name and web service interfaces
+     * Creates service group with given name and web service interfaces.
      * 
      * @param name Service group name
      * @param webServiceInterfaceSet List of web service interfaces to be configured for the service group
@@ -315,26 +373,58 @@ public class Organization extends LdapObjectBase
         createServiceGroup(name, routing, webServiceInterfaceSet);
     }
 
+    /**
+     * This method gets the xml.
+     * 
+     * @param key The key
+     * @param version The version
+     * @return The xml
+     */
     public XmlNode getXml(String key, String version)
     {
         return getSystem().getXml(key, version, getDn());
     }
 
+    /**
+     * This method gets the xml.
+     * 
+     * @param key The key
+     * @return The xml
+     */
     public XmlNode getXml(String key)
     {
         return getSystem().getXml(key, "organization", getDn());
     }
 
+    /**
+     * Deduct.
+     * 
+     * @param isvp The isvp
+     * @return The xml node
+     */
     public XmlNode deduct(Package isvp)
     {
         return deduct(isvp, isvp.getName());
     }
 
+    /**
+     * Deduct.
+     * 
+     * @param isvpName The isvp name
+     * @return The xml node
+     */
     public XmlNode deduct(String isvpName)
     {
         return deduct(this, isvpName);
     }
 
+    /**
+     * Deduct.
+     * 
+     * @param parent The parent
+     * @param isvpName The isvp name
+     * @return The xml node
+     */
     private XmlNode deduct(LdapObject parent, String isvpName)
     {
         XmlNode result = new XmlNode("caaspm");
@@ -397,6 +487,12 @@ public class Organization extends LdapObjectBase
         return result;
     }
 
+    /**
+     * Seek.
+     * 
+     * @param target The target
+     * @return The cordys object list
+     */
     public CordysObjectList<LdapObject> seek(final Role target)
     {
         return new CordysObjectList<LdapObject>(getSystem()) {
@@ -435,6 +531,12 @@ public class Organization extends LdapObjectBase
         };
     }
 
+    /**
+     * Seek.
+     * 
+     * @param target The target
+     * @return The cordys object list
+     */
     public CordysObjectList<ServiceGroup> seek(final WebServiceInterface target)
     {
         return new CordysObjectList<ServiceGroup>(getSystem()) {
@@ -465,6 +567,12 @@ public class Organization extends LdapObjectBase
         };
     }
 
+    /**
+     * This method creates the template.
+     * 
+     * @param isvpName The isvp name
+     * @return The template
+     */
     public Template createTemplate(String isvpName)
     {
         return new Template(this, isvpName);
@@ -508,5 +616,56 @@ public class Organization extends LdapObjectBase
     public void setAssignmentRoot(String assignmentRoot)
     {
         m_assignmentRoot = assignmentRoot;
+    }
+
+    /**
+     * Holds the Class OrganizationList.
+     */
+    public static class OrganizationList extends ChildList<Organization>
+    {
+        /**
+         * Instantiates a new organization list.
+         * 
+         * @param system The system
+         */
+        public OrganizationList(CordysSystem system)
+        {
+            super(system, Organization.class);
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.support.CordysObjectList#retrieveList()
+         */
+        @Override
+        protected void retrieveList()
+        {
+            XmlNode method = new XmlNode(Constants.SEARCH_LDAP, Constants.XMLNS_LDAP);
+            
+            String dn = this.getParent().getSystem().getDn();
+            method.add("dn").setText(dn);
+            method.add("scope").setText("1");
+            method.add("filter").setText("(objectClass=organization)");
+            method.add("sort").setText("true");
+
+            XmlNode response = system.call(method);
+
+            if (response.getName().equals("Envelope"))
+            {
+                response = response.getChild("Body").getChildren().get(0);
+            }
+
+            for (XmlNode tuple : response.getChildren("tuple"))
+            {
+                XmlNode elm = tuple.getChild("old/entry");
+                Organization obj = (Organization) system.getLdap(elm);
+
+                if (obj == null)
+                {
+                    continue;
+                }
+
+                grow(obj);
+            }
+        }
     }
 }

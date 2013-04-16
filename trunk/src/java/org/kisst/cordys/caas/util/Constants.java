@@ -43,6 +43,7 @@ public class Constants
     public static final String GET_WORKLISTS_BY_TEAM = "GetWorklistsByTeam";
     public static final String GET_USERS_BY_WORKLIST = "GetUsersByWorklist";
     public static final String GET_UNIT_ROLES = "GetUnitRoles";
+    public static final String SEARCH_LDAP = "SearchLDAP";
 
     public static final String XMLNS_TEMPLATE = "http://caas.kisst.org/2.0/template";
     public final static String XMLNS_MONITOR = "http://schemas.cordys.com/1.0/monitor";
