@@ -9,9 +9,9 @@
 
 package org.kisst.cordys.caas;
 
-import org.kisst.cordys.caas.PackageDefinition.EPackageType;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.support.ChildList;
-import org.kisst.cordys.caas.support.LdapObject;
+import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.StringUtil;
@@ -20,72 +20,254 @@ import org.kisst.cordys.caas.util.XmlNode;
 /**
  * This class holds the information for a loaded package.
  */
-public class Package extends LdapObjectBase
+public class Package extends CordysObject
 {
+    /** Holds the package types. */
+    public enum EPackageType
+    {
+        cap, isvp
+    };
+
+    /** Holds the package types. */
+    public enum EPackageStatus
+    {
+        loaded, incomplete, not_loaded
+    };
+
+    /** Holds the reference to the Cordys system that is being used. */
+    private final CordysSystem system;
+    /** Holds the name of the package. This is the Package DN that would be used in case the package is loaded. */
+    private String name;
+    /** Holds the type of package. It defaults to CAP */
+    public EPackageType type = EPackageType.cap;
+    /** Holds the definition XML for this package */
+    public XmlNode definition;
+    /** Holds the source filename for this package */
+    public String filename;
+    /** Holds the owner of the package */
+    public String owner;
+    /** Holds the build number of the package */
+    public String buildnumber;
+    /** Holds the version information */
+    public String version;
+    /** Holds the CN (package DN) of the package */
+    public String cn;
+    /** Holds the description of the package */
+    public String description;
+    /** Holds the status of the package (whether it is loaded or not) */
+    public EPackageStatus status = EPackageStatus.not_loaded;
     /** Holds the roles that are part of this package. */
-    public final ChildList<Role> roles = new ChildList<Role>(this, Role.class);
+    public ChildList<Role> roles;
     /** Holds an alias for the roles. */
-    public final ChildList<Role> role = roles;
+    public ChildList<Role> role;
     /** Holds an alias for the roles. */
-    public final ChildList<Role> r = roles;
+    public ChildList<Role> r;
     /** Holds the web service interfaces. */
-    public final ChildList<WebServiceInterface> webServiceInterfaces = new ChildList<WebServiceInterface>(this,
-            WebServiceInterface.class);
-    /** Holds the wsi. */
-    public final ChildList<WebServiceInterface> wsi = webServiceInterfaces;
-    /** Holds the filename. */
-    public final StringProperty member = new StringProperty("member", 3);
-    /** Holds the owner. */
-    public final StringProperty owner = new StringProperty("owner", 3);
-    /** Holds the corresponding package definition step */
-    private PackageDefinition pd = null;
+    public ChildList<WebServiceInterface> webServiceInterfaces;
+    /** Alias for the web service interfaces. */
+    public ChildList<WebServiceInterface> wsi;
     /** Holds the deployed package information for this package */
     private IDeployedPackageInfo m_info;
+    /** Holds the runtime package DN object in LDAP. */
+    private RuntimePackage runtime;
 
     /**
-     * Instantiates a new package.
+     * Instantiates a new package definition.
      * 
-     * @param parent The parent
-     * @param dn The dn
+     * @param system The parent Cordys system
+     * @param definition The definition of this package. This can be either an ISV package definition or an CAP definition.
      */
-    protected Package(LdapObject parent, String dn)
+    protected Package(CordysSystem system, XmlNode definition)
     {
-        super(parent, dn);
+        this.system = system;
 
-        // From the system we need to find the definition object and set it here.
-        CordysSystem sys = getSystem();
+        // Based on the XML definition we need to determine whether it's an ISV package or that it is a CAP package. The XML of
+        // the ISV package looks like this:
 
-        // There are some old packages in the Cordys LDAP for which there are no CAP packages. So there will be not package
-        // definition.
-        pd = sys.packageDefinitions.getByName(getCn());
+        // @formatter:off
+        // <ISVPackage xmlns="http://schemas.cordys.com/1.0/isvpackage" file="Cordys_CommandConnector_1.1.3" cn="Cordys CommandConnector 1.1">
+        //  <description>
+        //          <owner>Cordys</owner>
+        //          <name>CommandConnector</name>
+        //          <version>1.1 Build 1.1.3</version>
+        //          <cn>Cordys CommandConnector 1.1</cn>
+        //          <wcpversion>C3.001</wcpversion>
+        //          <build>3</build>
+        //          <eula source="" />
+        //          <sidebar source="" />
+        //  </description>
+        //  <content />
+        //  <promptset />
+        // </ISVPackage>
+        // @formatter:on
+
+        if ("ISVPackage".equals(definition.getName()))
+        {
+            type = EPackageType.isvp;
+            name = definition.getAttribute("cn");
+            filename = definition.getAttribute("file");
+
+            owner = (String) definition.get("description/owner/text()");
+            buildnumber = (String) definition.get("description/build/text()");
+            version = (String) definition.get("description/version/text()");
+            cn = (String) definition.get("description/cn/text()");
+
+            // ISV packages are always loaded.
+            status = EPackageStatus.loaded;
+        }
+        else if ("ApplicationPackage".equals(definition.getName()))
+        {
+            // @formatter:off
+            // <ApplicationPackage>
+            //   <ApplicationName>Cordys XMLStore</ApplicationName>
+            //   <ApplicationVersion>D1.002</ApplicationVersion>
+            //   <ApplicationBuild>26</ApplicationBuild>
+            //   <owner>Cordys</owner>
+            //   <node>CNL1523</node>
+            // </ApplicationPackage>
+            // @formatter:on
+
+            // It is a CAP file
+            type = EPackageType.cap;
+            name = definition.getChildText("ApplicationName");
+            owner = definition.getChildText("owner");
+
+            buildnumber = definition.getChildText("ApplicationBuild");
+            version = definition.getChildText("ApplicationVersion");
+
+            if (owner == null || owner.isEmpty())
+            {
+                status = EPackageStatus.not_loaded;
+            }
+            else
+            {
+                status = EPackageStatus.loaded;
+            }
+        }
+
+        // Build up the description
+        description = name + " version " + getFullVersion();
+
+        this.definition = definition.detach();
+
+        if (status == EPackageStatus.loaded)
+        {
+            // The package is loaded, so we can read the main entry from the LDAP.
+            runtime = new RuntimePackage(system, "cn=" + cn + "," + system.getDn());
+
+            // Now that we have the LDAP entry we can also create the role list and the wsi list.
+            webServiceInterfaces = runtime.webServiceInterfaces;
+            wsi = runtime.webServiceInterfaces;
+
+            roles = runtime.roles;
+            role = runtime.roles;
+            r = runtime.roles;
+        }
     }
 
     /**
-     * @see org.kisst.cordys.caas.support.CordysObject#prefix()
+     * @see org.kisst.cordys.caas.support.CordysObject#getSystem()
      */
     @Override
-    protected String prefix()
+    public CordysSystem getSystem()
     {
-        return "package";
+        return system;
     }
 
     /**
-     * @see org.kisst.cordys.caas.support.LdapObject#myclear()
+     * @see org.kisst.cordys.caas.support.CordysObject#getOrganization()
      */
     @Override
-    public void myclear()
+    public Organization getOrganization()
     {
-        super.myclear();
-        m_info = null;
+        return system.getOrganization();
     }
 
     /**
-     * @see org.kisst.cordys.caas.support.LdapObject#preDeleteHook()
+     * @see org.kisst.cordys.caas.support.CordysObject#getName()
      */
     @Override
-    protected void preDeleteHook()
+    public String getName()
     {
-        throw new RuntimeException("It is not allowed to delete an Isvp, please use unload instead");
+        return StringUtil.quotedName(name);
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getKey()
+     */
+    @Override
+    public String getKey()
+    {
+        return getVarName();
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.support.CordysObject#getVarName()
+     */
+    @Override
+    public String getVarName()
+    {
+        return system.getVarName() + ".packages." + StringUtil.quotedName(name);
+    }
+
+    /**
+     * This method gets the status of this package.
+     * 
+     * @return The status of this package.
+     */
+    public EPackageStatus getStatus()
+    {
+        return status;
+    }
+
+    /**
+     * This method sets the status of this package.
+     * 
+     * @param status The status of this package.
+     */
+    public void setStatus(EPackageStatus status)
+    {
+        this.status = status;
+    }
+
+    /**
+     * This method returns whether or not the package is loaded.
+     * 
+     * @return Whether or not the package is loaded.
+     */
+    public boolean isLoaded()
+    {
+        return status == EPackageStatus.loaded;
+    }
+
+    /**
+     * This method returns whether or not the package is incomplete.
+     * 
+     * @return Whether or not the package is incomplete.
+     */
+    public boolean isIncomplete()
+    {
+        return status == EPackageStatus.incomplete;
+    }
+
+    /**
+     * This method gets the full version for this package.
+     * 
+     * @return The full version for this package.
+     */
+    public String getFullVersion()
+    {
+        return version + "." + buildnumber;
+    }
+
+    /**
+     * This method gets the type of this package (either CAP or ISVP).
+     * 
+     * @return The type of this package (either CAP or ISVP).
+     */
+    public EPackageType getType()
+    {
+        return type;
     }
 
     /**
@@ -95,60 +277,76 @@ public class Package extends LdapObjectBase
      */
     public String getPackageDN()
     {
-        String retVal = member.get();
+        return name;
+    }
 
-        if (retVal.startsWith("cn="))
+    /**
+     * This method gets the filename for the current package. This is only applicable for an ISV package. This is always tha
+     * latest filename that is available.
+     * 
+     * @return The filename of the package.
+     */
+    public String getFilename()
+    {
+        return filename;
+    }
+    
+    /**
+     * This method returns the DN of the runtime location of the package.
+     * 
+     * @return The DN of the runtime location of the package.
+     */
+    public String getDn()
+    {
+        if (!isLoaded())
         {
-            retVal = retVal.substring(3);
+            throw new CaasRuntimeException("The package is not yet loaded");
         }
 
-        return retVal;
+        return runtime.getDn();
     }
 
     /**
-     * This method gets the basename.
+     * This method returns the runtime version of the package.
      * 
-     * @return The basename
+     * @return The runtime package
      */
-    public String getBasename()
+    public RuntimePackage getRuntime()
     {
-        String result = member.get();
-        if (result.endsWith(".isvp"))
-        {
-            result = result.substring(0, result.length() - 5);
-        }
-
-        return result;
+        return runtime;
     }
 
     /**
-     * This method gets the type of this package.
-     * 
-     * @return The type of this package.
-     */
-    public PackageDefinition getPackageDefinition()
-    {
-        return pd;
-    }
-
-    /**
-     * Unload.
+     * This method unloads the package if it is currently loaded.
      * 
      * @param deleteReferences The delete references
      */
     public void unload(boolean deleteReferences)
     {
-        if (getPackageDefinition().getType() == EPackageType.isvp)
+        if (status == EPackageStatus.loaded)
         {
-            for (Machine machine : getSystem().machines)
+            if (type == EPackageType.isvp)
             {
-                // TODO: check if machine has the ISVP loaded
-                machine.unloadIsvp(this, deleteReferences);
-            }
-            getSystem().removeLdap(getDn());
+                for (Machine machine : system.machines)
+                {
+                    machine.unloadIsvp(this, deleteReferences);
+                }
 
-            // Force a reload of the packages
-            getSystem().packages.clear();
+                system.removeLdap(runtime.getDn());
+
+                // Force a reload of the packages
+                system.packages.clear();
+            }
+            else if (type == EPackageType.cap)
+            {
+                system.undeployCap(cn, deleteReferences);
+            }
+
+            status = EPackageStatus.not_loaded;
+        }
+        else
+        {
+            throw new CaasRuntimeException("Package " + cn + " is not loaded");
         }
     }
 
@@ -164,19 +362,17 @@ public class Package extends LdapObjectBase
             return m_info;
         }
 
-        // It's not loaded yet, so lets get the details
-        if (pd != null)
+        // The loading details are not loaded yet
+        switch (type)
         {
-            switch (pd.getType())
-            {
-                case isvp:
-                    loadISVPInfo();
-                    break;
-                case cap:
-                    loadCAPInfo();
-                    break;
-            }
+            case isvp:
+                loadISVPInfo();
+                break;
+            case cap:
+                loadCAPInfo();
+                break;
         }
+
         return m_info;
     }
 
@@ -189,7 +385,7 @@ public class Package extends LdapObjectBase
         XmlNode cap = request.add("cap");
         cap.setText(getPackageDN());
 
-        XmlNode response = call(request);
+        XmlNode response = system.call(request);
 
         XmlNode header = (XmlNode) response.get("tuple/old/ApplicationPackage/ApplicationDetails/Header");
 
@@ -210,12 +406,12 @@ public class Package extends LdapObjectBase
     {
         XmlNode request = new XmlNode(Constants.GET_ISVP_DEFINITION, Constants.XMLNS_ISV);
         XmlNode file = request.add("file");
-        file.setText(getBasename());
+        file.setText(getFilename());
         file.setAttribute("type", "isvpackage");
         file.setAttribute("onlyxml", "true");
         file.setAttribute("detail", "false");
 
-        XmlNode isvPackage = call(request).getChild("ISVPackage");
+        XmlNode isvPackage = system.call(request).getChild("ISVPackage");
 
         XmlNode desc = isvPackage.getChild("description");
 
@@ -374,6 +570,53 @@ public class Package extends LdapObjectBase
         public String toString()
         {
             return getPackageName() + "(" + getVendor() + "; " + getFullVersion() + ")";
+        }
+    }
+
+    /**
+     * This class is a wrapper around the DN entry for the package. It is needed for the creation of the role and wsi list.
+     */
+    public class RuntimePackage extends LdapObjectBase
+    {
+        /** Holds the roles that are part of this package. */
+        public final ChildList<Role> roles = new ChildList<Role>(this, Role.class);
+        /** Holds an alias for the roles. */
+        public final ChildList<Role> role = roles;
+        /** Holds an alias for the roles. */
+        public final ChildList<Role> r = roles;
+        /** Holds the web service interfaces. */
+        public final ChildList<WebServiceInterface> webServiceInterfaces = new ChildList<WebServiceInterface>(this,
+                WebServiceInterface.class);
+        /** Alias for the web service interfaces. */
+        public final ChildList<WebServiceInterface> wsi = webServiceInterfaces;
+
+        /**
+         * Instantiates a new runtime package.
+         * 
+         * @param system The system
+         * @param dn The dn
+         */
+        protected RuntimePackage(CordysSystem system, String dn)
+        {
+            super(system, dn);
+        }
+
+        /**
+         * @see org.kisst.cordys.caas.support.LdapObject#preDeleteHook()
+         */
+        @Override
+        protected void preDeleteHook()
+        {
+            throw new RuntimeException("It is not allowed to delete an Isvp, please use unload instead");
+        }
+        
+        /**
+         * @see org.kisst.cordys.caas.support.LdapObject#getVarName()
+         */
+        @Override
+        public String getVarName()
+        {
+            return Package.this.getVarName() + ".runtime";
         }
     }
 }

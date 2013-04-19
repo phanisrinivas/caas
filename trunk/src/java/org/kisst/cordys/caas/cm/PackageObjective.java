@@ -80,7 +80,7 @@ public class PackageObjective extends AbstractObjective
         boolean foundMatchingVersion = false;
         for (Version v : versions)
         {
-            debug("Checking " + pkg.getCn() + " against version " + v.getVersion());
+            debug("Checking " + pkg.getPackageDN() + " against version " + v.getVersion());
 
             if (v.matches(dpi.getFullVersion()))
             {

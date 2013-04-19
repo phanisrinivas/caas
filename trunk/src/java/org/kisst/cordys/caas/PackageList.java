@@ -13,16 +13,16 @@ import org.kisst.cordys.caas.util.XmlNode;
 /**
  * This class maintains the list of package definitions that are available on the Cordys system. It will use a combination of
  * several web services to determine which definitions are available. Also there is a difference between a package definition and
- * a loaded package. This list contains the definitions, not the actually loaded packages.
+ * a loaded package. This list contains the packages which are not necesarily loaded.
  */
-final class PackageDefinitionList extends CordysObjectList<PackageDefinition>
+public class PackageList extends CordysObjectList<Package>
 {
     /**
      * Instantiates a new package definition list.
      * 
      * @param system The system
      */
-    PackageDefinitionList(CordysSystem system)
+    PackageList(CordysSystem system)
     {
         super(system);
     }
@@ -72,8 +72,8 @@ final class PackageDefinitionList extends CordysObjectList<PackageDefinition>
             List<XmlNode> isvs = response.getChildren("ISVPackage");
             for (XmlNode node : isvs)
             {
-                PackageDefinition pd = new PackageDefinition(getSystem(), node);
-                grow(pd);
+                Package p = new Package(getSystem(), node);
+                grow(p);
             }
         }
 
@@ -85,8 +85,8 @@ final class PackageDefinitionList extends CordysObjectList<PackageDefinition>
                 .xpath("./*[local-name()='tuple']/*[local-name()='old']/*[local-name()='ApplicationPackage']");
         for (XmlNode node : caps)
         {
-            PackageDefinition pd = new PackageDefinition(getSystem(), node);
-            grow(pd);
+            Package p = new Package(getSystem(), node);
+            grow(p);
         }
 
         // Now get the CAPs that are new
@@ -96,8 +96,8 @@ final class PackageDefinitionList extends CordysObjectList<PackageDefinition>
         caps = response.xpath("./*[local-name()='tuple']/*[local-name()='old']/*[local-name()='ApplicationPackage']");
         for (XmlNode node : caps)
         {
-            PackageDefinition pd = new PackageDefinition(getSystem(), node);
-            grow(pd);
+            Package p = new Package(getSystem(), node);
+            grow(p);
         }
     }
 

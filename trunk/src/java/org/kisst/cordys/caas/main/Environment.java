@@ -31,7 +31,7 @@ public class Environment
     /** Holds the logger to use. */
     private static final Logger m_log;
     /** Holds the singleton environment variable */
-    private final static Environment singleton;
+    private static Environment singleton;
 
     static
     {
@@ -45,7 +45,7 @@ public class Environment
         }
 
         Logger.getRootLogger().setLevel(Level.ERROR);
-        
+
         m_log = Logger.getLogger("caas");
 
         m_log.setLevel(Level.ALL);
@@ -59,7 +59,7 @@ public class Environment
     public static boolean trace = false;
     /** Holds whether or not to hold all the messages */
     public static boolean quiet = false;
-    /** Holds whether or not to display the verbose messages*/
+    /** Holds whether or not to display the verbose messages */
     public static boolean verbose = false;
     /** Holds the properties loaded for this environment. */
     private Properties props = new Properties();
@@ -105,7 +105,7 @@ public class Environment
     {
         return m_caasConfFolder;
     }
-    
+
     /**
      * Trace.
      * 
@@ -321,6 +321,14 @@ public class Environment
         FileUtil.load(props, files);
 
         return props;
+    }
+
+    /**
+     * This method will reload the environment
+     */
+    public static void reload()
+    {
+        singleton = new Environment();
     }
 
     /**
