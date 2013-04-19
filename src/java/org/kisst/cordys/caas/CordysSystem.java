@@ -62,20 +62,16 @@ public class CordysSystem extends LdapObject
     public final Organization.OrganizationList org = organizations;
     /** Holds an alias for the organizations. */
     public final Organization.OrganizationList o = organizations;
-    /** Holds the packages that are installed on the system. */
-    public final CordysObjectList<PackageDefinition> packageDefinitions = new PackageDefinitionList(this);
-    /** Holds an alias for the package definitions. */
-    public final CordysObjectList<PackageDefinition> pd = packageDefinitions;
-    /** Holds the list of deployed packages. */
-    public final ChildList<Package> packages = new ChildList<Package>(this, Package.class);
+    /** Holds the list of packages for this system. */
+    public final PackageList packages = new PackageList(this);
     /** Holds an alias for the loaded packages. */
-    public final ChildList<Package> p = packages;
+    public final PackageList p = packages;
     /** Holds an alias for the packages. This is for backwards compatibility. */
-    public final ChildList<Package> isvp = packages;
+    public final PackageList isvp = packages;
     /** Holds an alias for the packages. This is for backwards compatibility. */
-    public final ChildList<Package> i = packages;
+    public final PackageList i = packages;
     /** Holds an alias for the packages. This is for backwards compatibility. */
-    public final ChildList<Package> isvps = packages;
+    public final PackageList isvps = packages;
     /** Holds the all the authenticated users in this Cordys instance. */
     public final ChildList<AuthenticatedUser> authenticatedUsers = new ChildList<AuthenticatedUser>(this,
             "cn=authenticated users,", AuthenticatedUser.class);
@@ -980,6 +976,17 @@ public class CordysSystem extends LdapObject
     public void undeployCap(String name, long timeoutInMinutes)
     {
         undeployCap(name, null, null, timeoutInMinutes);
+    }
+    
+    /**
+     * This method will undeploy the given cap package.
+     * 
+     * @param name The package DN of the package.
+     * @param deleteReferences Whether or not to delete the references of the package
+     */
+    public void undeployCap(String name, Boolean deleteReferences)
+    {
+        undeployCap(name, null, deleteReferences, 10);
     }
 
     /**

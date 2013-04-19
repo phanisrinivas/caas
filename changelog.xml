@@ -12,6 +12,8 @@
     </template>
     <body>
     <release date="2013-03-19" description="Stable release" version="2.0.12">
+      <action dev="pgussow" type="add"><![CDATA[Added method Environment.reload() to reload the caas.conf file]]></action>
+      <action dev="pgussow" type="change"><![CDATA[Changed the way organizations are retrieved: using the SearchLDAP now]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added support for all type of connection points]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added the option to specify the node number on which a service container should run]]></action>
     </release>
@@ -47,7 +49,7 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
     </release>
     <release date="2013-??-??" description="Stable release" version="2.0.18">
       <action dev="pgussow" type="add"><![CDATA[Added support for viewing the Worklists and which users can act on this worklist. Also which worklist below to which teams]]></action>
-      <action dev="pgussow" type="unknown"><![CDATA[Removed most of the System.out.println and replaced them with Environment.info]]></action>
+      <action dev="pgussow" type="change"><![CDATA[Removed most of the System.out.println and replaced them with Environment.info]]></action>
     </release>
   </body>
 </document>

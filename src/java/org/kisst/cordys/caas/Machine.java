@@ -313,16 +313,19 @@ public class Machine extends CordysObject
     {
         XmlNode request = new XmlNode(Constants.UNLOAD_ISVP, Constants.XMLNS_ISV);
         XmlNode file = request.add("file");
-        // TODO: This is causing an issue
-        file.setText(isvp.getBasename());
+
+        file.setText(isvp.getFilename());
         if (deleteReferences)
+        {
             file.setAttribute("deletereference", "true");
+        }
         else
+        {
             file.setAttribute("deletereference", "false");
+        }
         HashMap<String, String> queryParams = new HashMap<String, String>();
         queryParams.put("receiver", monitor.getDn());
         monitor.call(request, queryParams);
-        // TODO: do this only for last machine??? getSystem().removeLdap(isvp.getDn());
     }
 
     /**

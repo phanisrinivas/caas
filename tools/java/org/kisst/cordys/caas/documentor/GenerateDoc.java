@@ -19,7 +19,6 @@ import org.kisst.cordys.caas.DsoType;
 import org.kisst.cordys.caas.Machine;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.OsProcess;
-import org.kisst.cordys.caas.PackageDefinition;
 import org.kisst.cordys.caas.ProcessModel;
 import org.kisst.cordys.caas.Role;
 import org.kisst.cordys.caas.ServiceContainer;
@@ -73,7 +72,6 @@ public class GenerateDoc
         m_classes.add(Role.class.getName());
         m_classes.add(Team.class.getName());
         m_classes.add(Assignment.class.getName());
-        m_classes.add(PackageDefinition.class.getName());
         m_classes.add(org.kisst.cordys.caas.Package.class.getName());
         m_classes.add(ProcessModel.class.getName());
         m_classes.add(OsProcess.class.getName());

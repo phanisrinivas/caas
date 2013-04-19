@@ -404,7 +404,7 @@ public class Organization extends LdapObjectBase
      */
     public XmlNode deduct(Package isvp)
     {
-        return deduct(isvp, isvp.getName());
+        return deduct(isvp.getRuntime(), isvp.getName());
     }
 
     /**

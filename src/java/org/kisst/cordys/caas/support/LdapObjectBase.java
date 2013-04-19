@@ -242,12 +242,6 @@ public abstract class LdapObjectBase extends LdapObject
             }
         }
 
-        String dn = entry.getAttribute("dn");
-
-        if (dn.substring(dn.indexOf(",") + 1).equals(system.getDn()) && dn.startsWith("cn="))
-        {
-            return Package.class;
-        }
         return null;
     }
 
