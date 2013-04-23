@@ -114,6 +114,9 @@ public class Package extends CordysObject
 
             // ISV packages are always loaded.
             status = EPackageStatus.loaded;
+            
+            //For these packages there are no more additional details available. So create the information with the current info.
+            m_info = new DeployedPackageInfo(getPackageDN(), version, owner, version, buildnumber);
         }
         else if ("ISVPackage".equals(definition.getName()))
         {
