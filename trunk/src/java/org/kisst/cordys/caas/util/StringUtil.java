@@ -4,7 +4,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.UUID;
+
+import org.kisst.cordys.caas.main.Environment;
 
 /**
  * DOCUMENTME.
@@ -34,40 +38,40 @@ public class StringUtil
     /**
      * Substitutes the Map values found in the given string with their corresponding keys from the Map.
      * 
-     * @param str
-     * @param vars
-     * @return
+     * @param text The original text that should be checked and replaced.
+     * @param vars The replacements for the parameters in the source string.
+     * @return The replaced string.
      */
-    public static String reverseSubstitute(String str, Map<String, String> vars)
+    public static String reverseSubstitute(String text, Map<String, String> vars)
     {
-        StringBuffer buff = new StringBuffer();
+        String retVal = null;
 
-        for (Entry<String, String> entry : vars.entrySet())
+        if (Environment.debug)
         {
-            String value = entry.getValue();
-            String key = getKeyByValue(vars, value);
-            int prevpos = 0;
-            int pos = 0;
-            buff.setLength(0);
+            Environment.debug("Before:\n" + text);
+        }
 
-            while ((pos = str.indexOf(value, prevpos)) >= 0)
+        Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
+        Matcher matcher = pattern.matcher(text);
+        StringBuffer buffer = new StringBuffer();
+        while (matcher.find())
+        {
+            String replacement = vars.get(matcher.group(1));
+            if (replacement != null)
             {
-                buff.append(str.substring(prevpos, pos));
-                buff.append("${" + key + "}");
-                prevpos = pos + value.length();
+                matcher.appendReplacement(buffer, "");
+                buffer.append(replacement);
             }
-            buff.append(str.substring(prevpos));
-            str = buff.toString();
+        }
+        matcher.appendTail(buffer);
+        retVal = buffer.toString();
+
+        if (Environment.debug)
+        {
+            Environment.debug("After:\n" + retVal);
         }
 
-        if (vars == null || vars.size() == 0)
-        {
-            return str;
-        }
-        else
-        {
-            return buff.toString();
-        }
+        return retVal;
     }
 
     /**

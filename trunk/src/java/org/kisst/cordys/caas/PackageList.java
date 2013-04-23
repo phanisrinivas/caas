@@ -7,6 +7,7 @@ import org.kisst.cordys.caas.soap.SamlClientCaller;
 import org.kisst.cordys.caas.soap.SoapCaller;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.Constants;
+import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
@@ -40,9 +41,20 @@ public class PackageList extends CordysObjectList<Package>
         request.add("computer").setText(system.machines.get(0).getName());
 
         XmlNode response = c.call(request);
+        
+        // There could be packages that have no file name. Those packages are loaded, but we only have the information in the
+        // GetInstalledISVPackages. So let's try to also add the packages of which we know they are there, but have no isvp file.
+        List<XmlNode> platformPackages = response.xpath(".//isv:computer/isv:isvp[@name='']", Constants.NS);
+        if (platformPackages != null)
+        {
+            for (XmlNode platformPackage : platformPackages)
+            {
+                Package p = new Package(getSystem(), platformPackage);
+                grow(p);
+            }
+        }
 
-        // Now we have the list of all the ISV packages that are loaded on the system. Now we need to get the details for each
-        // package.
+        // Next step is to get the definition of the packages for which filenames are specified.
         request = buildGetISVPackageDefinition(response);
         if (request != null)
         {
@@ -129,19 +141,25 @@ public class PackageList extends CordysObjectList<Package>
         List<XmlNode> tmp = packages.xpath(".//isv:computer/isv:isvp", Constants.NS);
         if (tmp == null || tmp.size() == 0)
         {
-            // There are no ISV packages. THis means that we should not send this message.
+            // There are no ISV packages. This means that we should not send this message.
             retVal = null;
         }
         else
         {
             for (XmlNode url : tmp)
             {
-                // Found an ISV package, so we need to create the element in the new request for it.
-                XmlNode node = retVal.add("file");
-                node.setAttribute("type", "isvpackage");
-                node.setAttribute("detail", "false");
-                node.setAttribute("wizardsteps", "true");
-                node.setText(url.getAttribute("name"));
+                // Found an ISV package, so we need to create the element in the new request for it. On a CU6 machine there are a
+                // few packages that are mentioned in the 'GetInstalledISVPackages', but they do not have a corresponding LDAP
+                // entry.
+                String packageName = url.getAttribute("name");
+                if (!StringUtil.isEmptyOrNull(packageName))
+                {
+                    XmlNode node = retVal.add("file");
+                    node.setAttribute("type", "isvpackage");
+                    node.setAttribute("detail", "false");
+                    node.setAttribute("wizardsteps", "true");
+                    node.setText(packageName);
+                }
             }
         }
 

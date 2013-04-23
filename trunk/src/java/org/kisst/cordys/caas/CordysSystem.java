@@ -415,11 +415,11 @@ public class CordysSystem extends LdapObject
     }
 
     /**
-     * Remember ldap.
+     * This method adds the given LdapObject to the internal cache.
      * 
-     * @param obj The obj
+     * @param obj The obj to remember.
      */
-    private void rememberLdap(LdapObject obj)
+    public void rememberLdap(LdapObject obj)
     {
         if (obj == null)
         {
