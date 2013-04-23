@@ -21,6 +21,8 @@ public class CaasMainCommand extends CompositeCommand
     Cli.Flag trace = cli.flag("t", "trace", "if this option is set trace logging will be shown");
     Cli.Flag debug = cli.flag("d", "debug", "if this option is set debug logging will be shown");
     Cli.StringOption config = cli.stringOption("c", "config", "location of config file with connection properties", null);
+    Cli.StringOption logFile = cli.stringOption("l", "logfile", "location of the file to write the messages to", null);
+    Cli.StringOption xmlLogFile = cli.stringOption("x", "xmllogfile", "location of the xml file to write the messages to", null);
     Cli.Flag showhelp = cli.flag("h", "help", "show this help information");
     Cli.Flag version = cli.flag(null, "version", "show the version information");
 
@@ -122,6 +124,17 @@ public class CaasMainCommand extends CompositeCommand
             help.run(args);
             return;
         }
+
+        if (logFile.isSet())
+        {
+            Environment.addTextFileAppender(logFile.get());
+        }
+
+        if (xmlLogFile.isSet())
+        {
+            Environment.addXMLFileAppender(xmlLogFile.get());
+        }
+
         super.run(args);
     }
 }

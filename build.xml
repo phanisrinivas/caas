@@ -42,7 +42,6 @@
 		<property file="version.properties" />
 		<property name="project.version" value="${base.version}.${build.number}${version.postfix}" />
 
-
 		<jar jarfile="${builddir}/caas.jar" basedir="${builddir}/classes">
 			<manifest>
 				<attribute name="Implementation-Vendor" value="kisst.org" />
@@ -113,7 +112,10 @@
 	</target>
 
 	<target name="-set-postfix">
-		<property name="version.postfix" value="-dev"/>
+		<tstamp>
+			  <format pattern="yyyyMMdd" property="current.timestamp"/>
+		</tstamp>
+		<property name="version.postfix" value="-${current.timestamp}-dev"/>
 	</target>
 
 	<target name="dist-all" description="creates all distribution files" depends="dist, dist-full, dist-groovy" />

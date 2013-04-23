@@ -10,6 +10,7 @@
 package org.kisst.cordys.caas.main;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +18,12 @@ import java.util.Properties;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.FileAppender;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.apache.log4j.xml.XMLLayout;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
@@ -382,6 +385,52 @@ public class Environment
         else
         {
             throw new CaasRuntimeException("caas.conf file not present in any of the considered locations: " + fileLocations);
+        }
+    }
+
+    /**
+     * This method adds an XML file appender so that the output get's logged to a file.
+     * 
+     * @param logFile The location of the log file
+     * @throws IOException In case of any exceptions
+     */
+    public static void addXMLFileAppender(String logFile)
+    {
+        XMLLayout layout = new XMLLayout();
+        layout.setLocationInfo(true);
+
+        addFileAppender(logFile, layout);
+    }
+
+    /**
+     * This method adds a pattern file appender so that the output get's logged to a file.
+     * 
+     * @param logFile The location of the log file
+     * @throws IOException In case of any exceptions
+     */
+    public static void addTextFileAppender(String logFile)
+    {
+        PatternLayout layout = new PatternLayout("%-5p [%c]: %m%n");
+
+        addFileAppender(logFile, layout);
+    }
+
+    /**
+     * This method adds the file appender.
+     * 
+     * @param logFile The log file
+     * @param layout The layout
+     */
+    private static void addFileAppender(String logFile, Layout layout)
+    {
+        try
+        {
+            FileAppender fa = new FileAppender(layout, logFile);
+            Logger.getRootLogger().addAppender(fa);
+        }
+        catch (IOException e)
+        {
+            error("Error adding file appender", e);
         }
     }
 }

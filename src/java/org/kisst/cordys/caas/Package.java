@@ -51,7 +51,7 @@ public class Package extends CordysObject
     /** Holds the version information */
     public String version;
     /** Holds the CN (package DN) of the package */
-    public String cn;
+    public final String cn;
     /** Holds the description of the package */
     public String description;
     /** Holds the status of the package (whether it is loaded or not) */
@@ -101,7 +101,21 @@ public class Package extends CordysObject
         // </ISVPackage>
         // @formatter:on
 
-        if ("ISVPackage".equals(definition.getName()))
+        if ("isvp".equals(definition.getName()))
+        {
+            type = EPackageType.isvp;
+            name = definition.getAttribute("cn");
+            filename = "platform-standard";
+
+            owner = (String) definition.get("loadingdetails/description/owner/text()");
+            buildnumber = (String) definition.get("loadingdetails/description/build/text()");
+            version = (String) definition.get("loadingdetails/description/version/text()");
+            cn = definition.getAttribute("cn");
+
+            // ISV packages are always loaded.
+            status = EPackageStatus.loaded;
+        }
+        else if ("ISVPackage".equals(definition.getName()))
         {
             type = EPackageType.isvp;
             name = definition.getAttribute("cn");
@@ -131,6 +145,7 @@ public class Package extends CordysObject
             type = EPackageType.cap;
             name = definition.getChildText("ApplicationName");
             owner = definition.getChildText("owner");
+            cn = name;
 
             buildnumber = definition.getChildText("ApplicationBuild");
             version = definition.getChildText("ApplicationVersion");
@@ -144,6 +159,10 @@ public class Package extends CordysObject
                 status = EPackageStatus.loaded;
             }
         }
+        else
+        {
+            throw new CaasRuntimeException("Invalid package root tag");
+        }
 
         // Build up the description
         description = name + " version " + getFullVersion();
@@ -153,7 +172,7 @@ public class Package extends CordysObject
         if (status == EPackageStatus.loaded)
         {
             // The package is loaded, so we can read the main entry from the LDAP.
-            runtime = new RuntimePackage(system, "cn=" + cn + "," + system.getDn());
+            runtime = new RuntimePackage(this, "cn=" + cn + "," + system.getDn());
 
             // Now that we have the LDAP entry we can also create the role list and the wsi list.
             webServiceInterfaces = runtime.webServiceInterfaces;
@@ -589,16 +608,22 @@ public class Package extends CordysObject
                 WebServiceInterface.class);
         /** Alias for the web service interfaces. */
         public final ChildList<WebServiceInterface> wsi = webServiceInterfaces;
+        /** Holds the parent package **/
+        private Package pkg;
 
         /**
          * Instantiates a new runtime package.
          * 
-         * @param system The system
+         * @param pkg The system
          * @param dn The dn
          */
-        protected RuntimePackage(CordysSystem system, String dn)
+        protected RuntimePackage(Package pkg, String dn)
         {
-            super(system, dn);
+            super(pkg.getSystem(), dn);
+            this.pkg = pkg;
+            
+            //Make sure the runtime package is registered in the LDAP cache
+            pkg.getSystem().rememberLdap(this);
         }
 
         /**
@@ -616,7 +641,7 @@ public class Package extends CordysObject
         @Override
         public String getVarName()
         {
-            return Package.this.getVarName() + ".runtime";
+            return pkg.getVarName() + ".runtime";
         }
     }
 }
