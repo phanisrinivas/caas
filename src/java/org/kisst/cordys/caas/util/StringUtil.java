@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.UUID;
 
-import org.kisst.cordys.caas.main.Environment;
+import org.apache.log4j.Logger;
 
 /**
  * DOCUMENTME.
@@ -17,6 +17,9 @@ import org.kisst.cordys.caas.main.Environment;
  */
 public class StringUtil
 {
+    /** Holds the logger to use. */
+    private static final Logger LOG = Logger.getLogger(StringUtil.class);
+
     /**
      * DOCUMENTME.
      * 
@@ -44,31 +47,33 @@ public class StringUtil
      */
     public static String reverseSubstitute(String text, Map<String, String> vars)
     {
-        String retVal = null;
+        String retVal = text;
 
-        if (Environment.debug)
+        if (LOG.isDebugEnabled())
         {
-            Environment.debug("Before:\n" + text);
+            LOG.debug("Before:\n" + text);
         }
 
-        Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
-        Matcher matcher = pattern.matcher(text);
-        StringBuffer buffer = new StringBuffer();
-        while (matcher.find())
+        for (String key : vars.keySet())
         {
-            String replacement = vars.get(matcher.group(1));
-            if (replacement != null)
+            String value = vars.get(key);
+
+            Pattern pattern = Pattern.compile("(" + Pattern.quote(value) + ")");
+            Matcher matcher = pattern.matcher(retVal);
+
+            StringBuffer buffer = new StringBuffer();
+            while (matcher.find())
             {
                 matcher.appendReplacement(buffer, "");
-                buffer.append(replacement);
+                buffer.append("${").append(key).append("}");
             }
+            matcher.appendTail(buffer);
+            retVal = buffer.toString();
         }
-        matcher.appendTail(buffer);
-        retVal = buffer.toString();
 
-        if (Environment.debug)
+        if (LOG.isDebugEnabled())
         {
-            Environment.debug("After:\n" + retVal);
+            LOG.debug("After:\n" + retVal);
         }
 
         return retVal;
@@ -159,63 +164,40 @@ public class StringUtil
     /**
      * Substitutes the Map keys found in the given string with their corresponding values from the Map.
      * 
-     * @param str
-     * @param vars
-     * @return
+     * @param text The original text that should be checked and replaced.
+     * @param vars The replacements for the parameters in the source string.
+     * @return The replaced string.
      */
-    public static String substitute(String str, Map<String, String> vars)
+    public static String substitute(String text, Map<String, String> vars)
     {
-        StringBuilder result = new StringBuilder();
+        String retVal = null;
 
-        if (str == null)
+        if (LOG.isDebugEnabled())
         {
-            str = "";
+            LOG.debug("Before:\n" + text);
         }
 
-        try
+        Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
+        Matcher matcher = pattern.matcher(text);
+        StringBuffer buffer = new StringBuffer();
+        while (matcher.find())
         {
-            int prevpos = 0;
-            int pos = str.indexOf("${");
-
-            while (pos >= 0)
+            String replacement = vars.get(matcher.group(1));
+            if (replacement != null)
             {
-                int pos2 = str.indexOf("}", pos);
-
-                if (pos < 0)
-                {
-                    throw new RuntimeException("Unbounded ${");
-                }
-
-                String key = str.substring(pos + 2, pos2);
-                result.append(str.substring(prevpos, pos));
-
-                String value = vars.get(key);
-
-                if ((value == null) && key.equals("dollar"))
-                {
-                    value = "$";
-                }
-
-                // This will be replaced later in resolveVariables() webService of Template.java, as we don't know its
-                // value at this point of time
-                /*
-                 * if(value==null && key.equals("CORDYS_INSTALL_DIR")) value="CORDYS_INSTALL_DIR";
-                 */
-                if (value == null)
-                {
-                    throw new RuntimeException("Unknown variable ${" + key + "}");
-                }
-                result.append(value);
-                prevpos = pos2 + 1;
-                pos = str.indexOf("${", prevpos);
+                matcher.appendReplacement(buffer, "");
+                buffer.append(replacement);
             }
-            result.append(str.substring(prevpos));
         }
-        catch (Exception e)
+        matcher.appendTail(buffer);
+        retVal = buffer.toString();
+
+        if (LOG.isDebugEnabled())
         {
-            e.printStackTrace();
+            LOG.debug("After:\n" + retVal);
         }
-        return result.toString();
+
+        return retVal;
     }
 
     /**

@@ -211,7 +211,7 @@ public class Package extends CordysObject
     @Override
     public String getName()
     {
-        return StringUtil.quotedName(name);
+        return name;
     }
 
     /**
