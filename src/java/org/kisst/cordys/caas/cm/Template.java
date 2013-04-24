@@ -51,10 +51,21 @@ public class Template
      * 
      * @param template The template XML.
      */
+    public Template(String template)
+    {
+        this(template, null);
+    }
+
+    /**
+     * Instantiates a new template.
+     * 
+     * @param template The template XML.
+     * @param templateOptions The template options
+     */
     public Template(String template, List<ETemplateOption> templateOptions)
     {
         this.template = template;
-        
+
         processTemplateOptions(templateOptions);
     }
 
@@ -237,7 +248,7 @@ public class Template
         String str = result.getPretty();
         this.template = str.replace("$", "${dollar}");
     }
-    
+
     /**
      * Process template options.
      * 
@@ -704,7 +715,7 @@ public class Template
                 info("updating servicegroup " + name + " ... ");
 
                 // Update the configuration of the service group
-                serviceGroup.config.set(config);
+                serviceGroup.config.set(config.compact());
 
                 WebServiceInterface[] newWebServiceInterfaces = getWebServiceInterfaces(org, serviceGroupNode);
                 if ((newWebServiceInterfaces != null) && (newWebServiceInterfaces.length > 0))
