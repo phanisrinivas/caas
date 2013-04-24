@@ -55,6 +55,7 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
       <action dev="pgussow" type="change"><![CDATA[Removed most of the System.out.println and replaced them with Environment.info]]></action>
     </release>
     <release date="2013-??-??" description="Stable release" version="2.0.19">
+      <action dev="pgussow" type="fix"><![CDATA[If a CAP package was already loaded, but also a new version is available you could not get the details of the loaded package.]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added the option -c to the cm template and the cm create sub commands. This option allows to specify which components need to be exported from Cordys.]]></action>
       <action dev="pgussow" type="fix"><![CDATA[When a service group is updated using the template the configuration of the service group was not updated. This is fixed.]]></action>
     </release>
