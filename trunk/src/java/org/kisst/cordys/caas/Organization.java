@@ -575,7 +575,7 @@ public class Organization extends LdapObjectBase
      */
     public Template createTemplate(String isvpName)
     {
-        return new Template(this, isvpName);
+        return new Template(this, isvpName, null);
     }
 
     /**
