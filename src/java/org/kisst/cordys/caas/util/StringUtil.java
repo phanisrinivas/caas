@@ -58,17 +58,20 @@ public class StringUtil
         {
             String value = vars.get(key);
 
-            Pattern pattern = Pattern.compile("(" + Pattern.quote(value) + ")");
-            Matcher matcher = pattern.matcher(retVal);
-
-            StringBuffer buffer = new StringBuffer();
-            while (matcher.find())
+            if (!isEmptyOrNull(value))
             {
-                matcher.appendReplacement(buffer, "");
-                buffer.append("${").append(key).append("}");
+                Pattern pattern = Pattern.compile("(" + Pattern.quote(value) + ")");
+                Matcher matcher = pattern.matcher(retVal);
+
+                StringBuffer buffer = new StringBuffer();
+                while (matcher.find())
+                {
+                    matcher.appendReplacement(buffer, "");
+                    buffer.append("${").append(key).append("}");
+                }
+                matcher.appendTail(buffer);
+                retVal = buffer.toString();
             }
-            matcher.appendTail(buffer);
-            retVal = buffer.toString();
         }
 
         if (LOG.isDebugEnabled())

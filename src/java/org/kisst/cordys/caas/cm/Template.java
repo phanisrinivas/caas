@@ -1,7 +1,13 @@
 package org.kisst.cordys.caas.cm;
 
+import static org.kisst.cordys.caas.main.Environment.debug;
+import static org.kisst.cordys.caas.main.Environment.error;
+import static org.kisst.cordys.caas.main.Environment.info;
+import static org.kisst.cordys.caas.main.Environment.warn;
+
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.kisst.cordys.caas.Assignment;
@@ -27,7 +33,6 @@ import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
-import static org.kisst.cordys.caas.main.Environment.*;
 
 /**
  * This class is used to create the template of a given organization.
@@ -38,15 +43,19 @@ public class Template
     private final String template;
     /** Holds whether or not the template is empty. */
     private boolean empty = true;
+    /** Holds the options that should be applied */
+    private List<ETemplateOption> options;
 
     /**
      * Instantiates a new template.
      * 
      * @param template The template XML.
      */
-    public Template(String template)
+    public Template(String template, List<ETemplateOption> templateOptions)
     {
         this.template = template;
+        
+        processTemplateOptions(templateOptions);
     }
 
     /**
@@ -55,9 +64,9 @@ public class Template
      * @param org The organization for which the template should be created / applied
      * @param targetPackageName The name of the target package.
      */
-    public Template(Organization org, String targetPackageName)
+    public Template(Organization org, String targetPackageName, List<ETemplateOption> templateOptions)
     {
-        this(org, targetPackageName, null, null);
+        this(org, targetPackageName, null, null, templateOptions);
     }
 
     /**
@@ -70,6 +79,21 @@ public class Template
      */
     public Template(Organization org, String targetPackageName, Package pkg, User u)
     {
+        this(org, targetPackageName, pkg, u, null);
+    }
+
+    /**
+     * Extracts a template of the given organization
+     * 
+     * @param org Organization which template needs to be created
+     * @param targetPackageName The name of the target package.
+     * @param isvp The package for which the template should be generated.
+     * @param userDn The user to generate the template for.
+     */
+    public Template(Organization org, String targetPackageName, Package pkg, User u, List<ETemplateOption> templateOptions)
+    {
+        processTemplateOptions(templateOptions);
+
         long overallStartTime = System.currentTimeMillis();
 
         info("Exporting template for " + org.getName() + " organization");
@@ -82,88 +106,160 @@ public class Template
         result.setAttribute("org", org.getName());
 
         // First we export all the non-Cordys packages.
-        long startTime = System.currentTimeMillis();
-        info("Exporting non-Cordys packages... ");
-        CordysSystem system = org.getSystem();
-        for (Package p : system.packages)
+        if (options.contains(ETemplateOption.NON_CORDYS_PACKAGES))
         {
-            IDeployedPackageInfo pi = p.getInfo();
-
-            if (pi != null && !"Cordys".equals(pi.getVendor()))
+            long startTime = System.currentTimeMillis();
+            info("Exporting " + ETemplateOption.NON_CORDYS_PACKAGES.description() + "...");
+            CordysSystem system = org.getSystem();
+            for (Package p : system.packages)
             {
-                debug("Found non-standard package: " + pi.getPackageName());
+                IDeployedPackageInfo pi = p.getInfo();
 
-                XmlNode node = result.add("package");
-                node.setAttribute("name", pi.getPackageName());
+                if (pi != null && !"Cordys".equals(pi.getVendor()))
+                {
+                    debug("Found non-standard package: " + pi.getPackageName());
 
-                XmlNode version = node.add("version");
-                version.setAttribute("version", pi.getFullVersion());
-                version.setAttribute("tested", "OK");
+                    XmlNode node = result.add("package");
+                    node.setAttribute("name", pi.getPackageName());
 
-                version.add("warning").setAttribute("message", "Package " + pi.getPackageName() + " should be loaded");
+                    XmlNode version = node.add("version");
+                    version.setAttribute("version", pi.getFullVersion());
+                    version.setAttribute("tested", "OK");
+
+                    version.add("warning").setAttribute("message", "Package " + pi.getPackageName() + " should be loaded");
+                }
             }
+            info("Finished exporting " + ETemplateOption.NON_CORDYS_PACKAGES.description() + " in "
+                    + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
         }
-        info("Finished exporting non-Cordys packages in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+        else
+        {
+            info("Skipping exporting " + ETemplateOption.NON_CORDYS_PACKAGES.description() + "...");
+        }
 
         // Export the DSOs in the given organization
-        startTime = System.currentTimeMillis();
-        info("Exporting " + org.dsos.getSize() + " dso objects ... ");
-        for (DsoType dsotype : org.dsotypes)
+        if (options.contains(ETemplateOption.DSO))
         {
-            for (Dso dso : dsotype.dsos)
+            long startTime = System.currentTimeMillis();
+            info("Exporting " + org.dsos.getSize() + " " + ETemplateOption.DSO.description() + "...");
+            for (DsoType dsotype : org.dsotypes)
             {
-                XmlNode node = result.add("dso");
-                node.setAttribute("name", dso.getName());
-                node.setAttribute("desc", dso.getProp("desc").toString());
-                node.setAttribute("type", dsotype.getName());
-                XmlNode configNode = dso.config.getXml().clone();
-                node.add("datasourceconfiguration").add(configNode);
+                for (Dso dso : dsotype.dsos)
+                {
+                    XmlNode node = result.add("dso");
+                    node.setAttribute("name", dso.getName());
+                    node.setAttribute("desc", dso.getProp("desc").toString());
+                    node.setAttribute("type", dsotype.getName());
+                    XmlNode configNode = dso.config.getXml().clone();
+                    node.add("datasourceconfiguration").add(configNode);
+                }
             }
+            info("Finished exporting " + ETemplateOption.DSO.description() + " in "
+                    + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
         }
-        info("Finished exporting dsos in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+        else
+        {
+            info("Skipping exporting " + ETemplateOption.DSO.description() + "...");
+        }
 
         // Export XML Store objects
-        startTime = System.currentTimeMillis();
-        info("Exporting " + org.xmlStoreObjects.getSize() + " xmlstore objects ... ");
-        for (XMLStoreObject xso : org.xmlStoreObjects)
+        if (options.contains(ETemplateOption.XML_STORE_OBJECTS))
         {
-            XmlNode node = result.add("xmlstoreobject");
-            node.setAttribute("key", xso.getKey());
-            node.setAttribute("version", xso.getVersion());
-            node.setAttribute("name", xso.getName());
-            node.add(xso.getXML().clone());
+            long startTime = System.currentTimeMillis();
+            info("Exporting " + org.xmlStoreObjects.getSize() + " " + ETemplateOption.XML_STORE_OBJECTS.description() + "...");
+            for (XMLStoreObject xso : org.xmlStoreObjects)
+            {
+                XmlNode node = result.add("xmlstoreobject");
+                node.setAttribute("key", xso.getKey());
+                node.setAttribute("version", xso.getVersion());
+                node.setAttribute("name", xso.getName());
+                node.add(xso.getXML().clone());
+            }
+            info("Finished exporting " + ETemplateOption.XML_STORE_OBJECTS.description() + " in "
+                    + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
         }
-        info("Finished exporting xmlstore objects in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+        else
+        {
+            info("Skipping exporting " + ETemplateOption.XML_STORE_OBJECTS.description() + "...");
+        }
 
         // Exporting local roles
-        startTime = System.currentTimeMillis();
-        info("Exporting " + org.roles.getSize() + " roles ... ");
+        if (options.contains(ETemplateOption.ROLES))
+        {
+            long startTime = System.currentTimeMillis();
+            info("Exporting " + org.roles.getSize() + " " + ETemplateOption.ROLES.description() + "...");
 
-        exportRoles(org, targetPackageName, result);
+            exportRoles(org, targetPackageName, result);
 
-        info("Finished exporting roles in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+            info("Finished exporting " + ETemplateOption.ROLES.description() + " in "
+                    + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+        }
+        else
+        {
+            info("Skipping exporting " + ETemplateOption.ROLES.description() + "...");
+        }
 
         // Exporting users in the organization
-        startTime = System.currentTimeMillis();
-        info("Exporting " + org.users.getSize() + " users ... ");
+        if (options.contains(ETemplateOption.USERS))
+        {
+            long startTime = System.currentTimeMillis();
+            info("Exporting " + org.users.getSize() + " " + ETemplateOption.USERS.description() + "...");
 
-        exportUsers(org, targetPackageName, result);
+            exportUsers(org, targetPackageName, result);
 
-        info("Finished exporting users in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+            info("Finished exporting " + ETemplateOption.USERS.description() + " in "
+                    + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+        }
+        else
+        {
+            info("Skipping exporting " + ETemplateOption.USERS.description() + "...");
+        }
 
         // Exporting service groups.
-        startTime = System.currentTimeMillis();
-        info("Exporting " + org.serviceGroups.getSize() + " service groups ... ");
+        if (options.contains(ETemplateOption.SERVICE_GROUPS))
+        {
+            long startTime = System.currentTimeMillis();
+            info("Exporting " + org.serviceGroups.getSize() + " service groups ... ");
 
-        exportServiceGroups(org, targetPackageName, result);
+            exportServiceGroups(org, targetPackageName, result);
 
-        info("Finished exporting service groups in " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+            info("Finished exporting " + ETemplateOption.SERVICE_GROUPS.description() + " in "
+                    + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
+        }
+        else
+        {
+            info("Skipping exporting " + ETemplateOption.SERVICE_GROUPS.description() + "...");
+        }
 
         info("Finished exporting entire template in " + ((System.currentTimeMillis() - overallStartTime) / 1000)
                 + " seconds ... ");
 
         String str = result.getPretty();
         this.template = str.replace("$", "${dollar}");
+    }
+    
+    /**
+     * Process template options.
+     * 
+     * @param templateOptions The template options
+     */
+    private void processTemplateOptions(List<ETemplateOption> templateOptions)
+    {
+        options = templateOptions;
+        if (options == null)
+        {
+            options = new ArrayList<Template.ETemplateOption>();
+            options.add(ETemplateOption.ALL);
+        }
+
+        // Make the option checks easier: if ALL is added, then we add all template options so that our checks can be easier
+        if (options.contains(ETemplateOption.ALL))
+        {
+            for (ETemplateOption o : ETemplateOption.values())
+            {
+                options.add(o);
+            }
+        }
     }
 
     /**
@@ -481,7 +577,14 @@ public class Template
      */
     private void processPackage(Organization org, XmlNode node)
     {
-        warn("Automatic deployment of package " + node.getAttribute("name") + " not supported.");
+        if (options.contains(ETemplateOption.NON_CORDYS_PACKAGES))
+        {
+            warn("Automatic deployment of package " + node.getAttribute("name") + " not supported.");
+        }
+        else
+        {
+            info("Skipping applying " + ETemplateOption.NON_CORDYS_PACKAGES.description());
+        }
     }
 
     /**
@@ -492,32 +595,39 @@ public class Template
      */
     private void processXMLStoreObject(Organization org, XmlNode xmlStoreObjNode)
     {
-        // Remove xml comments
-        String uncommented = StringUtil.removeXmlComments(xmlStoreObjNode.compact());
-        xmlStoreObjNode = new XmlNode(uncommented);
-        String operationFlag = xmlStoreObjNode.getAttribute("operation");
-        String key = xmlStoreObjNode.getAttribute("key");
-        String version = xmlStoreObjNode.getAttribute("version");
-        String name = xmlStoreObjNode.getAttribute("name");
-        XmlNode newXml = xmlStoreObjNode.getChildren().get(0);
-        XMLStoreObject obj = new XMLStoreObject(key, version, org);
-        if (operationFlag != null && operationFlag.equals("overwrite"))
+        if (options.contains(ETemplateOption.XML_STORE_OBJECTS))
         {
-            info("Overwriting " + name + " xmlstore object ... ");
-            obj.overwriteXML(newXml.clone());
-        }
-        else if (operationFlag != null && operationFlag.equals("append"))
-        {
-            info("Appending " + name + " xmlstore object ... ");
-            obj.appendXML(newXml.clone());
+            // Remove xml comments
+            String uncommented = StringUtil.removeXmlComments(xmlStoreObjNode.compact());
+            xmlStoreObjNode = new XmlNode(uncommented);
+            String operationFlag = xmlStoreObjNode.getAttribute("operation");
+            String key = xmlStoreObjNode.getAttribute("key");
+            String version = xmlStoreObjNode.getAttribute("version");
+            String name = xmlStoreObjNode.getAttribute("name");
+            XmlNode newXml = xmlStoreObjNode.getChildren().get(0);
+            XMLStoreObject obj = new XMLStoreObject(key, version, org);
+            if (operationFlag != null && operationFlag.equals("overwrite"))
+            {
+                info("Overwriting " + name + " xmlstore object ... ");
+                obj.overwriteXML(newXml.clone());
+            }
+            else if (operationFlag != null && operationFlag.equals("append"))
+            {
+                info("Appending " + name + " xmlstore object ... ");
+                obj.appendXML(newXml.clone());
+            }
+            else
+            // By default overwrite the XMStore object
+            {
+                info("Overwriting " + name + " xmlstore object ... ");
+                obj.overwriteXML(newXml.clone());
+            }
+            info("OK");
         }
         else
-        // By default overwrite the XMStore object
         {
-            info("Overwriting " + name + " xmlstore object ... ");
-            obj.overwriteXML(newXml.clone());
+            info("Skipping applying " + ETemplateOption.XML_STORE_OBJECTS.description());
         }
-        info("OK");
     }
 
     /**
@@ -528,32 +638,39 @@ public class Template
      */
     private void processDso(Organization org, XmlNode dsoNode)
     {
-        String name = dsoNode.getAttribute("name");
-        String desc = dsoNode.getAttribute("desc");
-        String type = dsoNode.getAttribute("type");
-        XmlNode config = dsoNode.getChild("datasourceconfiguration").getChildren().get(0).clone();
-        DsoType dsotype = org.dsotypes.getByName(type);
-        if (dsotype == null) // Holds true only once per dsotype of org
+        if (options.contains(ETemplateOption.DSO))
         {
-            info("creating dsotype " + type + " ... ");
-            org.createDsoType(type);
-            info("OK");
-            dsotype = org.dsotypes.getByName(type);
-        }
-        Dso dso = dsotype.dsos.getByName(name);
-        if (dso == null) // Create DSO
-        {
-            info("creating dso " + name + " ... ");
-            dsotype = org.dsotypes.getByName(type);
-            dsotype.createDso(name, desc, config);
-            info("OK");
+            String name = dsoNode.getAttribute("name");
+            String desc = dsoNode.getAttribute("desc");
+            String type = dsoNode.getAttribute("type");
+            XmlNode config = dsoNode.getChild("datasourceconfiguration").getChildren().get(0).clone();
+            DsoType dsotype = org.dsotypes.getByName(type);
+            if (dsotype == null) // Holds true only once per dsotype of org
+            {
+                info("creating dsotype " + type + " ... ");
+                org.createDsoType(type);
+                info("OK");
+                dsotype = org.dsotypes.getByName(type);
+            }
+            Dso dso = dsotype.dsos.getByName(name);
+            if (dso == null) // Create DSO
+            {
+                info("creating dso " + name + " ... ");
+                dsotype = org.dsotypes.getByName(type);
+                dsotype.createDso(name, desc, config);
+                info("OK");
+            }
+            else
+            // Update DSO
+            {
+                info("updating dso " + name + " ... ");
+                dsotype.updateDso(dso, config);
+                info("OK");
+            }
         }
         else
-        // Update DSO
         {
-            info("updating dso " + name + " ... ");
-            dsotype.updateDso(dso, config);
-            info("OK");
+            info("Skipping applying " + ETemplateOption.DSO.description());
         }
     }
 
@@ -566,129 +683,144 @@ public class Template
      */
     private void processServiceGroup(Organization org, XmlNode serviceGroupNode)
     {
-        // Process SG
-        String name = serviceGroupNode.getAttribute("name");
-        ServiceGroup serviceGroup = org.serviceGroups.getByName(name);
-        if (serviceGroup == null) // Create SG
+        if (options.contains(ETemplateOption.SERVICE_GROUPS))
         {
-            info("creating servicegroup " + name + " ... ");
+            // Process SG
+            String name = serviceGroupNode.getAttribute("name");
+            ServiceGroup serviceGroup = org.serviceGroups.getByName(name);
             XmlNode config = serviceGroupNode.getChild("bussoapnodeconfiguration").getChildren().get(0).clone();
-            org.createServiceGroup(name, config, getWebServiceInterfaces(org, serviceGroupNode));
-            serviceGroup = org.serviceGroups.getByName(name);
-            info("OK");
-        }
-        else
-        // Update SG
-        {
-            info("updating servicegroup " + name + " ... ");
-            WebServiceInterface[] newWebServiceInterfaces = getWebServiceInterfaces(org, serviceGroupNode);
-            if ((newWebServiceInterfaces != null) && (newWebServiceInterfaces.length > 0))
+
+            if (serviceGroup == null) // Create SG
             {
-                serviceGroup.webServiceInterfaces.update(newWebServiceInterfaces);
-                ArrayList<String> namepsaces = new ArrayList<String>();
-                for (WebServiceInterface webServiceInterface : newWebServiceInterfaces)
-                {
-                    for (String namespace : webServiceInterface.namespaces.get())
-                    {
-                        namepsaces.add(namespace);
-                    }
-                }
-                serviceGroup.namespaces.update(namepsaces);
+                info("creating servicegroup " + name + " ... ");
+
+                org.createServiceGroup(name, config, getWebServiceInterfaces(org, serviceGroupNode));
+                serviceGroup = org.serviceGroups.getByName(name);
                 info("OK");
             }
-        }
-        // Process SCs
-        CordysObjectList<Machine> machines = org.getSystem().machines;
-        int i = 0;
-        if (serviceGroupNode.getChildren("sc").size() != machines.getSize())
-        {
-            warn("Template says " + serviceGroupNode.getChildren("sc").size() + " servicecontainers for " + name
-                    + " but the no of machines are " + org.getSystem().machines.getSize());
-        }
-        for (XmlNode serviceContainerNode : serviceGroupNode.getChildren("sc"))
-        {
-            boolean processContainer = true;
-            String scName = serviceContainerNode.getAttribute("name");
-
-            // Determine the machine on which the container should run
-            String machineName = serviceContainerNode.getAttribute("machine");
-            Machine machine = null;
-            if (!StringUtil.isEmptyOrNull(machineName))
+            else
+            // Update SG
             {
-                // A name was set. Try to look it up.
-                machine = machines.getByName(machineName);
+                info("updating servicegroup " + name + " ... ");
+
+                // Update the configuration of the service group
+                serviceGroup.config.set(config);
+
+                WebServiceInterface[] newWebServiceInterfaces = getWebServiceInterfaces(org, serviceGroupNode);
+                if ((newWebServiceInterfaces != null) && (newWebServiceInterfaces.length > 0))
+                {
+                    serviceGroup.webServiceInterfaces.update(newWebServiceInterfaces);
+                    ArrayList<String> namespaces = new ArrayList<String>();
+                    for (WebServiceInterface webServiceInterface : newWebServiceInterfaces)
+                    {
+                        for (String namespace : webServiceInterface.namespaces.get())
+                        {
+                            namespaces.add(namespace);
+                        }
+                    }
+                    serviceGroup.namespaces.update(namespaces);
+                    info("OK");
+                }
+            }
+            // Process SCs
+            CordysObjectList<Machine> machines = org.getSystem().machines;
+            int i = 0;
+            if (serviceGroupNode.getChildren("sc").size() != machines.getSize())
+            {
+                warn("Template says " + serviceGroupNode.getChildren("sc").size() + " servicecontainers for " + name
+                        + " but the no of machines are " + org.getSystem().machines.getSize());
+            }
+            for (XmlNode serviceContainerNode : serviceGroupNode.getChildren("sc"))
+            {
+                boolean processContainer = true;
+                String scName = serviceContainerNode.getAttribute("name");
+
+                // Determine the machine on which the container should run
+                String machineName = serviceContainerNode.getAttribute("machine");
+                Machine machine = null;
+                if (!StringUtil.isEmptyOrNull(machineName))
+                {
+                    // A name was set. Try to look it up.
+                    machine = machines.getByName(machineName);
+                    if (machine == null)
+                    {
+                        // Could not find the machine by its name. So maybe its a number
+                        try
+                        {
+                            int index = Integer.parseInt(machineName);
+                            if (index > machines.getSize())
+                            {
+                                warn("Service container "
+                                        + scName
+                                        + " is configured to run on a node which is not present. Skipping the creation of this node");
+                                processContainer = false;
+                            }
+                            else
+                            {
+                                machine = machines.get(index);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            warn("Could not find machine with identification '" + machineName + "' in the environment");
+                        }
+                    }
+                }
+
+                // If no specific machine was found we'll use the iteration
                 if (machine == null)
                 {
-                    // Could not find the machine by its name. So maybe its a number
-                    try
-                    {
-                        int index = Integer.parseInt(machineName);
-                        if (index > machines.getSize())
-                        {
-                            warn("Service container " + scName
-                                    + " is configured to run on a node which is not present. Skipping the creation of this node");
-                            processContainer = false;
-                        }
-                        else
-                        {
-                            machine = machines.get(index);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        warn("Could not find machine with identification '" + machineName + "' in the environment");
-                    }
+                    machine = machines.get(i++);
                 }
-            }
 
-            // If no specific machine was found we'll use the iteration
-            if (machine == null)
-            {
-                machine = machines.get(i++);
-            }
+                // Get the real machine name to create the container on.
+                machineName = machine.getName();
 
-            // Get the real machine name to create the container on.
-            machineName = machine.getName();
-
-            if (processContainer)
-            {
-                XmlNode configsNode = serviceContainerNode.getChild("bussoapprocessorconfiguration/configurations");
-                ServiceContainer serviceContainer = serviceGroup.serviceContainers.getByName(scName);
-                if (serviceContainer == null) // Create SC
+                if (processContainer)
                 {
-                    info("creating servicecontainer " + scName + " for machine " + machineName + " ... ");
-                    boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
-                    serviceGroup.createServiceContainer(scName, machineName, automatic, configsNode.clone());
-                    for (XmlNode subchild : serviceContainerNode.getChildren())
+                    XmlNode configsNode = serviceContainerNode.getChild("bussoapprocessorconfiguration/configurations");
+                    ServiceContainer serviceContainer = serviceGroup.serviceContainers.getByName(scName);
+                    if (serviceContainer == null) // Create SC
                     {
-                        if (subchild.getName().equals("cp"))
+                        info("creating servicecontainer " + scName + " for machine " + machineName + " ... ");
+                        boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
+                        serviceGroup.createServiceContainer(scName, machineName, automatic, configsNode.clone());
+                        for (XmlNode subchild : serviceContainerNode.getChildren())
                         {
-                            ServiceContainer newSC = serviceGroup.serviceContainers.getByName(scName);
-
-                            // Read the data from the XML
-                            String type = subchild.getAttribute("type");
-                            if (StringUtil.isEmptyOrNull(type))
+                            if (subchild.getName().equals("cp"))
                             {
-                                type = "socket";
-                            }
-                            String cpName = subchild.getAttribute("name");
-                            String description = subchild.getChildText("description");
-                            String labeledURI = subchild.getChildText("labeleduri");
+                                ServiceContainer newSC = serviceGroup.serviceContainers.getByName(scName);
 
-                            newSC.createConnectionPoint(cpName, type, machineName, description, labeledURI);
+                                // Read the data from the XML
+                                String type = subchild.getAttribute("type");
+                                if (StringUtil.isEmptyOrNull(type))
+                                {
+                                    type = "socket";
+                                }
+                                String cpName = subchild.getAttribute("name");
+                                String description = subchild.getChildText("description");
+                                String labeledURI = subchild.getChildText("labeleduri");
+
+                                newSC.createConnectionPoint(cpName, type, machineName, description, labeledURI);
+                            }
                         }
+                        info("OK");
                     }
-                    info("OK");
-                }
-                else
-                // Update SC
-                {
-                    info("updating servicecontainer " + scName + " for machine " + machineName + " ... ");
-                    boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
-                    serviceGroup.updateServiceContainer(scName, machineName, automatic, configsNode.clone(), serviceContainer);
-                    info("OK");
+                    else
+                    // Update SC
+                    {
+                        info("updating servicecontainer " + scName + " for machine " + machineName + " ... ");
+                        boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
+                        serviceGroup
+                                .updateServiceContainer(scName, machineName, automatic, configsNode.clone(), serviceContainer);
+                        info("OK");
+                    }
                 }
             }
+        }
+        else
+        {
+            info("Skipping applying " + ETemplateOption.SERVICE_GROUPS.description());
         }
     }
 
@@ -744,59 +876,67 @@ public class Template
      */
     private void processUser(Organization org, XmlNode userNode)
     {
-        String name = userNode.getAttribute("name");
-        if ("SYSTEM".equals(name.toUpperCase()))
+        if (options.contains(ETemplateOption.USERS))
         {
-            // Whenever I had a SYSTEM user in my template, Cordys would crash pretty hard. It would not be possible to start the
-            // monitor anymore. I had to use the CMC to remove the organization before the Monitor would start again.
-            error("Ignoring user " + name + " because the SYSTEM user should not be modified from a template");
-            return;
-        }
-        if (org.users.getByName(name) == null) // Create User
-        {
-            info("creating user " + name + " ... ");
-            org.createUser(name, userNode.getAttribute("au"), userNode.getAttribute("type"), userNode.getAttribute("osidentity"),
-                    userNode.getAttribute("password")); // Create Org User
+            String name = userNode.getAttribute("name");
+            if ("SYSTEM".equals(name.toUpperCase()))
+            {
+                // Whenever I had a SYSTEM user in my template, Cordys would crash pretty hard. It would not be possible to start
+                // the
+                // monitor anymore. I had to use the CMC to remove the organization before the Monitor would start again.
+                error("Ignoring user " + name + " because the SYSTEM user should not be modified from a template");
+                return;
+            }
+            if (org.users.getByName(name) == null) // Create User
+            {
+                info("creating user " + name + " ... ");
+                org.createUser(name, userNode.getAttribute("au"), userNode.getAttribute("type"),
+                        userNode.getAttribute("osidentity"), userNode.getAttribute("password")); // Create Org User
+                info("OK");
+            }
+
+            info("configuring user " + name + " with roles ... ");
+            // Assigning roles
+            User user = org.users.getByName(name);
+            ArrayList<String> newRoles = new ArrayList<String>();
+            for (XmlNode child : userNode.getChildren())
+            {
+                if (child.getName().equals("role"))
+                {
+                    Role role = null;
+                    String isvpName = child.getAttribute("package");
+                    String roleName = child.getAttribute("name");
+                    String dnRole = null;
+                    if (isvpName == null) // Assign organizational role if the isvp name is not mentioned
+                    {
+                        role = org.roles.getByName(roleName);
+                        dnRole = "cn=" + roleName + ",cn=organizational roles," + org.getDn();
+                    }
+                    else
+                    // Assign ISVP role
+                    {
+                        Package isvp = org.getSystem().isvp.getByName(isvpName);
+                        if (isvp != null)
+                            role = isvp.roles.getByName(roleName);
+                        dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
+                    }
+                    if (role != null)
+                        newRoles.add(role.getDn());
+                    else
+                        newRoles.add(dnRole);
+                }
+                else
+                    warn("Unknown user subelement " + child.getPretty());
+            }
+            // Assign all the roles to the user at once
+            if (newRoles != null && newRoles.size() > 0)
+                user.roles.add(newRoles.toArray(new String[newRoles.size()]));
             info("OK");
         }
-
-        info("configuring user " + name + " with roles ... ");
-        // Assigning roles
-        User user = org.users.getByName(name);
-        ArrayList<String> newRoles = new ArrayList<String>();
-        for (XmlNode child : userNode.getChildren())
+        else
         {
-            if (child.getName().equals("role"))
-            {
-                Role role = null;
-                String isvpName = child.getAttribute("package");
-                String roleName = child.getAttribute("name");
-                String dnRole = null;
-                if (isvpName == null) // Assign organizational role if the isvp name is not mentioned
-                {
-                    role = org.roles.getByName(roleName);
-                    dnRole = "cn=" + roleName + ",cn=organizational roles," + org.getDn();
-                }
-                else
-                // Assign ISVP role
-                {
-                    Package isvp = org.getSystem().isvp.getByName(isvpName);
-                    if (isvp != null)
-                        role = isvp.roles.getByName(roleName);
-                    dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
-                }
-                if (role != null)
-                    newRoles.add(role.getDn());
-                else
-                    newRoles.add(dnRole);
-            }
-            else
-                warn("Unknown user subelement " + child.getPretty());
+            info("Skipping applying " + ETemplateOption.USERS.description());
         }
-        // Assign all the roles to the user at once
-        if (newRoles != null && newRoles.size() > 0)
-            user.roles.add(newRoles.toArray(new String[newRoles.size()]));
-        info("OK");
     }
 
     /**
@@ -807,46 +947,53 @@ public class Template
      */
     private void processRole(Organization org, XmlNode roleNode)
     {
-        String name = roleNode.getAttribute("name");
-        String type = roleNode.getAttribute("type");
-        if (org.roles.getByName(name) == null)
+        if (options.contains(ETemplateOption.ROLES))
         {
-            info("creating role " + name + " ... ");
-            org.createRole(name, type);
+            String name = roleNode.getAttribute("name");
+            String type = roleNode.getAttribute("type");
+            if (org.roles.getByName(name) == null)
+            {
+                info("creating role " + name + " ... ");
+                org.createRole(name, type);
+                info("OK");
+            }
+            info("configuring role " + name + " ... ");
+            Role role = org.roles.getByName(name);
+            for (XmlNode child : roleNode.getChildren())
+            {
+                if (child.getName().equals("role"))
+                {
+                    Role subRole = null;
+                    String isvpName = child.getAttribute("package");
+                    String roleName = child.getAttribute("name");
+                    String dnRole = null;
+                    if (isvpName == null)
+                    {
+                        subRole = org.roles.getByName(roleName);
+                        dnRole = "cn=" + roleName + ",cn=organizational roles," + org.getDn();
+                    }
+                    else
+                    {
+                        Package isvp = org.getSystem().isvp.getByName(isvpName);
+                        if (isvp != null)
+                            subRole = isvp.roles.getByName(roleName);
+                        else
+                            dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
+                    }
+                    if (subRole != null)
+                        role.roles.add(subRole);
+                    else
+                        role.roles.add(dnRole);
+                }
+                else
+                    warn("Unknown role subelement " + child.getPretty());
+            }
             info("OK");
         }
-        info("configuring role " + name + " ... ");
-        Role role = org.roles.getByName(name);
-        for (XmlNode child : roleNode.getChildren())
+        else
         {
-            if (child.getName().equals("role"))
-            {
-                Role subRole = null;
-                String isvpName = child.getAttribute("package");
-                String roleName = child.getAttribute("name");
-                String dnRole = null;
-                if (isvpName == null)
-                {
-                    subRole = org.roles.getByName(roleName);
-                    dnRole = "cn=" + roleName + ",cn=organizational roles," + org.getDn();
-                }
-                else
-                {
-                    Package isvp = org.getSystem().isvp.getByName(isvpName);
-                    if (isvp != null)
-                        subRole = isvp.roles.getByName(roleName);
-                    else
-                        dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
-                }
-                if (subRole != null)
-                    role.roles.add(subRole);
-                else
-                    role.roles.add(dnRole);
-            }
-            else
-                warn("Unknown role subelement " + child.getPretty());
+            info("Skipping applying " + ETemplateOption.ROLES.description());
         }
-        info("OK");
     }
 
     /**
@@ -1032,4 +1179,52 @@ public class Template
                 error("Unknown role subelement " + child.getPretty());
         }
     }
+
+    /**
+     * This class defines the template content types.
+     */
+    public enum ETemplateOption
+    {
+        ALL("All", 'a'), NON_CORDYS_PACKAGES("Non-Cordys owned packages", 'p'), DSO("Datasource objects", 'd'), XML_STORE_OBJECTS(
+                "XML Store objects", 'x'), ROLES("Organizational roles", 'r'), USERS("Organizational users", 'u'), SERVICE_GROUPS(
+                "Service groups, containers and connection points", 's');
+
+        /** Holds the description of the option */
+        private String m_description;
+        /** Holds the character enabling this option */
+        private char m_option;
+
+        /**
+         * Instantiates a new e template option.
+         * 
+         * @param description The description
+         * @param option The option
+         */
+        ETemplateOption(String description, char option)
+        {
+            m_description = description;
+            m_option = option;
+        }
+
+        /**
+         * This method gets the description.
+         * 
+         * @return The description.
+         */
+        public String description()
+        {
+            return m_description;
+        }
+
+        /**
+         * This method gets the option to use in the commandline.
+         * 
+         * @return The option to use in the commandline.
+         */
+        public char option()
+        {
+            return m_option;
+        }
+    }
+
 }

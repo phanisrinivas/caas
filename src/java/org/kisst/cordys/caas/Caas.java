@@ -61,7 +61,7 @@ public class Caas
      */
     public static Template template(String filename)
     {
-        return new Template(FileUtil.loadString(filename));
+        return new Template(FileUtil.loadString(filename), null);
     }
 
     /**
