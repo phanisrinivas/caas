@@ -80,7 +80,10 @@ public abstract class CordysObject implements Comparable<CordysObject>
     {
         for (CordysObjectList<?> o : new Props<CordysObjectList<?>>(this, CordysObjectList.class))
         {
-            o.clear();
+            if (o != null)
+            {
+                o.clear();
+            }
         }
         myclear();
     }

@@ -337,6 +337,12 @@ public class CordysSystem extends LdapObject
         // and guarantees that objects are never created twice.
         // Instead just the content of the objects is cleared.
         // ldapcache.clear(); rememberLdap(this);
+        
+        org.clear();
+        machines.clear();
+        sc.clear();
+        p.clear();
+        au.clear();
     }
 
     /**

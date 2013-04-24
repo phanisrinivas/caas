@@ -710,12 +710,11 @@ public class Template
                 info("OK");
             }
             else
-            // Update SG
             {
                 info("updating servicegroup " + name + " ... ");
 
                 // Update the configuration of the service group
-                serviceGroup.config.set(config.compact());
+                serviceGroup.updateConfiguration(config);
 
                 WebServiceInterface[] newWebServiceInterfaces = getWebServiceInterfaces(org, serviceGroupNode);
                 if ((newWebServiceInterfaces != null) && (newWebServiceInterfaces.length > 0))
