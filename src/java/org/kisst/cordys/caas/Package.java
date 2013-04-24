@@ -54,6 +54,10 @@ public class Package extends CordysObject
     public final String cn;
     /** Holds the description of the package */
     public String description;
+    /** Holds whether or not a new version is available */
+    public boolean canUpgrade = false;
+    /** Holds the new version that is available */
+    public String newVersion = null;
     /** Holds the status of the package (whether it is loaded or not) */
     public EPackageStatus status = EPackageStatus.not_loaded;
     /** Holds the roles that are part of this package. */
@@ -114,8 +118,8 @@ public class Package extends CordysObject
 
             // ISV packages are always loaded.
             status = EPackageStatus.loaded;
-            
-            //For these packages there are no more additional details available. So create the information with the current info.
+
+            // For these packages there are no more additional details available. So create the information with the current info.
             m_info = new DeployedPackageInfo(getPackageDN(), version, owner, version, buildnumber);
         }
         else if ("ISVPackage".equals(definition.getName()))
@@ -312,7 +316,7 @@ public class Package extends CordysObject
     {
         return filename;
     }
-    
+
     /**
      * This method returns the DN of the runtime location of the package.
      * 
@@ -442,6 +446,45 @@ public class Package extends CordysObject
         String buildNumber = desc.getChildText("build");
 
         m_info = new DeployedPackageInfo(getPackageDN(), fullVersion, vendor, fullVersion, buildNumber);
+    }
+
+    /**
+     * This method gets whether or not this package can be upgraded because a new version is available.
+     * 
+     * @return Whether or not this package can be upgraded because a new version is available.
+     */
+    public boolean getCanUpgrade()
+    {
+        return canUpgrade;
+    }
+
+    /**
+     * This method gets the new version that is already uploaded, but not yet deployed.
+     * 
+     * @return The new version that is already uploaded, but not yet deployed.
+     */
+    public String getNewVersion()
+    {
+        return newVersion;
+    }
+
+    /**
+     * This method sets the new version that is already uploaded, but not yet deployed.
+     * 
+     * @param newVersion The new version that is already uploaded, but not yet deployed.
+     */
+    public void setNewVersion(String newVersion)
+    {
+        this.newVersion = newVersion;
+
+        if (StringUtil.isEmptyOrNull(newVersion))
+        {
+            canUpgrade = false;
+        }
+        else
+        {
+            canUpgrade = true;
+        }
     }
 
     /**
@@ -624,8 +667,8 @@ public class Package extends CordysObject
         {
             super(pkg.getSystem(), dn);
             this.pkg = pkg;
-            
-            //Make sure the runtime package is registered in the LDAP cache
+
+            // Make sure the runtime package is registered in the LDAP cache
             pkg.getSystem().rememberLdap(this);
         }
 
@@ -637,7 +680,7 @@ public class Package extends CordysObject
         {
             throw new RuntimeException("It is not allowed to delete an Isvp, please use unload instead");
         }
-        
+
         /**
          * @see org.kisst.cordys.caas.support.LdapObject#getVarName()
          */
@@ -647,4 +690,5 @@ public class Package extends CordysObject
             return pkg.getVarName() + ".runtime";
         }
     }
+
 }

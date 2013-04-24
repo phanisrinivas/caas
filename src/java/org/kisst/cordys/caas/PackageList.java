@@ -41,7 +41,7 @@ public class PackageList extends CordysObjectList<Package>
         request.add("computer").setText(system.machines.get(0).getName());
 
         XmlNode response = c.call(request);
-        
+
         // There could be packages that have no file name. Those packages are loaded, but we only have the information in the
         // GetInstalledISVPackages. So let's try to also add the packages of which we know they are there, but have no isvp file.
         List<XmlNode> platformPackages = response.xpath(".//isv:computer/isv:isvp[@name='']", Constants.NS);
@@ -90,7 +90,22 @@ public class PackageList extends CordysObjectList<Package>
         for (XmlNode node : caps)
         {
             Package p = new Package(getSystem(), node);
-            grow(p);
+
+            // Now it could be that this package is already loaded. If a cap version 1.0.1 is loaded and 1.0.2 is already uploaded
+            // (but not deployed) then the package will also apear in the 'GetNewCapSummary'. So we need to validate if the
+            // package is already there.
+
+            // Important!! Since we're in the retrieveList we cannot use the getByName call. That is because then we can into a
+            // recursive loop. We should use the _getByName method which does not trigger the retrieveList
+            Package loadedPackage = dirtyGetByName(p.getName());
+            if (loadedPackage == null)
+            {
+                grow(p);
+            }
+            else
+            {
+                loadedPackage.setNewVersion(p.getFullVersion());
+            }
         }
     }
 

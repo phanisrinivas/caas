@@ -861,9 +861,11 @@ public class Template
                 }
                 else
                 {
-                    Package isvp = org.getSystem().isvp.getByName(packageName);
-                    if (isvp != null)
-                        newWSI = isvp.webServiceInterfaces.getByName(wsiName);
+                    Package pkg = org.getSystem().packages.getByName(packageName);
+                    if (pkg != null)
+                    {
+                        newWSI = pkg.webServiceInterfaces.getByName(wsiName);
+                    }
                 }
                 if (newWSI != null)
                 {
