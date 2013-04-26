@@ -43,6 +43,8 @@ import org.kisst.cordys.caas.util.XmlNode;
  */
 public abstract class LdapObjectBase extends LdapObject
 {
+    /** Pattern to check if the DN identifies a loaded package */
+    private static final Pattern PKG = Pattern.compile("^cn=([^,]+),cn=cordys,(cn=[^,]+,){0,1}o=.+$");
     /** Holds the system. */
     private final CordysSystem system;
     /** Holds the dn. */
@@ -246,7 +248,7 @@ public abstract class LdapObjectBase extends LdapObject
     }
 
     /**
-     * Calc parent.
+     * This method calculates the parent for the given entry. The calculation can be a bit tricky. Especially if the given DN is part 
      * 
      * @param system The system
      * @param dn The dn
@@ -284,6 +286,18 @@ public abstract class LdapObjectBase extends LdapObject
             if (dummy == true)
             {
                 continue;
+            }
+            
+            //Now check if the entry is a loaded package.
+            Matcher m = PKG.matcher(dn);
+            if (m.find())
+            {
+                //It is a package DN. So we need to have the cn, because that is the name of the package which we can use to look up the runtime package.
+                String cn = m.group(1);
+                
+                Package p = system.packages.getByName(cn);
+                system.rememberLdap(p.getRuntime());
+                return p.getRuntime();
             }
 
             XmlNode entry = retrieveEntry(system, dn);

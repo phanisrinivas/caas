@@ -224,8 +224,8 @@ public class CmCommand extends CompositeCommand
     /**
      * This command will create the template based on the configured system and organization.
      */
-    private Command template = new TemplateHostCommand("[options] <template file>", "create a template based on the given organization") {
-        
+    private Command template = new TemplateHostCommand("[options] <template file>",
+            "create a template based on the given organization") {
 
         private final Cli.StringOption isvpName = cli.stringOption("i", "isvpName", "the isvpName to use for custom content",
                 null);
@@ -269,6 +269,11 @@ public class CmCommand extends CompositeCommand
             // Load the properties for the given organization.
             Map<String, String> map = Environment.get().loadSystemProperties(this.getSystem().getName(), organization.getName());
 
+            // Add the organization name, system name and LDAP root to the map
+            map.put("sys.org.name", organization.getName());
+            map.put("sys.ldap.root", organization.getSystem().getDn());
+            map.put("sys.name", this.getSystem().getName());
+
             // Apply the template to the given organization using the given properties.
             templ.apply(organization, map);
         }
@@ -292,16 +297,16 @@ public class CmCommand extends CompositeCommand
         commands.put("deduct-user-ccm", deductUserCcmFiles);
         commands.put("deduct-isvp-ccm", deductIsvpCcmFiles);
     }
-    
+
     /**
-     * This class holds the template commands that can be run. 
+     * This class holds the template commands that can be run.
      */
     private abstract class TemplateHostCommand extends HostCommand
     {
         /** Holds the option that allows the user to specify which types they want to process */
         protected final Cli.StringOption compOption = cli.stringOption("c", "component",
                 "the components that should be processed. Valid options", null);
-        
+
         /**
          * Instantiates a new template host command.
          * 
@@ -312,7 +317,7 @@ public class CmCommand extends CompositeCommand
         {
             super(usage, summary);
         }
-        
+
         /**
          * This method gets the options valid for the template.
          * 
@@ -338,7 +343,7 @@ public class CmCommand extends CompositeCommand
                     }
                 }
             }
-            
+
             return options;
         }
     }
