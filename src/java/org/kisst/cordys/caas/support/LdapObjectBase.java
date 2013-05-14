@@ -31,6 +31,7 @@ import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.WebService;
 import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.Xsd;
+import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.ReflectionUtil;
 import org.kisst.cordys.caas.util.XmlNode;
@@ -296,8 +297,17 @@ public abstract class LdapObjectBase extends LdapObject
                 String cn = m.group(1);
                 
                 Package p = system.packages.getByName(cn);
-                system.rememberLdap(p.getRuntime());
-                return p.getRuntime();
+                
+                //For some reason sometimes the package is not found
+                if (p == null)
+                {
+                    Environment.warn("Could not find package with name " + cn);
+                }
+                else
+                {
+                    system.rememberLdap(p.getRuntime());
+                    return p.getRuntime();
+                }
             }
 
             XmlNode entry = retrieveEntry(system, dn);

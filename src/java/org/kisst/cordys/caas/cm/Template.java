@@ -559,24 +559,51 @@ public class Template
     public void apply(Organization org, Map<String, String> vars)
     {
         info("Importing template to " + org.getName() + " organization");
+
+        if (Environment.debug)
+        {
+            StringBuilder sb = new StringBuilder(1024);
+            sb.append("Variables:\n");
+            for (String name : vars.keySet())
+            {
+                sb.append(name).append(": ").append(vars.get(name)).append("\n");
+            }
+            debug(sb.toString());
+        }
+
         XmlNode template = xml(vars);
         for (XmlNode node : template.getChildren())
         {
             if (node.getName().equals("dso"))
+            {
                 processDso(org, node);
+            }
             else if (node.getName().equals("xmlstoreobject"))
+            {
                 processXMLStoreObject(org, node);
+            }
             else if (node.getName().equals("role"))
+            {
                 processRole(org, node);
+            }
             else if (node.getName().equals("user"))
+            {
                 processUser(org, node);
+            }
             else if (node.getName().equals("servicegroup"))
+            {
                 processServiceGroup(org, node);
+            }
             else if (node.getName().equals("package"))
+            {
                 processPackage(org, node);
+            }
             else
+            {
                 warn("Unknown organization element " + node.getPretty());
+            }
         }
+        
         info("Template successfully imported to " + org.getName() + " organization");
     }
 
