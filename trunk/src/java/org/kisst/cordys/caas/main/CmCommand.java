@@ -12,7 +12,6 @@ package org.kisst.cordys.caas.main;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -24,9 +23,7 @@ import org.kisst.cordys.caas.cm.CaasPackage;
 import org.kisst.cordys.caas.cm.CcmFilesObjective;
 import org.kisst.cordys.caas.cm.Objective;
 import org.kisst.cordys.caas.cm.Template;
-import org.kisst.cordys.caas.cm.Template.ETemplateOption;
 import org.kisst.cordys.caas.cm.gui.CcmGui;
-import org.kisst.cordys.caas.util.FileUtil;
 
 /**
  * This class holds the ConfigurationManager command. It contains the different sub commands of the configuration manager.
@@ -224,58 +221,36 @@ public class CmCommand extends CompositeCommand
     /**
      * This command will create the template based on the configured system and organization.
      */
-    private Command template = new TemplateHostCommand("[options] <template file>",
-            "create a template based on the given organization") {
-
-        private final Cli.StringOption isvpName = cli.stringOption("i", "isvpName", "the isvpName to use for custom content",
-                null);
-
+    private Command template = new HostCommand("[options] <template file>", "create a template based on the given organization") {
         /**
          * @see org.kisst.cordys.caas.main.CommandBase#run(java.lang.String[])
          */
         @Override
         public void run(String[] args)
         {
-            args = checkArgs(args);
+            Environment.warn("Deprecated command. Please use 'caas template create' syntax");
+            
+            TemplateCommand tc = new TemplateCommand();
+            Command cc = tc.getCreateCommand();
 
-            // Create the template for the configured organization
-            String orgz = System.getProperty("template.org");
-            Organization organization = getOrg(orgz);
-            Template templ = new Template(organization, isvpName.get(), getOptions());
-
-            // Load the properties for the given organization
-            Map<String, String> variables = Environment.get().loadSystemProperties(getSystem().getName(), organization.getName());
-
-            // Save the template
-            templ.save(args[0], variables);
+            cc.run(args);
         }
     };
 
     /**
      * This method will apply the template to the given system and organization.
      */
-    private Command create = new TemplateHostCommand("[options] <template file>",
+    private Command create = new HostCommand("[options] <template file>",
             "create elements in an organization based on the given template") {
         @Override
         public void run(String[] args)
         {
-            args = checkArgs(args);
-            Template templ = new Template(FileUtil.loadString(args[0]), getOptions());
+            Environment.warn("Deprecated command. Please use 'caas template apply' syntax");
+            
+            TemplateCommand tc = new TemplateCommand();
+            Command cc = tc.getApplyCommand();
 
-            // Get the organization in which the template should be applied.
-            String orgz = System.getProperty("create.org");
-            Organization organization = getOrg(orgz);
-
-            // Load the properties for the given organization.
-            Map<String, String> map = Environment.get().loadSystemProperties(this.getSystem().getName(), organization.getName());
-
-            // Add the organization name, system name and LDAP root to the map
-            map.put("sys.org.name", organization.getName());
-            map.put("sys.ldap.root", organization.getSystem().getDn());
-            map.put("sys.name", this.getSystem().getName());
-
-            // Apply the template to the given organization using the given properties.
-            templ.apply(organization, map);
+            cc.run(args);
         }
     };
 
@@ -296,55 +271,5 @@ public class CmCommand extends CompositeCommand
         commands.put("create", create);
         commands.put("deduct-user-ccm", deductUserCcmFiles);
         commands.put("deduct-isvp-ccm", deductIsvpCcmFiles);
-    }
-
-    /**
-     * This class holds the template commands that can be run.
-     */
-    private abstract class TemplateHostCommand extends HostCommand
-    {
-        /** Holds the option that allows the user to specify which types they want to process */
-        protected final Cli.StringOption compOption = cli.stringOption("c", "component",
-                "the components that should be processed. Valid options", null);
-
-        /**
-         * Instantiates a new template host command.
-         * 
-         * @param usage The usage
-         * @param summary The summary
-         */
-        public TemplateHostCommand(String usage, String summary)
-        {
-            super(usage, summary);
-        }
-
-        /**
-         * This method gets the options valid for the template.
-         * 
-         * @return The options valid for the template.
-         */
-        public List<ETemplateOption> getOptions()
-        {
-            // Build up the list of the components that should be exported.
-            List<Template.ETemplateOption> options = new ArrayList<Template.ETemplateOption>();
-            if (!compOption.isSet() || compOption.get().indexOf(Template.ETemplateOption.ALL.option()) > -1)
-            {
-                // If the option is not set OR that the all is specified we do everything
-                options.add(ETemplateOption.ALL);
-            }
-            else
-            {
-                String tmp = compOption.get();
-                for (ETemplateOption o : Template.ETemplateOption.values())
-                {
-                    if (tmp.indexOf(o.option()) > -1)
-                    {
-                        options.add(o);
-                    }
-                }
-            }
-
-            return options;
-        }
     }
 }
