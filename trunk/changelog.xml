@@ -62,10 +62,12 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
     <release date="2013-04-26" description="Stable release" version="2.0.20">
       <action dev="pgussow" type="fix"><![CDATA[A bug in the package detection of a web service interface when creating a template. It would display the system name instead of the proper package name.]]></action>
     </release>
-    <release date="2013-05-??" description="Stable release" version="2.0.21">
+    <release date="2013-05-14" description="Stable release" version="2.0.21">
       <action dev="pgussow" type="change"><![CDATA[Moved the caas cm template and caas cm create commands to a separate command to emphasize the difference in use case between the 2. So now please use the 'caas template create' (to create a template file from an organization) command and the 'caas template apply' (to apply a template file to an organization) for template based actions.]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added some additional debug logging when applying a template]]></action>
       <action dev="pgussow" type="fix"><![CDATA[Fixed a NullPointer in case the package could not be found]]></action>
+    </release>
+    <release date="2013-05-??" description="Stable release" version="2.0.22">
     </release>
   </body>
 </document>
