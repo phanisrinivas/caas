@@ -45,6 +45,7 @@ public class CaasMainCommand extends CompositeCommand
         commands.put("groovy", new GroovyCommand());
         commands.put("log", new LogCommand());
         commands.put("setup", new SetupCommand());
+        commands.put("template", new TemplateCommand());
     }
 
     /**
