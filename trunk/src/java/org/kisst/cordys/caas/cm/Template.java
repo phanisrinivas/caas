@@ -45,6 +45,8 @@ public class Template
     private boolean empty = true;
     /** Holds the options that should be applied */
     private List<ETemplateOption> options;
+    /** Holds the organization from which the template was created. */
+    private Organization organization;
 
     /**
      * Instantiates a new template.
@@ -103,6 +105,8 @@ public class Template
      */
     public Template(Organization org, String targetPackageName, Package pkg, User u, List<ETemplateOption> templateOptions)
     {
+        this.organization = org;
+
         processTemplateOptions(templateOptions);
 
         long overallStartTime = System.currentTimeMillis();
@@ -510,8 +514,31 @@ public class Template
      */
     public void save(String filename, Map<String, String> vars)
     {
+        // Add the organization name, system name and LDAP root to the map
+        if (organization != null)
+        {
+            addDefaultVariables(organization, vars);
+        }
+
         FileUtil.saveString(new File(filename), StringUtil.reverseSubstitute(template, vars));
         info("Template successfully exported to " + filename);
+    }
+
+    /**
+     * This method adds the default variables based on the given organization. There are 3 default parameters that are set:
+     * <ul>
+     * <li>sys.org.name - The Cordys organization name</li>
+     * <li>sys.ldap.root- The root LDAP DN of the system that this template is connecting to</li>
+     * <li>sys.name - The name of the system in the caas.conf</li>
+     * 
+     * @param org The organization to get the information from.
+     * @param vars The variables list to add the default values to. 
+     */
+    private void addDefaultVariables(Organization org, Map<String, String> vars)
+    {
+        vars.put("sys.org.name", org.getName());
+        vars.put("sys.ldap.root", org.getSystem().getDn());
+        vars.put("sys.name", org.getSystem().getName());
     }
 
     /**
@@ -558,6 +585,9 @@ public class Template
      */
     public void apply(Organization org, Map<String, String> vars)
     {
+        //Add the default system properties used for mapping.
+        addDefaultVariables(org, vars);
+        
         info("Importing template to " + org.getName() + " organization");
 
         if (Environment.debug)
@@ -603,7 +633,7 @@ public class Template
                 warn("Unknown organization element " + node.getPretty());
             }
         }
-        
+
         info("Template successfully imported to " + org.getName() + " organization");
     }
 

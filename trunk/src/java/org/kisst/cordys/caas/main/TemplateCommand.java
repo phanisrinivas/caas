@@ -50,11 +50,6 @@ public class TemplateCommand extends CompositeCommand
             // Load the properties for the given organization
             Map<String, String> variables = Environment.get().loadSystemProperties(getSystem().getName(), organization.getName());
 
-            // Add the organization name, system name and LDAP root to the map
-            variables.put("sys.org.name", organization.getName());
-            variables.put("sys.ldap.root", organization.getSystem().getDn());
-            variables.put("sys.name", this.getSystem().getName());
-
             // Save the template
             templ.save(args[0], variables);
         }
