@@ -1,0 +1,6 @@
+#!/bin/sh
+
+JAVA_EXE=java
+JAVA_OPTS="-Xmx1024m"
+
+${JAVA_EXE} ${JAVA_OPTS} -jar `dirname $0`/../caas.jar $*

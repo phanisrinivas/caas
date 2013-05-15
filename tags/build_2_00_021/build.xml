@@ -1,0 +1,155 @@
+
+<project name="Caas" default="jar" basedir=".">
+	<target name="init">
+		<property file="user.properties" />
+		<property file="version.properties" />
+		<property name="projectfile" value="project.xml" />
+		<xmlproperty file="${projectfile}" semanticAttributes="true" />
+		<property file="buildnumber.properties" />
+		<property name="srcdir" value="src" />
+		<property name="libdir" value="lib" />
+		<property name="builddir" value="build" />
+		<mkdir dir="${builddir}" />
+		<mkdir dir="${builddir}/classes" />
+		<property name="version.postfix" value=""/>
+	</target>
+
+	<target name="compile" description="Compiles Java files" depends="init">
+		<javac srcdir="${srcdir}/java" destdir="${builddir}/classes" debug="on" optimize="on" source="1.6" target="1.6">
+			<compilerarg value="-Xlint" />
+			<classpath>
+				<fileset dir="${libdir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="${builddir}/classes">
+			<fileset dir="${srcdir}/resources" />
+			<fileset file="version.properties" />
+		</copy>
+	</target>
+
+	<target name="jar" description="creates a jar file" depends="compile">
+		<manifestclasspath jarfile="${basedir}/caas.jar" property="manifest.cp">
+			<classpath>
+				<fileset dir="${libdir}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</manifestclasspath>
+
+		<!-- Read the version.properties file to determine the version -->
+		<property file="version.properties" />
+		<property name="project.version" value="${base.version}.${build.number}${version.postfix}" />
+
+		<jar jarfile="${builddir}/caas.jar" basedir="${builddir}/classes">
+			<manifest>
+				<attribute name="Implementation-Vendor" value="kisst.org" />
+				<attribute name="Implementation-Title" value="Caas" />
+				<attribute name="Implementation-Version" value="${project.version}" />
+				<attribute name="Class-Path" value="${manifest.cp}" />
+				<attribute name="Main-Class" value="org.kisst.cordys.caas.main.CaasMain" />
+			</manifest>
+		</jar>
+		<copy file="${builddir}/caas.jar" todir="${basedir}" />
+	</target>
+
+	<target name="dist" description="creates a zip file for distribution" depends="jar,-inc-buildnumber">
+		<zip destfile="${builddir}/caas-${project.version}.zip">
+			<fileset dir="." includes="COPYING" />
+			<zipfileset dir="build" includes="caas.jar" />
+			<zipfileset dir="src/groovy" prefix="scripts" />
+			<zipfileset dir="bin" prefix="bin" />
+			<zipfileset dir="src/schema" prefix="schema" />
+		</zip>
+	</target>
+
+	<target name="dist-dev" description="creates a zip file for distribution" depends="-set-postfix,jar">
+		<zip destfile="${builddir}/caas-${project.version}.zip">
+			<fileset dir="." includes="COPYING" />
+			<zipfileset dir="build" includes="caas.jar" />
+			<zipfileset dir="src/groovy" prefix="scripts" />
+			<zipfileset dir="bin" prefix="bin" />
+			<zipfileset dir="src/schema" prefix="schema" />
+		</zip>
+	</target>
+
+	<target name="dist-full" description="creates a zip file for distribution" depends="dist">
+		<zip destfile="${builddir}/caas-${project.version}-full.zip">
+			<fileset dir="." includes="COPYING" />
+			<zipfileset dir="build" includes="caas.jar" />
+			<zipfileset dir="src/groovy" prefix="scripts" />
+			<zipfileset dir="bin" prefix="bin" />
+			<zipfileset dir="src/schema" prefix="schema" />
+			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
+		</zip>
+	</target>
+
+	<target name="dist-dev-full" description="creates a zip file for distribution" depends="dist-dev">
+		<zip destfile="${builddir}/caas-${project.version}-full.zip">
+			<fileset dir="." includes="COPYING" />
+			<zipfileset dir="build" includes="caas.jar" />
+			<zipfileset dir="src/groovy" prefix="scripts" />
+			<zipfileset dir="bin" prefix="bin" />
+			<zipfileset dir="src/schema" prefix="schema" />
+			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
+		</zip>
+	</target>
+
+	<target name="dist-groovy" description="creates a zip file for distribution" depends="dist">
+		<zip destfile="${builddir}/caas-${project.version}-groovy.zip">
+			<fileset dir="." includes="COPYING" />
+			<zipfileset dir="build" includes="caas.jar" />
+			<zipfileset dir="src/groovy" prefix="scripts" />
+			<zipfileset dir="bin" prefix="bin" />
+			<zipfileset dir="src/schema" prefix="schema" />
+			<zipfileset dir="lib" prefix="lib" includes="*.jar" excludes="jython.jar" />
+		</zip>
+	</target>
+
+	<target name="-inc-buildnumber">
+		<buildnumber file="version.properties" />
+	</target>
+
+	<target name="-set-postfix">
+		<tstamp>
+			  <format pattern="yyyyMMdd" property="current.timestamp"/>
+		</tstamp>
+		<property name="version.postfix" value="-${current.timestamp}-dev"/>
+	</target>
+
+	<target name="dist-all" description="creates all distribution files" depends="dist, dist-full, dist-groovy" />
+
+	<target name="proxy" if="proxy.host">
+		<property name="proxy.port" value="80" />
+		<property name="proxy.user" value="" />
+		<property name="proxy.pass" value="" />
+		<setproxy proxyhost="${proxy.host}" proxyport="${proxy.port}" proxyuser="${proxy.user}" proxypassword="${proxy.pass}" />
+	</target>
+
+	<target name="download-commons" depends="init,proxy">
+		<get src="http://repo2.maven.org/maven2/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar" dest="lib/commons-httpclient-3.1.jar" />
+		<get src="http://repo2.maven.org/maven2/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar" dest="lib/commons-logging-1.0.4.jar" />
+		<get src="http://repo2.maven.org/maven2/commons-codec/commons-codec/1.2/commons-codec-1.2.jar" dest="lib/commons-codec-1.2.jar" />
+	</target>
+
+	<target name="download-log4j" depends="init,proxy">
+		<get src="http://repo2.maven.org/maven2/log4j/log4j/1.2.13/log4j-1.2.13.jar" dest="lib/log4j-1.2.13.jar" />
+	</target>
+
+	<target name="download-jdom" depends="init,proxy">
+		<get src="http://repo2.maven.org/maven2/jdom/jdom/1.0/jdom-1.0.jar" dest="lib/jdom-1.0.jar" />
+	</target>
+
+	<target name="download-groovy" depends="init,proxy">
+		<get src="http://repo1.maven.org/maven2/org/codehaus/groovy/groovy-all/2.0.7/groovy-all-2.0.7.jar" dest="lib/groovy-all-2.0.7.jar" />
+		<get src="http://repo1.maven.org/maven2/commons-cli/commons-cli/1.2/commons-cli-1.2.jar" dest="lib/commons-cli-1.2.jar" />
+		<get src="http://repo1.maven.org/maven2/jline/jline/1.0/jline-1.0.jar" dest="lib/jline-1.0.jar" />
+	</target>
+
+	<target name="download-all" depends="download-commons,download-log4j,download-jdom,download-groovy" />
+
+	<target name="clean" depends="init">
+		<delete dir="${builddir}/classes" />
+	</target>
+</project>

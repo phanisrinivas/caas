@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://caas.kisst.org/2.0/template" targetNamespace="http://caas.kisst.org/2.0/template"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+>
+  <annotation>
+    <documentation>This schema describes the format of the Caas package manager template</documentation>
+  </annotation>
+  <element name="org" type="tns:ctOrganization">
+    <annotation>
+      <documentation>Holds the template for the entire organization</documentation>
+    </annotation>
+  </element>
+  <complexType name="ctOrganization">
+    <annotation>
+      <documentation>Holds the template for the entire organization</documentation>
+    </annotation>
+    <sequence>
+      <element name="package" type="tns:ctPackage" maxOccurs="unbounded" minOccurs="0">
+        <annotation>
+          <documentation>The details of an installed package (ISV or CAP).</documentation>
+        </annotation>
+      </element>
+      <element name="dso" type="tns:ctDSO" maxOccurs="unbounded" minOccurs="0">
+        <annotation>
+          <documentation>The details of a dso connection</documentation>
+        </annotation>
+      </element>
+      <element name="xmlstoreobject" type="tns:ctXMLStoreObject" maxOccurs="unbounded" minOccurs="0">
+        <annotation>
+          <documentation>The content of a file that should be stored in the XML store</documentation>
+        </annotation>
+      </element>
+      <element name="role" type="tns:ctRole" maxOccurs="unbounded" minOccurs="0">
+        <annotation>
+          <documentation>Holds the organizational roles for this organization</documentation>
+        </annotation>
+      </element>
+      <element name="user" type="tns:ctUser" maxOccurs="unbounded" minOccurs="0">
+        <annotation>
+          <documentation>The details for any users that should be created</documentation>
+        </annotation>
+      </element>
+      <element name="servicegroup" type="tns:ctServiceGroup" maxOccurs="unbounded" minOccurs="0">
+        <annotation>
+          <documentation>Holds the details of a service group that should be created</documentation>
+        </annotation></element>
+    </sequence>
+    <attribute name="org" type="string" use="required">
+      <annotation>
+        <documentation>The name of the organization</documentation>
+      </annotation>
+    </attribute>
+  </complexType>
+  <complexType name="ctPackage">
+    <annotation>
+      <documentation>The details of an installed package (ISV or CAP).</documentation>
+    </annotation>
+    <sequence>
+      <element name="version" type="tns:ctVersion" maxOccurs="unbounded" minOccurs="1">
+        <annotation>
+          <documentation>Holds the versions that are known. You can enter multiple versions. It depends on the value of the the
+            tested attribute whether or not the version is a good version.</documentation>
+        </annotation>
+      </element>
+    </sequence>
+    <attribute name="name" type="string" use="required"></attribute>
+  </complexType>
+  <complexType name="ctVersion">
+    <annotation>
+      <documentation> Holds a known version. The version can be either a good version (tested=OK) or a wrong version (tested=BAD).
+        The version attribute is a regular expression to test the version against.
+      </documentation>
+    </annotation>
+    <sequence>
+      <element name="warning" type="tns:ctWarning" maxOccurs="unbounded" minOccurs="1">
+        <annotation>
+          <documentation>The warning messages to display when the version is not correct.</documentation>
+        </annotation>
+      </element>
+    </sequence>
+    <attribute name="version" type="string">
+      <annotation>
+        <documentation> The version is a regular expression against which the actual version is tested. If you want to match a
+          specific version you enter it like 1.0.4. But if you think all versions are ok as long as it is in the 1.0.x series then
+          you enter something like 1.0.\d+
+        </documentation>
+      </annotation>
+    </attribute>
+    <attribute name="tested" type="tns:stTested">
+      <annotation>
+        <documentation>Holds whether this version is a good version (OK) or a wrong version (BAD)</documentation>
+      </annotation>
+    </attribute>
+  </complexType>
+  <simpleType name="stTested">
+    <annotation>
+      <documentation>The values for how a version tested (OK or BAD)</documentation>
+    </annotation>
+    <restriction base="string">
+      <enumeration value="OK"></enumeration>
+      <enumeration value="BAD"></enumeration>
+    </restriction>
+  </simpleType>
+  <complexType name="ctWarning">
+    <annotation>
+      <documentation>The warning messages to display when the version is not correct.</documentation>
+    </annotation>
+    <attribute name="message" type="string" use="required">
+      <annotation>
+        <documentation>The actual message to display in case of a version mismatch.</documentation>
+      </annotation>
+    </attribute>
+  </complexType>
+
+  <complexType name="ctDSO">
+        <annotation>
+          <documentation>The details of a data source</documentation>
+        </annotation>
+        <sequence>
+          <element name="datasourceconfiguration" type="tns:ctDataSourceConfiguration" maxOccurs="1" minOccurs="1">
+            <annotation>
+              <documentation>The actual Cordys component XML. This XML is copied directly from LDAP</documentation>
+            </annotation>
+          </element>
+        </sequence>
+        <attribute name="name" type="string" use="required">
+      <annotation>
+        <documentation>The name of the datasource</documentation>
+      </annotation></attribute>
+    <attribute name="desc" type="string" use="required">
+      <annotation>
+        <documentation>The description for this datasource</documentation>
+      </annotation></attribute>
+    <attribute name="type" type="tns:stDSOType">
+      <annotation>
+        <documentation>The type of datasource. Currently only Relational is supported</documentation>
+      </annotation></attribute>
+  </complexType>
+  <simpleType name="stDSOType">
+    <annotation>
+      <documentation>The type of datasource. Currently only Relational is supported</documentation>
+    </annotation>
+    <restriction base="string">
+      <enumeration value="Relational"></enumeration>
+    </restriction>
+  </simpleType>
+
+    <complexType name="ctDataSourceConfiguration">
+        <annotation>
+          <documentation>The actual Cordys component XML. This XML is copied directly from LDAP</documentation></annotation>
+        <sequence>
+        <any processContents="skip" minOccurs="1" maxOccurs="1"></any>
+      </sequence></complexType>
+
+    <complexType name="ctXMLStoreObject">
+      <annotation>
+        <documentation>The content of a file that should be stored in the XML store</documentation>
+      </annotation>
+      <sequence>
+        <any processContents="skip" minOccurs="1" maxOccurs="1">
+          <annotation>
+            <documentation>Holds the content of the XML store file</documentation>
+          </annotation>
+        </any>
+      </sequence>
+      <attribute name="key" type="string">
+        <annotation>
+          <documentation>The key of the file in the XML store</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="version" type="tns:stXMLStoreVersion">
+        <annotation>
+          <documentation>The version for this file.</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="name" type="string">
+        <annotation>
+          <documentation>The name of the XML file</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="operation" type="tns:stXMLStoreObjectOperation" use="optional">
+        <annotation>
+          <documentation>The operation to do with this given XML store object. overwrite or append The default is overwrite.</documentation>
+        </annotation></attribute>
+    </complexType>
+    <simpleType name="stXMLStoreVersion">
+        <annotation>
+          <documentation>The options for the XML store versions</documentation>
+        </annotation>
+        <restriction base="string">
+        <enumeration value="isv"></enumeration>
+        <enumeration value="organization"></enumeration>
+        <enumeration value="user"></enumeration>
+      </restriction>
+    </simpleType>
+
+    <complexType name="ctRole">
+      <annotation>
+        <documentation>
+          The details for a role. This role COULD be a role which is packaged, but it could also be an organizational role. In
+          that case the package is not filled. A role can also have nested roles
+        </documentation>
+      </annotation>
+      <sequence>
+        <element name="role" type="tns:ctRole" maxOccurs="unbounded" minOccurs="0"></element>
+      </sequence>
+      <attribute name="name" type="string" use="required">
+        <annotation>
+          <documentation>The name of the role</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="type" type="tns:stRoleType" use="required">
+        <annotation>
+          <documentation>The role type (Application or Functional)</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="package" type="string" use="optional">
+        <annotation>
+          <documentation>The package this role originated from</documentation>
+        </annotation>
+      </attribute>
+    </complexType>
+    
+    <simpleType name="stRoleType">
+      <annotation>
+        <documentation>The types of roles that are possible</documentation>
+      </annotation>
+      <restriction base="string">
+        <enumeration value="Application"></enumeration>
+        <enumeration value="Functional"></enumeration>
+        <enumeration value="Internal"></enumeration>
+      </restriction>
+    </simpleType>
+
+    <complexType name="ctUser">
+      <annotation>
+        <documentation>The details for an organizational user</documentation>
+      </annotation>
+      <sequence>
+        <element name="role" type="tns:ctRole" maxOccurs="unbounded" minOccurs="1">
+          <annotation>
+            <documentation>The roles that this user should have</documentation>
+          </annotation>
+        </element>
+        <element name="assignment" type="tns:ctAssignment" maxOccurs="unbounded" minOccurs="0"></element>
+      </sequence>
+      <attribute name="name" type="string" use="required">
+        <annotation>
+          <documentation>The name of the organizational user.</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="au" type="string" use="required">
+        <annotation>
+          <documentation>
+            The name of the authenticated user it should be linked to. This is also the osidentity for this authenticated user.
+            Only external users are supported
+          </documentation>
+        </annotation>
+      </attribute>
+      <attribute name="password" type="string" use="optional">
+        <annotation>
+          <documentation>
+            Holds the password to use for this user. When the user is a Cordys user (type is custom) then the password is an SHA1
+            hash. If the password does not start with {SHA1} it is assumed to be plain text. This is only relevant when the user
+            is of type custom
+          </documentation>
+        </annotation>
+      </attribute>
+      <attribute name="type" use="optional">
+        <simpleType>
+          <restriction base="string">
+            <enumeration value="custom">
+              <annotation>
+                <documentation>Users for which the password is maintained via Cordys</documentation>
+              </annotation>
+            </enumeration>
+            <enumeration value="domain">
+              <annotation>
+                <documentation>Users that are in the current domain</documentation>
+              </annotation>
+            </enumeration>
+            <enumeration value="certified">
+              <annotation>
+                <documentation>Users that are identified via a certificate</documentation>
+              </annotation>
+            </enumeration>
+          </restriction>
+        </simpleType>
+      </attribute>
+      <attribute name="osidentity" type="string" use="optional">
+        <annotation>
+          <documentation>The OS identity for this user. When empty the name of the user is used.</documentation>
+        </annotation></attribute>
+    </complexType>
+    <complexType name="ctServiceGroup">
+      <sequence>
+        <element name="bussoapnodeconfiguration" type="tns:ctBusSoapNodeConfiguration">
+          <annotation>
+            <documentation>
+              Holds the configuration XML for the service group. This is a 1-to-1 copy of the value in LDAP. The format is a
+              Cordys internal format which looks like this:
+              <configuration xmlns="">
+                <routing ui_algorithm="failover" ui_type="loadbalancing">
+                  <numprocessors>100000</numprocessors>
+                  <algorithm>com.eibus.transport.routing.DynamicRouting</algorithm>
+                </routing>
+                <validation>
+                  <protocol>false</protocol>
+                  <payload>true</payload>
+                </validation>
+                <IgnoreWhiteSpaces>false</IgnoreWhiteSpaces>
+              </configuration>
+            </documentation>
+          </annotation>
+        </element>
+        <element name="wsi" type="tns:ctWSI" maxOccurs="unbounded" minOccurs="1">
+          <annotation>
+            <documentation>
+              The web service interfaces that should be connected to this service group. Note that you do not define the
+              namespaces. CAAS figures the namespaces out from the definition of the web service interface.
+            </documentation>
+          </annotation>
+        </element>
+        <element name="sc" type="tns:ctServiceContainer" maxOccurs="unbounded" minOccurs="1">
+          <annotation>
+            <documentation>The service container(s) that should be created for this service group</documentation>
+          </annotation></element>
+      </sequence>
+      <attribute name="name" type="string">
+        <annotation>
+          <documentation>The name of the service group</documentation>
+        </annotation></attribute>
+    </complexType>
+
+    <complexType name="ctBusSoapNodeConfiguration">
+      <annotation>
+        <documentation>Holds the configuration XML for the service group. This is a 1-to-1 copy of the value in LDAP. The format is a Cordys internal format which looks like this:
+
+&lt;configuration xmlns=&quot;&quot;&gt;
+  &lt;routing ui_algorithm=&quot;failover&quot; ui_type=&quot;loadbalancing&quot;&gt;
+    &lt;numprocessors&gt;100000&lt;/numprocessors&gt;
+    &lt;algorithm&gt;com.eibus.transport.routing.DynamicRouting&lt;/algorithm&gt;
+  &lt;/routing&gt;
+  &lt;validation&gt;
+    &lt;protocol&gt;false&lt;/protocol&gt;
+    &lt;payload&gt;true&lt;/payload&gt;
+  &lt;/validation&gt;
+  &lt;IgnoreWhiteSpaces&gt;false&lt;/IgnoreWhiteSpaces&gt;
+&lt;/configuration&gt;</documentation></annotation>
+      <sequence>
+        <any maxOccurs="1" minOccurs="1" processContents="skip"></any>
+      </sequence></complexType>
+
+    <complexType name="ctWSI">
+      <annotation>
+        <documentation>
+          The web service interfaces that should be connected to this service group. Note that you do not define the namespaces.
+          CAAS figures the namespaces out from the definition of the web service interface.
+        </documentation>
+      </annotation>
+      <attribute name="name" type="string" use="required">
+        <annotation>
+          <documentation>The Runtime name of the web service interface. Usually it is Interface.Binding, but you can find this in the properties of the binding in CWS.</documentation>
+        </annotation></attribute>
+      <attribute name="package" type="string" use="optional">
+        <annotation>
+          <documentation>The package this web service is deployed in. If this is not filled it assumes it is an organizational level web service</documentation>
+        </annotation></attribute>
+    </complexType>
+
+    <complexType name="ctServiceContainer">
+      <annotation>
+        <documentation>
+          Holds the details of a service container that should be created under the service group Note that if you deploy to a
+          cluster it will create
+        </documentation>
+      </annotation>
+      <sequence>
+        <element name="bussoapprocessorconfiguration" type="tns:ctBusSoapProcessorConfiguration" maxOccurs="1" minOccurs="1">
+          <annotation>
+            <documentation>
+              Holds the actual configuration for the service container. This is a 1-to-1 copy of the bussoapprocessorconfiguration
+              attribute in LDAP for this service container.
+            </documentation>
+          </annotation>
+        </element>
+        <element name="cp" type="tns:ctConnectionPoint" maxOccurs="unbounded" minOccurs="1">
+          <annotation>
+            <documentation>The details for the connection point</documentation>
+          </annotation></element>
+      </sequence>
+      <attribute name="name" type="string">
+        <annotation>
+          <documentation>The name of the service container</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="automatic" type="boolean">
+        <annotation>
+          <documentation>Whether or not this service container should start up automatically</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="machine" type="string">
+        <annotation>
+          <documentation>The name of the machine on which this service container should run. If no machine is defined it will use the first one it can find. The value for this can be either a name OR a number. In case of a number it is assumed to be node x on the cluster. The sequence is the sequence as the nodes are created in Cordys.</documentation>
+        </annotation></attribute>
+    </complexType>
+    
+    <complexType name="ctBusSoapProcessorConfiguration">
+        <annotation>
+          <documentation> Holds the actual configuration for the service container. This is a 1-to-1 copy of the bussoapprocessorconfiguration attribute in LDAP for this service container.</documentation>
+        </annotation>
+        <sequence>
+        <any maxOccurs="1" minOccurs="1" processContents="skip">
+          <annotation>
+            <documentation>The configuration XML. </documentation>
+          </annotation></any>
+      </sequence></complexType>
+
+    <complexType name="ctConnectionPoint">
+      <annotation>
+        <documentation>The details for the connection point</documentation>
+      </annotation>
+      <sequence>
+        <element name="description" type="string" maxOccurs="1" minOccurs="0">
+          <annotation>
+            <documentation>The description which is abused for additional configuration details. This does not need to be filled when using the socket. It will be auto generated.</documentation>
+          </annotation>
+        </element>
+        <element name="labeleduri" type="string" maxOccurs="1" minOccurs="0">
+          <annotation>
+            <documentation>The middleware URI to use. This does not need to be filled when using the socket. It will be auto generated.</documentation>
+          </annotation></element>
+      </sequence>
+      <attribute name="name" type="string" use="required">
+        <annotation>
+          <documentation>The name for the connection point</documentation>
+        </annotation>
+      </attribute>
+      <attribute name="type" type="tns:stConnectionPointType" use="optional">
+        <annotation>
+          <documentation>The type of connection point. The default is socket</documentation>
+        </annotation>
+      </attribute>
+    </complexType>
+    
+    <simpleType name="stConnectionPointType">
+      <annotation>
+        <documentation>The different connection points that are supported.</documentation>
+      </annotation>
+      <restriction base="string">
+        <enumeration value="socket"></enumeration>
+        <enumeration value="msmq"></enumeration>
+        <enumeration value="jms"></enumeration>
+        <enumeration value="other"></enumeration>
+      </restriction>
+    </simpleType>
+
+
+    <simpleType name="stXMLStoreObjectOperation">
+      <annotation>
+        <documentation>
+          This type describes the operations possible for an XML store object. This is either overwrite or append.
+        </documentation>
+      </annotation>
+      <restriction base="string">
+        <enumeration value="overwrite"></enumeration>
+        <enumeration value="append"></enumeration>
+      </restriction>
+    </simpleType>
+
+    <complexType name="ctAssignment">
+      <attribute name="team" type="string"></attribute>
+    </complexType>
+</schema>

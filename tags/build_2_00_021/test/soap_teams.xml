@@ -1,0 +1,98 @@
+<userassignments>
+	<SOAP:Envelope xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/">
+		<SOAP:Body>
+			<InitializeAssignmentRoot xmlns="http://schemas.cordys.com/userassignment/UserAssignmentService/1.0">
+				<WorkspaceID>__Organization Staging__</WorkspaceID>
+				<AssignmentRoot>CIUIRoot</AssignmentRoot>
+				<Create>true</Create>
+			</InitializeAssignmentRoot>
+		</SOAP:Body>
+	</SOAP:Envelope>
+	<SOAP:Envelope xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/">
+		<SOAP:Body>
+			<InitializeAssignmentRootResponse xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://schemas.cordys.com/userassignment/UserAssignmentService/1.0">
+				<InitializeAssignmentRoot>D4BED912-97BD-11E2-F2AC-6F02832136DF</InitializeAssignmentRoot>
+			</InitializeAssignmentRootResponse>
+		</SOAP:Body>
+	</SOAP:Envelope>
+	<SOAP:Envelope xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/">
+		<SOAP:Body>
+			<GetUnitsForAssignments xmlns="http://schemas.cordys.com/userassignment/UserAssignmentService/1.0">
+				<WorkspaceID>__Organization Staging__</WorkspaceID>
+				<AssignmentRoot>D4BED912-97BD-11E2-F2AC-6F02832136DF</AssignmentRoot>
+				<Filter>.*.*</Filter>
+				<UseRegEx>true</UseRegEx>
+			</GetUnitsForAssignments>
+		</SOAP:Body>
+	</SOAP:Envelope>
+	<SOAP:Envelope xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/">
+		<SOAP:Body>
+			<GetUnitsForAssignmentsResponse xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://schemas.cordys.com/userassignment/UserAssignmentService/1.0">
+				<GetUnitsForAssignments>
+					<dataset xmlns="http://schemas.cordys.com/userassignment/UserAssignmentService/1.0">
+						<tuple>
+							<old>
+								<Unit>
+									<ID>D4BED912-97BD-11E2-F261-1F41FFC016DF</ID>
+									<Name>Independant</Name>
+									<QName>com-tatasteel-tse/bus/bla/blaaaa/v20130321/team/Independant</QName>
+									<Description>Independant</Description>
+									<Deleted>false</Deleted>
+									<Space>organization</Space>
+								</Unit>
+							</old>
+						</tuple>
+						<tuple>
+							<old>
+								<Unit>
+									<ID>D4BED912-97BD-11E2-F2AC-91B3855156DF</ID>
+									<Name>MyMain</Name>
+									<QName>com-cordys-coe/testprj/MyMain</QName>
+									<Description>MyMain</Description>
+									<Deleted>false</Deleted>
+									<Space>isv</Space>
+								</Unit>
+							</old>
+						</tuple>
+						<tuple>
+							<old>
+								<Unit>
+									<ID>D4BED912-97BD-11E2-F2AC-91B3854B16DF</ID>
+									<Name>MyNested</Name>
+									<QName>com-cordys-coe/testprj/MyNested</QName>
+									<Description>MyNested</Description>
+									<Deleted>false</Deleted>
+									<Space>isv</Space>
+								</Unit>
+							</old>
+						</tuple>
+						<tuple>
+							<old>
+								<Unit>
+									<ID>D4BED912-97BD-11E2-F261-1F41FFBDF6DF</ID>
+									<Name>OtherUnit</Name>
+									<QName>com-tatasteel-tse/bus/bla/blaaaa/v20130321/team/OtherUnit</QName>
+									<Description>OtherUnit</Description>
+									<Deleted>false</Deleted>
+									<Space>organization</Space>
+								</Unit>
+							</old>
+						</tuple>
+						<tuple>
+							<old>
+								<Unit>
+									<ID>D4BED912-97BD-11E2-F261-1F41FFC0F6DF</ID>
+									<Name>Main</Name>
+									<QName>com-tatasteel-tse/bus/bla/blaaaa/v20130321/team/Main</QName>
+									<Description>Main</Description>
+									<Deleted>false</Deleted>
+									<Space>organization</Space>
+								</Unit>
+							</old>
+						</tuple>
+					</dataset>
+				</GetUnitsForAssignments>
+			</GetUnitsForAssignmentsResponse>
+		</SOAP:Body>
+	</SOAP:Envelope>
+</userassignments>
