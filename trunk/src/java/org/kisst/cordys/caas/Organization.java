@@ -201,9 +201,12 @@ public class Organization extends LdapObjectBase
      */
     public String call(String request)
     {
-        HashMap<String, String> queryParams = new HashMap<String, String>();
-        queryParams.put("receiver", getDn());
-        return getSystem().call(request, queryParams);
+     // The reason why we override it here is because when a call is done via the organization, then also the organizational
+        // context should be passed on
+        HashMap<String, String> org = new LinkedHashMap<String, String>();
+        org.put("organization", getName());
+        
+        return getSystem().call(request, org);
     }
 
     /**
