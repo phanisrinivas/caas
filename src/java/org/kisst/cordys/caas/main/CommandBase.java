@@ -9,34 +9,83 @@
 
 package org.kisst.cordys.caas.main;
 
+/**
+ * Holds the Class CommandBase.
+ */
 abstract public class CommandBase implements Command
 {
-    private final String usage;
-    private final String summary;
+    /** Holds the usage string for this command. */
+    private String usage;
+    /** Holds the summary for this command. */
+    private String summary;
 
+    /**
+     * Instantiates a new command base.
+     * 
+     * @param usage The usage
+     * @param summary The summary
+     */
     public CommandBase(String usage, String summary)
     {
         this.usage = usage;
         this.summary = summary;
     }
 
+    /**
+     * @see org.kisst.cordys.caas.main.Command#run(java.lang.String[])
+     */
     abstract public void run(String[] args);
 
+    /**
+     * @see org.kisst.cordys.caas.main.Command#getSyntax()
+     */
     public String getSyntax()
     {
         return usage;
     }
 
+    /**
+     * This method sets the syntax.
+     * 
+     * @param usage The new syntax
+     */
+    protected void setSyntax(String usage)
+    {
+        this.usage = usage;
+    }
+
+    /**
+     * This method sets the summary.
+     * 
+     * @param summary The new summary
+     */
+    protected void setSummary(String summary)
+    {
+        this.summary = summary;
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.main.Command#getHelp()
+     */
     public String getHelp()
     {
         return null;
     }
 
+    /**
+     * @see org.kisst.cordys.caas.main.Command#getSummary()
+     */
     public String getSummary()
     {
         return summary;
     }
 
+    /**
+     * Check help.
+     * 
+     * @param prefix The prefix
+     * @param args The args
+     */
     public void checkHelp(String prefix, String[] args)
     {
         if (args.length == 0)
