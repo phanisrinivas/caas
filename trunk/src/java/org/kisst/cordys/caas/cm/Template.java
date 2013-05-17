@@ -532,7 +532,7 @@ public class Template
      * <li>sys.name - The name of the system in the caas.conf</li>
      * 
      * @param org The organization to get the information from.
-     * @param vars The variables list to add the default values to. 
+     * @param vars The variables list to add the default values to.
      */
     private void addDefaultVariables(Organization org, Map<String, String> vars)
     {
@@ -585,9 +585,9 @@ public class Template
      */
     public void apply(Organization org, Map<String, String> vars)
     {
-        //Add the default system properties used for mapping.
+        // Add the default system properties used for mapping.
         addDefaultVariables(org, vars);
-        
+
         info("Importing template to " + org.getName() + " organization");
 
         if (Environment.debug)
@@ -1293,6 +1293,24 @@ public class Template
         public char option()
         {
             return m_option;
+        }
+
+        /**
+         * This method returns a list with all the options that can be set
+         * 
+         * @param prefix The prefix for the line.
+         * @return The options in a descriptive manner.
+         */
+        public static String options(String prefix)
+        {
+            StringBuilder sb = new StringBuilder(1024);
+
+            for (ETemplateOption to : ETemplateOption.values())
+            {
+                sb.append(prefix).append(to.m_option).append(": ").append(to.description()).append("\n");
+            }
+
+            return sb.toString();
         }
     }
 
