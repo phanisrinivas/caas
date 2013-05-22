@@ -11,7 +11,7 @@
 		<property name="builddir" value="build" />
 		<mkdir dir="${builddir}" />
 		<mkdir dir="${builddir}/classes" />
-		<property name="version.postfix" value=""/>
+		<property name="version.postfix" value="" />
 	</target>
 
 	<target name="compile" description="Compiles Java files" depends="init">
@@ -30,11 +30,12 @@
 	</target>
 
 	<target name="jar" description="creates a jar file" depends="compile">
+		<!-- Create the jar that will include all the dependencies in the classpath -->
 		<manifestclasspath jarfile="${basedir}/caas.jar" property="manifest.cp">
 			<classpath>
 				<fileset dir="${libdir}">
 					<include name="*.jar" />
-					<exclude name="groov*"/>
+					<exclude name="caas-*" />
 				</fileset>
 			</classpath>
 		</manifestclasspath>
@@ -53,6 +54,27 @@
 			</manifest>
 		</jar>
 		<copy file="${builddir}/caas.jar" todir="${basedir}" />
+
+		<!-- Create the jar that will include all the dependencies except the groovy jar. This is the jar needed for execution in Eclipse -->
+		<manifestclasspath jarfile="${basedir}/caas-nogroovy.jar" property="manifest.cp.nogroovy">
+			<classpath>
+				<fileset dir="${libdir}">
+					<include name="*.jar" />
+					<exclude name="groov*" />
+					<exclude name="caas-*" />
+				</fileset>
+			</classpath>
+		</manifestclasspath>
+
+		<jar jarfile="${builddir}/caas-nogroovy.jar" basedir="${builddir}/classes">
+			<manifest>
+				<attribute name="Implementation-Vendor" value="kisst.org" />
+				<attribute name="Implementation-Title" value="Caas" />
+				<attribute name="Implementation-Version" value="${project.version}" />
+				<attribute name="Class-Path" value="${manifest.cp.nogroovy}" />
+				<attribute name="Main-Class" value="org.kisst.cordys.caas.main.CaasMain" />
+			</manifest>
+		</jar>
 	</target>
 
 	<target name="dist" description="creates a zip file for distribution" depends="jar,-inc-buildnumber">
@@ -83,6 +105,7 @@
 			<zipfileset dir="bin" prefix="bin" />
 			<zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
+			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
 		</zip>
 	</target>
 
@@ -94,6 +117,7 @@
 			<zipfileset dir="bin" prefix="bin" />
 			<zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
+			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
 		</zip>
 	</target>
 
@@ -105,6 +129,7 @@
 			<zipfileset dir="bin" prefix="bin" />
 			<zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" excludes="jython.jar" />
+			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
 		</zip>
 	</target>
 
@@ -114,9 +139,9 @@
 
 	<target name="-set-postfix">
 		<tstamp>
-			  <format pattern="yyyyMMdd" property="current.timestamp"/>
+			<format pattern="yyyyMMdd" property="current.timestamp" />
 		</tstamp>
-		<property name="version.postfix" value="-${current.timestamp}-dev"/>
+		<property name="version.postfix" value="-${current.timestamp}-dev" />
 	</target>
 
 	<target name="dist-all" description="creates all distribution files" depends="dist, dist-full, dist-groovy" />

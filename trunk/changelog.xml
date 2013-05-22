@@ -69,7 +69,7 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
       <action dev="pgussow" type="fix"><![CDATA[Fixed a NullPointer in case the package could not be found]]></action>
     </release>
     <release date="2013-05-??" description="Stable release" version="2.0.22">
-      <action dev="pgussow" type="change"><![CDATA[Removed the groovy jar from classpath of the jar. This is to accomodate running Groovy scripts directly from Eclipse]]></action>
+      <action dev="pgussow" type="add"><![CDATA[Added a new jar in the lib folder called caas-nogroovy.jar. This jar does not contain the link to the groovy.jar. THis is to accomodate running scripts directly from Eclipse using the Groovy plugin.]]></action>
     </release>
   </body>
 </document>
