@@ -68,6 +68,8 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
       <action dev="pgussow" type="add"><![CDATA[Added some additional debug logging when applying a template]]></action>
       <action dev="pgussow" type="fix"><![CDATA[Fixed a NullPointer in case the package could not be found]]></action>
     </release>
-    <release date="2013-05-??" description="Stable release" version="2.0.22"/>
+    <release date="2013-05-??" description="Stable release" version="2.0.22">
+      <action dev="pgussow" type="change"><![CDATA[Removed the groovy jar from classpath of the jar. This is to accomodate running Groovy scripts directly from Eclipse]]></action>
+    </release>
   </body>
 </document>
