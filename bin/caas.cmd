@@ -5,5 +5,5 @@ set JAVA_OPTS=-Xmx1024m
 rem In case you need to remotely debug CAAS itself
 rem @set JAVA_OPTS=%JAVA_OPTS% -Xdebug -Xrunjdwp:transport=dt_socket,address=127.0.0.1:9302,server=y,suspend=y 
 
-%JAVA_EXE% %JAVA_OPTS% -jar ../caas.jar %* 
+%JAVA_EXE% %JAVA_OPTS% -cp ../lib/groovy-all-2.0.6.jar -jar ../caas.jar %* 
 
