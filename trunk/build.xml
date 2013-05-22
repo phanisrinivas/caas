@@ -56,7 +56,7 @@
 		<copy file="${builddir}/caas.jar" todir="${basedir}" />
 
 		<!-- Create the jar that will include all the dependencies except the groovy jar. This is the jar needed for execution in Eclipse -->
-		<manifestclasspath jarfile="${basedir}/caas-nogroovy.jar" property="manifest.cp.nogroovy">
+		<manifestclasspath jarfile="${basedir}/lib/caas-nogroovy.jar" property="manifest.cp.nogroovy">
 			<classpath>
 				<fileset dir="${libdir}">
 					<include name="*.jar" />
