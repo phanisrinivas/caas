@@ -34,6 +34,7 @@
 			<classpath>
 				<fileset dir="${libdir}">
 					<include name="*.jar" />
+					<exclude name="groov*"/>
 				</fileset>
 			</classpath>
 		</manifestclasspath>
