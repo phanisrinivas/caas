@@ -161,4 +161,10 @@ public class DummyCaller implements SoapCaller
         return false;
     }
 
+    @Override
+    public String getUsername()
+    {
+        return "dummy";
+    }
+
 }

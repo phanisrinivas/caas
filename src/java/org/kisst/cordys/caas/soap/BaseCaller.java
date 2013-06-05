@@ -181,9 +181,7 @@ public abstract class BaseCaller implements SoapCaller
     }
 
     /**
-     * This method gets the username to use for connecting.
-     * 
-     * @return The username to use for connecting.
+     * @see org.kisst.cordys.caas.soap.SoapCaller#getUsername()
      */
     public String getUsername()
     {

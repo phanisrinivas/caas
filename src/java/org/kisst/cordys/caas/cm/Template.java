@@ -32,6 +32,7 @@ import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
+import org.kisst.cordys.caas.util.XMLSubstitution;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
@@ -520,7 +521,13 @@ public class Template
             addDefaultVariables(organization, vars);
         }
 
-        FileUtil.saveString(new File(filename), StringUtil.reverseSubstitute(template, vars));
+        // Now we need to substitue values for variable names. But we cannot do simple character substitution, because it could
+        // corrupt the XML. So what we're going to do is a more intelligent way.
+        XMLSubstitution xs = new XMLSubstitution(template, vars);
+        String actualTemplate = xs.execute().getPretty();
+
+        FileUtil.saveString(new File(filename), actualTemplate);
+        
         info("Template successfully exported to " + filename);
     }
 
@@ -530,6 +537,7 @@ public class Template
      * <li>sys.org.name - The Cordys organization name</li>
      * <li>sys.ldap.root- The root LDAP DN of the system that this template is connecting to</li>
      * <li>sys.name - The name of the system in the caas.conf</li>
+     * <li>sys.user.name - The name of the user that was used to connect to this system</li>
      * 
      * @param org The organization to get the information from.
      * @param vars The variables list to add the default values to.
@@ -539,6 +547,7 @@ public class Template
         vars.put("sys.org.name", org.getName());
         vars.put("sys.ldap.root", org.getSystem().getDn());
         vars.put("sys.name", org.getSystem().getName());
+        vars.put("sys.user.name", org.getSystem().getConnectionUser());
     }
 
     /**
