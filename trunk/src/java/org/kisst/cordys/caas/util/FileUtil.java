@@ -226,4 +226,25 @@ public class FileUtil
         }
         return retVal;
     }
+
+    /**
+     * This method loads the given filename into a map object.
+     * 
+     * @param filename The filename to load
+     * @return The map that contains the key/value pairs.
+     */
+    public static Map<String, String> loadMap(String filename)
+    {
+        Properties p = new Properties();
+        FileUtil.load(p, "C:/development/workspaces/MainWorkspace/backend-cordys-configuration-nv/properties/int.properties");
+
+        Map<String, String> m = new LinkedHashMap<String, String>();
+        for (Object key : p.keySet())
+        {
+            String value = p.getProperty((String) key);
+            m.put((String) key, value);
+        }
+
+        return m;
+    }
 }

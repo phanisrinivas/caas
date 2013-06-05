@@ -177,22 +177,22 @@ public class CordysSystem extends LdapObject
         {
             type = "custom";
         }
-        
+
         if (StringUtil.isEmptyOrNull(osIdentity))
         {
             osIdentity = name;
         }
-        
+
         if (StringUtil.isEmptyOrNull(password))
         {
             password = name;
         }
-        
+
         if (!password.startsWith("{SHA1}"))
         {
             password = PasswordHasher.encryptPassword(password);
         }
-        
+
         XmlNode newEntry = newAuthenticatedUserEntryXml("cn=authenticated users,", name, "busauthenticationuser");
         newEntry.add("defaultcontext").add("string").setText(defaultOrgContext);
         newEntry.add("description").add("string").setText(name);
@@ -283,6 +283,16 @@ public class CordysSystem extends LdapObject
     }
 
     /**
+     * This method gets the username that is used to connect to this system.
+     * 
+     * @return The username that is used to connect to this system.
+     */
+    public String getConnectionUser()
+    {
+        return caller.getUsername();
+    }
+
+    /**
      * @see org.kisst.cordys.caas.support.CordysObject#getSystem()
      */
     @Override
@@ -337,7 +347,7 @@ public class CordysSystem extends LdapObject
         // and guarantees that objects are never created twice.
         // Instead just the content of the objects is cleared.
         // ldapcache.clear(); rememberLdap(this);
-        
+
         org.clear();
         machines.clear();
         sc.clear();
@@ -983,7 +993,7 @@ public class CordysSystem extends LdapObject
     {
         undeployCap(name, null, null, timeoutInMinutes);
     }
-    
+
     /**
      * This method will undeploy the given cap package.
      * 

@@ -15,7 +15,9 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -93,6 +95,19 @@ public class XmlNode
     public String getAttribute(String name)
     {
         return getAttribute(name, null);
+    }
+    
+    public Map<String, String> getAttributes()
+    {
+        Map<String, String> retVal = new LinkedHashMap<String, String>();
+        
+        List<Attribute> tmp = element.getAttributes();
+        for (Attribute a : tmp)
+        {
+            retVal.put(a.getName(), a.getValue());
+        }
+        
+        return retVal;
     }
 
     public String getAttribute(String name, String defaultValue)

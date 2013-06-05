@@ -27,7 +27,7 @@ public interface SoapCaller
      * @return The response as a string.
      */
     public String httpCall(String url, String input, HashMap<String, String> queryStringMap);
-    
+
     /**
      * This method executes the soap request. The given request should be without the SOAP envelope.
      * 
@@ -77,4 +77,11 @@ public interface SoapCaller
      *         instance.
      */
     public boolean isOLDEnabled();
+
+    /**
+     * This method gets the username to use for connecting.
+     * 
+     * @return The username to use for connecting.
+     */
+    public String getUsername();
 }
