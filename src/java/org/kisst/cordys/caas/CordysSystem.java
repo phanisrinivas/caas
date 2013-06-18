@@ -902,6 +902,11 @@ public class CordysSystem extends LdapObject
      */
     public void uploadCap(String capFile)
     {
+        if (packages.supportsCap() == false)
+        {
+            throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
+        }
+        
         File cap = new File(capFile);
 
         if (!cap.exists())
@@ -940,6 +945,11 @@ public class CordysSystem extends LdapObject
      */
     public void deployCap(String name, long timeoutInMinutes)
     {
+        if (packages.supportsCap() == false)
+        {
+            throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
+        }
+        
         // First get the status of the package. Is it indeed a new one
         XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
         request.add("ApplicationName").setText(name);
@@ -1027,6 +1037,11 @@ public class CordysSystem extends LdapObject
      */
     public void undeployCap(String name, String userInputs, Boolean deleteReferences, long timeoutInMinutes)
     {
+        if (packages.supportsCap() == false)
+        {
+            throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
+        }
+        
         // First get the status of the package. Is it indeed a new one
         XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
         request.add("ApplicationName").setText(name);
@@ -1091,6 +1106,11 @@ public class CordysSystem extends LdapObject
      */
     public void revertCap(String name, long timeoutInMinutes)
     {
+        if (packages.supportsCap() == false)
+        {
+            throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
+        }
+        
         // First we need to check that it is indeed incomplete. Also we need the URL of the package to call the
         // DeployCAP method.
         XmlNode request = new XmlNode(Constants.GET_DEPLOYED_CAP_SUMMARY, Constants.XMLNS_CAP);
