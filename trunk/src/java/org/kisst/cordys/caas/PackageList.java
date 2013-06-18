@@ -3,10 +3,12 @@ package org.kisst.cordys.caas;
 import java.util.HashMap;
 import java.util.List;
 
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.soap.SamlClientCaller;
 import org.kisst.cordys.caas.soap.SoapCaller;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.util.Constants;
+import org.kisst.cordys.caas.util.ExceptionUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -17,6 +19,9 @@ import org.kisst.cordys.caas.util.XmlNode;
  */
 public class PackageList extends CordysObjectList<Package>
 {
+    /** Holds whether or not the system supports CAP packages. */
+    private boolean supportsCap;
+
     /**
      * Instantiates a new package definition list.
      * 
@@ -71,40 +76,62 @@ public class PackageList extends CordysObjectList<Package>
         }
 
         // Next step is to get the list of deployed CAP packages
-        request = new XmlNode("GetDeployedCapSummary", "http://schemas.cordys.com/cap/1.0");
-        response = c.call(request);
-
-        List<XmlNode> caps = response
-                .xpath("./*[local-name()='tuple']/*[local-name()='old']/*[local-name()='ApplicationPackage']");
-        for (XmlNode node : caps)
+        request = new XmlNode(Constants.GET_DEPLOYED_CAP_SUMMARY, "http://schemas.cordys.com/cap/1.0");
+        try
         {
-            Package p = new Package(getSystem(), node);
-            grow(p);
+            response = c.call(request);
+
+            supportsCap = true;
         }
-
-        // Now get the CAPs that are new
-        request = new XmlNode("GetNewCapSummary", "http://schemas.cordys.com/cap/1.0");
-        response = c.call(request);
-
-        caps = response.xpath("./*[local-name()='tuple']/*[local-name()='old']/*[local-name()='ApplicationPackage']");
-        for (XmlNode node : caps)
+        catch (Exception e)
         {
-            Package p = new Package(getSystem(), node);
-
-            // Now it could be that this package is already loaded. If a cap version 1.0.1 is loaded and 1.0.2 is already uploaded
-            // (but not deployed) then the package will also apear in the 'GetNewCapSummary'. So we need to validate if the
-            // package is already there.
-
-            // Important!! Since we're in the retrieveList we cannot use the getByName call. That is because then we can into a
-            // recursive loop. We should use the _getByName method which does not trigger the retrieveList
-            Package loadedPackage = dirtyGetByName(p.getName());
-            if (loadedPackage == null)
+            // Dirty: check if there CAPs are supported on this system:
+            String tmp = ExceptionUtil.getStacktrace(e);
+            if (tmp.indexOf("Could not find a soap node implementing") > -1
+                    && tmp.indexOf("http://schemas.cordys.com/cap/1.0:GetDeployedCapSummary") > -1)
             {
-                grow(p);
+                supportsCap = false;
             }
             else
             {
-                loadedPackage.setNewVersion(p.getFullVersion());
+                throw new CaasRuntimeException(e);
+            }
+        }
+
+        if (supportsCap)
+        {
+            List<XmlNode> caps = response
+                    .xpath("./*[local-name()='tuple']/*[local-name()='old']/*[local-name()='ApplicationPackage']");
+            for (XmlNode node : caps)
+            {
+                Package p = new Package(getSystem(), node);
+                grow(p);
+            }
+
+            // Now get the CAPs that are new
+            request = new XmlNode("GetNewCapSummary", "http://schemas.cordys.com/cap/1.0");
+            response = c.call(request);
+
+            caps = response.xpath("./*[local-name()='tuple']/*[local-name()='old']/*[local-name()='ApplicationPackage']");
+            for (XmlNode node : caps)
+            {
+                Package p = new Package(getSystem(), node);
+
+                // Now it could be that this package is already loaded. If a cap version 1.0.1 is loaded and 1.0.2 is already
+                // uploaded (but not deployed) then the package will also apear in the 'GetNewCapSummary'. So we need to validate
+                // if the package is already there.
+
+                // Important!! Since we're in the retrieveList we cannot use the getByName call. That is because then we can into
+                // a recursive loop. We should use the _getByName method which does not trigger the retrieveList
+                Package loadedPackage = dirtyGetByName(p.getName());
+                if (loadedPackage == null)
+                {
+                    grow(p);
+                }
+                else
+                {
+                    loadedPackage.setNewVersion(p.getFullVersion());
+                }
             }
         }
     }
@@ -197,5 +224,25 @@ public class PackageList extends CordysObjectList<Package>
     public Organization getOrganization()
     {
         return null;
+    }
+
+    /**
+     * This method gets whether or not the system supports CAP packages.
+     * 
+     * @return Whether or not the system supports CAP packages.
+     */
+    public boolean supportsCap()
+    {
+        return supportsCap;
+    }
+
+    /**
+     * This method sets whether or not the system supports CAP packages.
+     * 
+     * @param supportsCap Whether or not the system supports CAP packages.
+     */
+    public void setsupportsCap(boolean supportsCap)
+    {
+        this.supportsCap = supportsCap;
     }
 }
