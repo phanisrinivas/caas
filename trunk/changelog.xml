@@ -72,8 +72,9 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
       <action dev="pgussow" type="add"><![CDATA[Added a new jar in the lib folder called caas-nogroovy.jar. This jar does not contain the link to the groovy.jar. THis is to accomodate running scripts directly from Eclipse using the Groovy plugin.]]></action>
     </release>
     <release date="2013-06-??" description="Stable release" version="2.0.23">
+      <action dev="pgussow" type="add"><![CDATA[Added the possibility to add a strategy to to the service groups. This allows you to add a cloning-strategy to a service container so that it will automatically clone service containers based on the chosen strategy.]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added variable sys.user.name to be used in case you need the username used for the Cordys connection.]]></action>
-      <action dev="pgussow" type="change"><![CDATA[Changed the way the template reverse substitution is done. Now the logic will only look at text (either element text or attribute text) so that the replacement should not result in invalid XML.]]></action>
+      <action dev="pgussow" type="unknown"><![CDATA[Changed the way the template reverse substitution is done. Now the logic will only look at text (either element text or attribute text) so that the replacement should not result in invalid XML.]]></action>
     </release>
   </body>
 </document>
