@@ -17,7 +17,6 @@ import java.net.ConnectException;
 import java.util.LinkedHashMap;
 import java.util.Properties;
 
-import org.kisst.cordys.caas.cm.Template;
 import static org.kisst.cordys.caas.main.Environment.*;
 
 import org.kisst.cordys.caas.main.Environment;
@@ -26,6 +25,7 @@ import org.kisst.cordys.caas.soap.HttpClientCaller;
 import org.kisst.cordys.caas.soap.NativeCaller;
 import org.kisst.cordys.caas.soap.SamlClientCaller;
 import org.kisst.cordys.caas.soap.SoapCaller;
+import org.kisst.cordys.caas.template.Template;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;

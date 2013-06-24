@@ -22,8 +22,8 @@ import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.cm.CaasPackage;
 import org.kisst.cordys.caas.cm.CcmFilesObjective;
 import org.kisst.cordys.caas.cm.Objective;
-import org.kisst.cordys.caas.cm.Template;
 import org.kisst.cordys.caas.cm.gui.CcmGui;
+import org.kisst.cordys.caas.template.Template;
 
 /**
  * This class holds the ConfigurationManager command. It contains the different sub commands of the configuration manager.

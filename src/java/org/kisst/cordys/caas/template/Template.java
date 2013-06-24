@@ -1,24 +1,40 @@
-package org.kisst.cordys.caas.cm;
+package org.kisst.cordys.caas.template;
 
 import static org.kisst.cordys.caas.main.Environment.debug;
 import static org.kisst.cordys.caas.main.Environment.error;
 import static org.kisst.cordys.caas.main.Environment.info;
 import static org.kisst.cordys.caas.main.Environment.warn;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
+
+import org.kisst.caas._2_0.template.DSO;
+import org.kisst.caas._2_0.template.DSOType;
+import org.kisst.caas._2_0.template.DataSourceConfiguration;
+import org.kisst.caas._2_0.template.ObjectFactory;
+import org.kisst.caas._2_0.template.RoleType;
+import org.kisst.caas._2_0.template.Tested;
+import org.kisst.caas._2_0.template.Version;
+import org.kisst.caas._2_0.template.Warning;
+import org.kisst.caas._2_0.template.XMLStoreObjectOperation;
+import org.kisst.caas._2_0.template.XMLStoreVersion;
 import org.kisst.cordys.caas.Assignment;
 import org.kisst.cordys.caas.AuthenticatedUser;
 import org.kisst.cordys.caas.Configuration;
-import org.kisst.cordys.caas.ConnectionPoint;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Dso;
 import org.kisst.cordys.caas.DsoType;
 import org.kisst.cordys.caas.IDeployedPackageInfo;
-import org.kisst.cordys.caas.Machine;
 import org.kisst.cordys.caas.Organization;
 import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.Role;
@@ -27,9 +43,11 @@ import org.kisst.cordys.caas.ServiceGroup;
 import org.kisst.cordys.caas.User;
 import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.XMLStoreObject;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
-import org.kisst.cordys.caas.support.CordysObjectList;
-import org.kisst.cordys.caas.util.Constants;
+import org.kisst.cordys.caas.template.strategy.ICustomStrategy;
+import org.kisst.cordys.caas.template.strategy.StrategyFactory;
+import org.kisst.cordys.caas.util.DOMUtil;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XMLSubstitution;
@@ -41,7 +59,7 @@ import org.kisst.cordys.caas.util.XmlNode;
 public class Template
 {
     /** Holds the created template */
-    private final String template;
+    private final org.kisst.caas._2_0.template.Organization organizationTemplate;
     /** Holds whether or not the template is empty. */
     private boolean empty = true;
     /** Holds the options that should be applied */
@@ -67,7 +85,7 @@ public class Template
      */
     public Template(String template, List<ETemplateOption> templateOptions)
     {
-        this.template = template;
+        organizationTemplate = parseTemplate(template);
 
         processTemplateOptions(templateOptions);
     }
@@ -107,19 +125,15 @@ public class Template
     public Template(Organization org, String targetPackageName, Package pkg, User u, List<ETemplateOption> templateOptions)
     {
         this.organization = org;
+        this.organizationTemplate = new org.kisst.caas._2_0.template.Organization();
 
         processTemplateOptions(templateOptions);
 
         long overallStartTime = System.currentTimeMillis();
 
         info("Exporting template for " + org.getName() + " organization");
-        XmlNode result = new XmlNode("org", Constants.XMLNS_TEMPLATE);
-        if (targetPackageName != null)
-        {
-            result.setAttribute("package", targetPackageName);
-        }
 
-        result.setAttribute("org", org.getName());
+        organizationTemplate.setOrg(org.getName());
 
         // First we export all the non-Cordys packages.
         if (options.contains(ETemplateOption.NON_CORDYS_PACKAGES))
@@ -135,14 +149,17 @@ public class Template
                 {
                     debug("Found non-standard package: " + pi.getPackageName());
 
-                    XmlNode node = result.add("package");
-                    node.setAttribute("name", pi.getPackageName());
+                    org.kisst.caas._2_0.template.Package templatePackage = new org.kisst.caas._2_0.template.Package();
+                    templatePackage.setName(pi.getPackageName());
+                    Version templateVersion = new Version();
+                    templateVersion.setVersion(pi.getFullVersion());
+                    templateVersion.setTested(Tested.OK);
 
-                    XmlNode version = node.add("version");
-                    version.setAttribute("version", pi.getFullVersion());
-                    version.setAttribute("tested", "OK");
+                    Warning w = new Warning();
+                    w.setMessage("Package " + pi.getPackageName() + " should be loaded");
+                    templateVersion.getWarning().add(w);
 
-                    version.add("warning").setAttribute("message", "Package " + pi.getPackageName() + " should be loaded");
+                    templatePackage.getVersion().add(templateVersion);
                 }
             }
             info("Finished exporting " + ETemplateOption.NON_CORDYS_PACKAGES.description() + " in "
@@ -162,12 +179,15 @@ public class Template
             {
                 for (Dso dso : dsotype.dsos)
                 {
-                    XmlNode node = result.add("dso");
-                    node.setAttribute("name", dso.getName());
-                    node.setAttribute("desc", dso.getProp("desc").toString());
-                    node.setAttribute("type", dsotype.getName());
-                    XmlNode configNode = dso.config.getXml().clone();
-                    node.add("datasourceconfiguration").add(configNode);
+                    DSO td = new DSO();
+                    td.setName(dso.getName());
+                    td.setDesc(dso.getProp("desc").toString());
+                    td.setType(DSOType.valueOf(dsotype.getName().toUpperCase()));
+
+                    DataSourceConfiguration dsc = new DataSourceConfiguration();
+                    XmlNode configNode = dso.config.getXml();
+                    dsc.setAny(DOMUtil.convert(configNode));
+                    td.setDatasourceconfiguration(dsc);
                 }
             }
             info("Finished exporting " + ETemplateOption.DSO.description() + " in "
@@ -185,11 +205,14 @@ public class Template
             info("Exporting " + org.xmlStoreObjects.getSize() + " " + ETemplateOption.XML_STORE_OBJECTS.description() + "...");
             for (XMLStoreObject xso : org.xmlStoreObjects)
             {
-                XmlNode node = result.add("xmlstoreobject");
-                node.setAttribute("key", xso.getKey());
-                node.setAttribute("version", xso.getVersion());
-                node.setAttribute("name", xso.getName());
-                node.add(xso.getXML().clone());
+                org.kisst.caas._2_0.template.XMLStoreObject txso = new org.kisst.caas._2_0.template.XMLStoreObject();
+
+                txso.setKey(xso.getKey());
+                txso.setVersion(XMLStoreVersion.valueOf(xso.getVersion().toUpperCase()));
+                txso.setName(xso.getName());
+                txso.setAny(DOMUtil.convert(xso.getXML()));
+
+                organizationTemplate.getXmlstoreobject().add(txso);
             }
             info("Finished exporting " + ETemplateOption.XML_STORE_OBJECTS.description() + " in "
                     + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
@@ -205,7 +228,7 @@ public class Template
             long startTime = System.currentTimeMillis();
             info("Exporting " + org.roles.getSize() + " " + ETemplateOption.ROLES.description() + "...");
 
-            exportRoles(org, targetPackageName, result);
+            exportRoles(org, targetPackageName, organizationTemplate);
 
             info("Finished exporting " + ETemplateOption.ROLES.description() + " in "
                     + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
@@ -221,7 +244,7 @@ public class Template
             long startTime = System.currentTimeMillis();
             info("Exporting " + org.users.getSize() + " " + ETemplateOption.USERS.description() + "...");
 
-            exportUsers(org, targetPackageName, result);
+            exportUsers(org, targetPackageName, organizationTemplate);
 
             info("Finished exporting " + ETemplateOption.USERS.description() + " in "
                     + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
@@ -237,7 +260,7 @@ public class Template
             long startTime = System.currentTimeMillis();
             info("Exporting " + org.serviceGroups.getSize() + " service groups ... ");
 
-            exportServiceGroups(org, targetPackageName, result);
+            exportServiceGroups(org, targetPackageName, organizationTemplate);
 
             info("Finished exporting " + ETemplateOption.SERVICE_GROUPS.description() + " in "
                     + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
@@ -249,9 +272,6 @@ public class Template
 
         info("Finished exporting entire template in " + ((System.currentTimeMillis() - overallStartTime) / 1000)
                 + " seconds ... ");
-
-        String str = result.getPretty();
-        this.template = str.replace("$", "${dollar}");
     }
 
     /**
@@ -264,7 +284,7 @@ public class Template
         options = templateOptions;
         if (options == null)
         {
-            options = new ArrayList<Template.ETemplateOption>();
+            options = new ArrayList<ETemplateOption>();
             options.add(ETemplateOption.ALL);
         }
 
@@ -285,37 +305,84 @@ public class Template
      * @param targetPackageName The target package name
      * @param result The result
      */
-    private void exportRoles(Organization org, String targetPackageName, XmlNode result)
+    private void exportRoles(Organization org, String targetPackageName,
+            org.kisst.caas._2_0.template.Organization templateOrganization)
     {
         for (Role role : org.roles)
         {
-            XmlNode node = result.add("role");
-            node.setAttribute("name", role.getName());
+            org.kisst.caas._2_0.template.Role tr = new org.kisst.caas._2_0.template.Role();
+            tr.setName(role.getName());
+            organizationTemplate.getRole().add(tr);
+
             if (role.type.get() != null)
             {
-                node.setAttribute("type", role.type.get());
+                tr.setType(RoleType.valueOf(role.type.get().toUpperCase()));
             }
+
             for (Role subRole : role.roles)
             {
-                String isvpName = null;
+                String packageName = null;
                 if (subRole.getParent() instanceof Organization)
                 {
                     if (subRole.getName().equals("everyoneIn" + org.getName()))
                         continue;
-                    isvpName = targetPackageName;
+                    packageName = targetPackageName;
                 }
                 else
-                    isvpName = subRole.getParent().getName();
-                XmlNode child = node.add("role");
-                child.setAttribute("name", subRole.getName());
+                {
+                    packageName = subRole.getParent().getName();
+                }
+
+                org.kisst.caas._2_0.template.Role child = new org.kisst.caas._2_0.template.Role();
+                tr.getRole().add(child);
+
+                child.setName(subRole.getName());
                 if (subRole.type.get() != null)
                 {
-                    child.setAttribute("type", subRole.type.get());
+                    child.setType(RoleType.valueOf(subRole.type.get().toUpperCase()));
                 }
-                if (isvpName != null)
-                    child.setAttribute("package", isvpName);
+
+                if (packageName != null)
+                {
+                    child.setPackage(packageName);
+                }
             }
         }
+    }
+
+    /**
+     * This method parses the template XML to the object structure.
+     * 
+     * @param template The template XML string.
+     */
+    private org.kisst.caas._2_0.template.Organization parseTemplate(String template)
+    {
+        return JAXB.unmarshal(new ByteArrayInputStream(template.getBytes()), org.kisst.caas._2_0.template.Organization.class);
+    }
+
+    /**
+     * This method gets the template xml from the current object.
+     * 
+     * @return The template xml
+     */
+    private String getTemplateXml()
+    {
+        StringWriter writer = new StringWriter();
+
+        try
+        {
+            JAXBContext jc = JAXBContext.newInstance(organizationTemplate.getClass());
+            Marshaller marshaller = jc.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            JAXBElement<org.kisst.caas._2_0.template.Organization> tmp = new ObjectFactory().createOrg(organizationTemplate);
+            marshaller.marshal(tmp, writer);
+        }
+        catch (Exception e)
+        {
+            throw new CaasRuntimeException(e);
+        }
+
+        return writer.toString();
     }
 
     /**
@@ -325,79 +392,17 @@ public class Template
      * @param targetPackageName The target package name
      * @param result The result
      */
-    private void exportServiceGroups(Organization org, String targetPackageName, XmlNode result)
+    private void exportServiceGroups(Organization org, String targetPackageName,
+            org.kisst.caas._2_0.template.Organization templateOrganization)
     {
         for (ServiceGroup serviceGroup : org.serviceGroups)
         {
-            XmlNode node = result.add("servicegroup");
-            node.setAttribute("name", serviceGroup.getName());
-            XmlNode configNode = serviceGroup.config.getXml().clone();
-            XmlNode keyStoreNode = configNode.getChild("soapnode_keystore");
-            if (keyStoreNode != null)
-                configNode.remove(keyStoreNode);
+            org.kisst.caas._2_0.template.ServiceGroup sg = new org.kisst.caas._2_0.template.ServiceGroup();
+            templateOrganization.getServicegroup().add(sg);
 
-            // If no namespace is defined on the given XML node we need to explicitly set it to ""
-            if (configNode.getNamespace() == null)
-            {
-                configNode.setNamespace("");
-            }
+            ICustomStrategy strategy = StrategyFactory.create(sg, org, this);
 
-            node.add("bussoapnodeconfiguration").add(configNode);
-            for (WebServiceInterface wsi : serviceGroup.webServiceInterfaces)
-            {
-                XmlNode child = node.add("wsi");
-                child.setAttribute("name", wsi.getName());
-                String isvpName = null;
-                if (wsi.getParent() instanceof Organization)
-                    isvpName = targetPackageName;
-                else
-                    isvpName = wsi.getParent().getName();
-                if (isvpName != null)
-                    child.setAttribute("package", isvpName);
-            }
-            for (ServiceContainer serviceContainer : serviceGroup.serviceContainers)
-            {
-                XmlNode child = node.add("sc");
-                child.setAttribute("name", serviceContainer.getName());
-                child.setAttribute("automatic", "" + serviceContainer.automatic.getBool());
-                child.add("bussoapprocessorconfiguration").add(serviceContainer.config.getXml().clone());
-                for (ConnectionPoint cp : serviceContainer.connectionPoints)
-                {
-                    XmlNode cpNode = child.add("cp");
-                    cpNode.setAttribute("name", cp.getName());
-
-                    // Check the type
-                    String labeledURI = cp.uri.get();
-                    String description = cp.desc.get();
-
-                    if (labeledURI.startsWith("socket"))
-                    {
-                        cpNode.setAttribute("type", "socket");
-                        // No need to add the child nodes for the socket
-                    }
-                    else if (labeledURI.startsWith("msmq"))
-                    {
-                        cpNode.setAttribute("type", "msmq://");
-
-                        cpNode.add("labeleduri").setText(labeledURI);
-                        cpNode.add("description").setText(description);
-                    }
-                    else if (labeledURI.startsWith("jms://"))
-                    {
-                        cpNode.setAttribute("type", "jms");
-
-                        cpNode.add("labeleduri").setText(labeledURI);
-                        cpNode.add("description").setText(description);
-                    }
-                    else
-                    {
-                        cpNode.setAttribute("type", "other");
-
-                        cpNode.add("labeleduri").setText(labeledURI);
-                        cpNode.add("description").setText(description);
-                    }
-                }
-            }
+            strategy.create(sg, serviceGroup);
         }
     }
 
@@ -408,29 +413,33 @@ public class Template
      * @param targetPackageName The target package name
      * @param result The result
      */
-    private void exportUsers(Organization org, String targetPackageName, XmlNode result)
+    private void exportUsers(Organization org, String targetPackageName,
+            org.kisst.caas._2_0.template.Organization templateOrganization)
     {
         for (User user : org.users)
         {
             if ("SYSTEM".equals(user.getName().toUpperCase()))
                 continue; // SYSTEM user should not be part of the template
-            XmlNode node = result.add("user");
-            node.setAttribute("name", user.getName());
+
+            org.kisst.caas._2_0.template.User tu = new org.kisst.caas._2_0.template.User();
+            templateOrganization.getUser().add(tu);
+
+            tu.setName(user.getName());
             AuthenticatedUser authUser = user.au.getRef();
-            node.setAttribute("au", authUser.getName());
+            tu.setAu(authUser.getName());
 
             if (authUser.authenticationtype != null && !StringUtil.isEmptyOrNull(authUser.authenticationtype.get()))
             {
-                node.setAttribute("type", authUser.authenticationtype.get());
+                tu.setType(authUser.authenticationtype.get());
             }
 
             if (authUser.userPassword != null && !StringUtil.isEmptyOrNull(authUser.userPassword.get()))
             {
-                node.setAttribute("password", authUser.userPassword.get());
+                tu.setPassword(authUser.userPassword.get());
             }
 
             // For the osIdentity we only support the first one.
-            node.setAttribute("osidentity", authUser.osidentity.getAt(0));
+            tu.setOsidentity(authUser.osidentity.getAt(0));
 
             for (Role role : user.roles)
             {
@@ -442,36 +451,45 @@ public class Template
                     isvpName = targetPackageName;
                 }
                 else
+                {
                     isvpName = role.getParent().getName();
-                XmlNode child = node.add("role");
-                child.setAttribute("name", role.getName());
+                }
+
+                org.kisst.caas._2_0.template.Role child = new org.kisst.caas._2_0.template.Role();
+                tu.getRole().add(child);
+
+                child.setName(role.getName());
                 if (role.type.get() != null)
                 {
-                    child.setAttribute("type", role.type.get());
+                    child.setType(RoleType.valueOf(role.type.get().toUpperCase()));
                 }
+
                 if (isvpName != null)
-                    child.setAttribute("package", isvpName);
+                {
+                    child.setPackage(isvpName);
+                }
             }
 
             // Export the assignments. The difficulty is to figure out which role the user plays in the assignment.
             for (Assignment<User> a : user.assignments)
             {
-                XmlNode assignment = node.add("assignment");
+                org.kisst.caas._2_0.template.Assignment assignment = new org.kisst.caas._2_0.template.Assignment();
+                tu.getAssignment().add(assignment);
 
-                assignment.setAttribute("team", a.team.getName());
+                assignment.setTeam(a.team.getName());
                 if (a.effectiveDate.get() != null)
                 {
-                    assignment.setAttribute("effectivedate", String.valueOf(a.effectiveDate.get().getTime()));
+                    assignment.setEffectivedate(String.valueOf(a.effectiveDate.get().getTime()));
                 }
 
                 if (a.isPrincipal.get() == true)
                 {
-                    assignment.setAttribute("principal", "true");
+                    assignment.setPrincipal(true);
                 }
 
                 if (a.isLead.get() == true)
                 {
-                    assignment.setAttribute("lead", "true");
+                    assignment.setLead(true);
                 }
 
                 if (a.role != null)
@@ -491,14 +509,14 @@ public class Template
                         packageName = a.role.getParent().getName();
                     }
 
-                    assignment.setAttribute("rolename", a.role.getName());
+                    assignment.setRolename(a.role.getName());
                     if (a.role.type.get() != null)
                     {
-                        assignment.setAttribute("roletype", a.role.type.get());
+                        assignment.setRoletype(a.role.type.get());
                     }
                     if (packageName != null)
                     {
-                        assignment.setAttribute("rolepackage", packageName);
+                        assignment.setRolepackage(packageName);
                     }
                 }
             }
@@ -523,11 +541,11 @@ public class Template
 
         // Now we need to substitue values for variable names. But we cannot do simple character substitution, because it could
         // corrupt the XML. So what we're going to do is a more intelligent way.
-        XMLSubstitution xs = new XMLSubstitution(template, vars);
+        XMLSubstitution xs = new XMLSubstitution(getTemplateXml(), vars);
         String actualTemplate = xs.execute().getPretty();
 
         FileUtil.saveString(new File(filename), actualTemplate);
-        
+
         info("Template successfully exported to " + filename);
     }
 
@@ -568,11 +586,26 @@ public class Template
      */
     public XmlNode xml(Map<String, String> vars)
     {
-        String str = template;
-        if (vars != null)
-            str = StringUtil.substitute(str, vars);
-        str = str.replace("${dollar}", "$");
+        String str = getFinalTemplateXml(vars);
         return new XmlNode(str);
+    }
+
+    /**
+     * This method returns the actual template XML based on the given variables.
+     * 
+     * @param vars The varible substitution for the variables.
+     * @return The string containing the XML that should serve as a template.
+     */
+    public String getFinalTemplateXml(Map<String, String> vars)
+    {
+        String str = getTemplateXml();
+        if (vars != null)
+        {
+            str = StringUtil.substitute(str, vars);
+        }
+        str = str.replace("${dollar}", "$");
+
+        return str;
     }
 
     /**
@@ -610,37 +643,39 @@ public class Template
             debug(sb.toString());
         }
 
-        XmlNode template = xml(vars);
-        for (XmlNode node : template.getChildren())
+        // Parse the final template into the object structure to apply the template.
+        String tmp = getFinalTemplateXml(vars);
+        org.kisst.caas._2_0.template.Organization template = JAXB.unmarshal(new StringReader(tmp),
+                org.kisst.caas._2_0.template.Organization.class);
+
+        for (DSO dso : template.getDso())
         {
-            if (node.getName().equals("dso"))
-            {
-                processDso(org, node);
-            }
-            else if (node.getName().equals("xmlstoreobject"))
-            {
-                processXMLStoreObject(org, node);
-            }
-            else if (node.getName().equals("role"))
-            {
-                processRole(org, node);
-            }
-            else if (node.getName().equals("user"))
-            {
-                processUser(org, node);
-            }
-            else if (node.getName().equals("servicegroup"))
-            {
-                processServiceGroup(org, node);
-            }
-            else if (node.getName().equals("package"))
-            {
-                processPackage(org, node);
-            }
-            else
-            {
-                warn("Unknown organization element " + node.getPretty());
-            }
+            processDso(org, dso);
+        }
+
+        for (org.kisst.caas._2_0.template.XMLStoreObject xso : template.getXmlstoreobject())
+        {
+            processXMLStoreObject(org, xso);
+        }
+
+        for (org.kisst.caas._2_0.template.Role r : template.getRole())
+        {
+            processRole(org, r);
+        }
+
+        for (org.kisst.caas._2_0.template.User u : template.getUser())
+        {
+            processUser(org, u);
+        }
+
+        for (org.kisst.caas._2_0.template.ServiceGroup sg : template.getServicegroup())
+        {
+            processServiceGroup(org, sg);
+        }
+
+        for (org.kisst.caas._2_0.template.Package p : template.getPackage())
+        {
+            processPackage(org, p);
         }
 
         info("Template successfully imported to " + org.getName() + " organization");
@@ -650,13 +685,13 @@ public class Template
      * This method processes the given package in the template. For now it will do nothing until automatic loading is supported.
      * 
      * @param org The organization to apply it to.
-     * @param node The node defining the package.
+     * @param pkg The node defining the package.
      */
-    private void processPackage(Organization org, XmlNode node)
+    private void processPackage(Organization org, org.kisst.caas._2_0.template.Package pkg)
     {
         if (options.contains(ETemplateOption.NON_CORDYS_PACKAGES))
         {
-            warn("Automatic deployment of package " + node.getAttribute("name") + " not supported.");
+            warn("Automatic deployment of package " + pkg.getName() + " not supported.");
         }
         else
         {
@@ -668,34 +703,32 @@ public class Template
      * Appends/overwrites the XMLStore
      * 
      * @param org Organization where the XMLStore object needs to be processed
-     * @param xmlStoreObjNode XmlNode of the XMLStore object from the template
+     * @param xso XmlNode of the XMLStore object from the template
      */
-    private void processXMLStoreObject(Organization org, XmlNode xmlStoreObjNode)
+    private void processXMLStoreObject(Organization org, org.kisst.caas._2_0.template.XMLStoreObject xso)
     {
         if (options.contains(ETemplateOption.XML_STORE_OBJECTS))
         {
-            // Remove xml comments
-            String uncommented = StringUtil.removeXmlComments(xmlStoreObjNode.compact());
-            xmlStoreObjNode = new XmlNode(uncommented);
-            String operationFlag = xmlStoreObjNode.getAttribute("operation");
-            String key = xmlStoreObjNode.getAttribute("key");
-            String version = xmlStoreObjNode.getAttribute("version");
-            String name = xmlStoreObjNode.getAttribute("name");
-            XmlNode newXml = xmlStoreObjNode.getChildren().get(0);
-            XMLStoreObject obj = new XMLStoreObject(key, version, org);
-            if (operationFlag != null && operationFlag.equals("overwrite"))
+            XMLStoreObjectOperation operationFlag = xso.getOperation();
+            String key = xso.getKey();
+            XMLStoreVersion version = xso.getVersion();
+            String name = xso.getName();
+
+            XmlNode newXml = DOMUtil.convert(xso.getAny());
+            XMLStoreObject obj = new XMLStoreObject(key, version.value(), org);
+            if (operationFlag == XMLStoreObjectOperation.OVERWRITE)
             {
                 info("Overwriting " + name + " xmlstore object ... ");
                 obj.overwriteXML(newXml.clone());
             }
-            else if (operationFlag != null && operationFlag.equals("append"))
+            else if (operationFlag == XMLStoreObjectOperation.APPEND)
             {
                 info("Appending " + name + " xmlstore object ... ");
                 obj.appendXML(newXml.clone());
             }
             else
-            // By default overwrite the XMStore object
             {
+                // By default overwrite the XMStore object
                 info("Overwriting " + name + " xmlstore object ... ");
                 obj.overwriteXML(newXml.clone());
             }
@@ -711,29 +744,29 @@ public class Template
      * Creates/updates DSO. Also creates the DSO type if it does not exist.
      * 
      * @param org Organization where the DSO needs to be created/updated
-     * @param dsoNode XmlNode representing the DSO as per the template
+     * @param tdso XmlNode representing the DSO as per the template
      */
-    private void processDso(Organization org, XmlNode dsoNode)
+    private void processDso(Organization org, DSO tdso)
     {
         if (options.contains(ETemplateOption.DSO))
         {
-            String name = dsoNode.getAttribute("name");
-            String desc = dsoNode.getAttribute("desc");
-            String type = dsoNode.getAttribute("type");
-            XmlNode config = dsoNode.getChild("datasourceconfiguration").getChildren().get(0).clone();
-            DsoType dsotype = org.dsotypes.getByName(type);
+            String name = tdso.getName();
+            String desc = tdso.getDesc();
+            DSOType type = tdso.getType();
+            XmlNode config = DOMUtil.convert(tdso.getDatasourceconfiguration().getAny());
+            DsoType dsotype = org.dsotypes.getByName(type.value());
             if (dsotype == null) // Holds true only once per dsotype of org
             {
                 info("creating dsotype " + type + " ... ");
-                org.createDsoType(type);
+                org.createDsoType(type.value());
                 info("OK");
-                dsotype = org.dsotypes.getByName(type);
+                dsotype = org.dsotypes.getByName(type.value());
             }
             Dso dso = dsotype.dsos.getByName(name);
             if (dso == null) // Create DSO
             {
                 info("creating dso " + name + " ... ");
-                dsotype = org.dsotypes.getByName(type);
+                dsotype = org.dsotypes.getByName(type.value());
                 dsotype.createDso(name, desc, config);
                 info("OK");
             }
@@ -756,143 +789,15 @@ public class Template
      * containers
      * 
      * @param org Organization where the service group needs to be created/updated
-     * @param serviceGroupNode XmlNode representing the service group as per the template
+     * @param sg XmlNode representing the service group as per the template
      */
-    private void processServiceGroup(Organization org, XmlNode serviceGroupNode)
+    private void processServiceGroup(Organization org, org.kisst.caas._2_0.template.ServiceGroup sg)
     {
         if (options.contains(ETemplateOption.SERVICE_GROUPS))
         {
-            // Process SG
-            String name = serviceGroupNode.getAttribute("name");
-            ServiceGroup serviceGroup = org.serviceGroups.getByName(name);
-            XmlNode config = serviceGroupNode.getChild("bussoapnodeconfiguration").getChildren().get(0).clone();
+            ICustomStrategy cs = StrategyFactory.create(sg, org, this);
 
-            if (serviceGroup == null) // Create SG
-            {
-                info("creating servicegroup " + name + " ... ");
-
-                org.createServiceGroup(name, config, getWebServiceInterfaces(org, serviceGroupNode));
-                serviceGroup = org.serviceGroups.getByName(name);
-                info("OK");
-            }
-            else
-            {
-                info("updating servicegroup " + name + " ... ");
-
-                // Update the configuration of the service group
-                serviceGroup.updateConfiguration(config);
-
-                WebServiceInterface[] newWebServiceInterfaces = getWebServiceInterfaces(org, serviceGroupNode);
-                if ((newWebServiceInterfaces != null) && (newWebServiceInterfaces.length > 0))
-                {
-                    serviceGroup.webServiceInterfaces.update(newWebServiceInterfaces);
-                    ArrayList<String> namespaces = new ArrayList<String>();
-                    for (WebServiceInterface webServiceInterface : newWebServiceInterfaces)
-                    {
-                        for (String namespace : webServiceInterface.namespaces.get())
-                        {
-                            namespaces.add(namespace);
-                        }
-                    }
-                    serviceGroup.namespaces.update(namespaces);
-                    info("OK");
-                }
-            }
-            // Process SCs
-            CordysObjectList<Machine> machines = org.getSystem().machines;
-            int i = 0;
-            if (serviceGroupNode.getChildren("sc").size() != machines.getSize())
-            {
-                warn("Template says " + serviceGroupNode.getChildren("sc").size() + " servicecontainers for " + name
-                        + " but the no of machines are " + org.getSystem().machines.getSize());
-            }
-            for (XmlNode serviceContainerNode : serviceGroupNode.getChildren("sc"))
-            {
-                boolean processContainer = true;
-                String scName = serviceContainerNode.getAttribute("name");
-
-                // Determine the machine on which the container should run
-                String machineName = serviceContainerNode.getAttribute("machine");
-                Machine machine = null;
-                if (!StringUtil.isEmptyOrNull(machineName))
-                {
-                    // A name was set. Try to look it up.
-                    machine = machines.getByName(machineName);
-                    if (machine == null)
-                    {
-                        // Could not find the machine by its name. So maybe its a number
-                        try
-                        {
-                            int index = Integer.parseInt(machineName);
-                            if (index > machines.getSize())
-                            {
-                                warn("Service container "
-                                        + scName
-                                        + " is configured to run on a node which is not present. Skipping the creation of this node");
-                                processContainer = false;
-                            }
-                            else
-                            {
-                                machine = machines.get(index);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            warn("Could not find machine with identification '" + machineName + "' in the environment");
-                        }
-                    }
-                }
-
-                // If no specific machine was found we'll use the iteration
-                if (machine == null)
-                {
-                    machine = machines.get(i++);
-                }
-
-                // Get the real machine name to create the container on.
-                machineName = machine.getName();
-
-                if (processContainer)
-                {
-                    XmlNode configsNode = serviceContainerNode.getChild("bussoapprocessorconfiguration/configurations");
-                    ServiceContainer serviceContainer = serviceGroup.serviceContainers.getByName(scName);
-                    if (serviceContainer == null) // Create SC
-                    {
-                        info("creating servicecontainer " + scName + " for machine " + machineName + " ... ");
-                        boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
-                        serviceGroup.createServiceContainer(scName, machineName, automatic, configsNode.clone());
-                        for (XmlNode subchild : serviceContainerNode.getChildren())
-                        {
-                            if (subchild.getName().equals("cp"))
-                            {
-                                ServiceContainer newSC = serviceGroup.serviceContainers.getByName(scName);
-
-                                // Read the data from the XML
-                                String type = subchild.getAttribute("type");
-                                if (StringUtil.isEmptyOrNull(type))
-                                {
-                                    type = "socket";
-                                }
-                                String cpName = subchild.getAttribute("name");
-                                String description = subchild.getChildText("description");
-                                String labeledURI = subchild.getChildText("labeleduri");
-
-                                newSC.createConnectionPoint(cpName, type, machineName, description, labeledURI);
-                            }
-                        }
-                        info("OK");
-                    }
-                    else
-                    // Update SC
-                    {
-                        info("updating servicecontainer " + scName + " for machine " + machineName + " ... ");
-                        boolean automatic = "true".equals(serviceContainerNode.getAttribute("automatic"));
-                        serviceGroup
-                                .updateServiceContainer(scName, machineName, automatic, configsNode.clone(), serviceContainer);
-                        info("OK");
-                    }
-                }
-            }
+            cs.apply();
         }
         else
         {
@@ -950,13 +855,13 @@ public class Template
      * Creates/updates user Also configures the user with the given roles
      * 
      * @param org Organization where the user needs to be created/updated
-     * @param userNode XmlNode representing the user as per the template
+     * @param tu XmlNode representing the user as per the template
      */
-    private void processUser(Organization org, XmlNode userNode)
+    private void processUser(Organization org, org.kisst.caas._2_0.template.User tu)
     {
         if (options.contains(ETemplateOption.USERS))
         {
-            String name = userNode.getAttribute("name");
+            String name = tu.getName();
             if ("SYSTEM".equals(name.toUpperCase()))
             {
                 // Whenever I had a SYSTEM user in my template, Cordys would crash pretty hard. It would not be possible to start
@@ -968,8 +873,7 @@ public class Template
             if (org.users.getByName(name) == null) // Create User
             {
                 info("creating user " + name + " ... ");
-                org.createUser(name, userNode.getAttribute("au"), userNode.getAttribute("type"),
-                        userNode.getAttribute("osidentity"), userNode.getAttribute("password")); // Create Org User
+                org.createUser(name, tu.getAu(), tu.getType(), tu.getOsidentity(), tu.getPassword()); // Create Org User
                 info("OK");
             }
 
@@ -977,35 +881,33 @@ public class Template
             // Assigning roles
             User user = org.users.getByName(name);
             ArrayList<String> newRoles = new ArrayList<String>();
-            for (XmlNode child : userNode.getChildren())
+            for (org.kisst.caas._2_0.template.Role child : tu.getRole())
             {
-                if (child.getName().equals("role"))
+                Role role = null;
+                String isvpName = child.getPackage();
+                String roleName = child.getName();
+                String dnRole = null;
+                if (isvpName == null) // Assign organizational role if the isvp name is not mentioned
                 {
-                    Role role = null;
-                    String isvpName = child.getAttribute("package");
-                    String roleName = child.getAttribute("name");
-                    String dnRole = null;
-                    if (isvpName == null) // Assign organizational role if the isvp name is not mentioned
-                    {
-                        role = org.roles.getByName(roleName);
-                        dnRole = "cn=" + roleName + ",cn=organizational roles," + org.getDn();
-                    }
-                    else
-                    // Assign ISVP role
-                    {
-                        Package isvp = org.getSystem().isvp.getByName(isvpName);
-                        if (isvp != null)
-                            role = isvp.roles.getByName(roleName);
-                        dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
-                    }
-                    if (role != null)
-                        newRoles.add(role.getDn());
-                    else
-                        newRoles.add(dnRole);
+                    role = org.roles.getByName(roleName);
+                    dnRole = "cn=" + roleName + ",cn=organizational roles," + org.getDn();
                 }
                 else
-                    warn("Unknown user subelement " + child.getPretty());
+                // Assign ISVP role
+                {
+                    Package isvp = org.getSystem().isvp.getByName(isvpName);
+                    if (isvp != null)
+                        role = isvp.roles.getByName(roleName);
+                    dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
+                }
+                if (role != null)
+                    newRoles.add(role.getDn());
+                else
+                    newRoles.add(dnRole);
             }
+
+            // TODO: Process assignments
+
             // Assign all the roles to the user at once
             if (newRoles != null && newRoles.size() > 0)
                 user.roles.add(newRoles.toArray(new String[newRoles.size()]));
@@ -1021,50 +923,45 @@ public class Template
      * Creates/updates role. Configures its sub-roles as well
      * 
      * @param org Organization where the role needs to be created/updated
-     * @param roleNode XmlNode representing the role as per the template
+     * @param tr XmlNode representing the role as per the template
      */
-    private void processRole(Organization org, XmlNode roleNode)
+    private void processRole(Organization org, org.kisst.caas._2_0.template.Role tr)
     {
         if (options.contains(ETemplateOption.ROLES))
         {
-            String name = roleNode.getAttribute("name");
-            String type = roleNode.getAttribute("type");
+            String name = tr.getName();
+            RoleType type = tr.getType();
             if (org.roles.getByName(name) == null)
             {
                 info("creating role " + name + " ... ");
-                org.createRole(name, type);
+                org.createRole(name, type.value());
                 info("OK");
             }
             info("configuring role " + name + " ... ");
             Role role = org.roles.getByName(name);
-            for (XmlNode child : roleNode.getChildren())
+            for (org.kisst.caas._2_0.template.Role child : tr.getRole())
             {
-                if (child.getName().equals("role"))
+                Role subRole = null;
+                String isvpName = child.getPackage();
+                String roleName = child.getName();
+                String dnRole = null;
+                if (isvpName == null)
                 {
-                    Role subRole = null;
-                    String isvpName = child.getAttribute("package");
-                    String roleName = child.getAttribute("name");
-                    String dnRole = null;
-                    if (isvpName == null)
-                    {
-                        subRole = org.roles.getByName(roleName);
-                        dnRole = "cn=" + roleName + ",cn=organizational roles," + org.getDn();
-                    }
-                    else
-                    {
-                        Package isvp = org.getSystem().isvp.getByName(isvpName);
-                        if (isvp != null)
-                            subRole = isvp.roles.getByName(roleName);
-                        else
-                            dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
-                    }
-                    if (subRole != null)
-                        role.roles.add(subRole);
-                    else
-                        role.roles.add(dnRole);
+                    subRole = org.roles.getByName(roleName);
+                    dnRole = "cn=" + roleName + ",cn=organizational roles," + org.getDn();
                 }
                 else
-                    warn("Unknown role subelement " + child.getPretty());
+                {
+                    Package isvp = org.getSystem().isvp.getByName(isvpName);
+                    if (isvp != null)
+                        subRole = isvp.roles.getByName(roleName);
+                    else
+                        dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
+                }
+                if (subRole != null)
+                    role.roles.add(subRole);
+                else
+                    role.roles.add(dnRole);
             }
             info("OK");
         }
@@ -1255,71 +1152,6 @@ public class Template
             }
             else
                 error("Unknown role subelement " + child.getPretty());
-        }
-    }
-
-    /**
-     * This class defines the template content types.
-     */
-    public enum ETemplateOption
-    {
-        ALL("All", 'a'), NON_CORDYS_PACKAGES("Non-Cordys owned packages", 'p'), DSO("Datasource objects", 'd'), XML_STORE_OBJECTS(
-                "XML Store objects", 'x'), ROLES("Organizational roles", 'r'), USERS("Organizational users", 'u'), SERVICE_GROUPS(
-                "Service groups, containers and connection points", 's');
-
-        /** Holds the description of the option */
-        private String m_description;
-        /** Holds the character enabling this option */
-        private char m_option;
-
-        /**
-         * Instantiates a new e template option.
-         * 
-         * @param description The description
-         * @param option The option
-         */
-        ETemplateOption(String description, char option)
-        {
-            m_description = description;
-            m_option = option;
-        }
-
-        /**
-         * This method gets the description.
-         * 
-         * @return The description.
-         */
-        public String description()
-        {
-            return m_description;
-        }
-
-        /**
-         * This method gets the option to use in the commandline.
-         * 
-         * @return The option to use in the commandline.
-         */
-        public char option()
-        {
-            return m_option;
-        }
-
-        /**
-         * This method returns a list with all the options that can be set
-         * 
-         * @param prefix The prefix for the line.
-         * @return The options in a descriptive manner.
-         */
-        public static String options(String prefix)
-        {
-            StringBuilder sb = new StringBuilder(1024);
-
-            for (ETemplateOption to : ETemplateOption.values())
-            {
-                sb.append(prefix).append(to.m_option).append(": ").append(to.description()).append("\n");
-            }
-
-            return sb.toString();
         }
     }
 

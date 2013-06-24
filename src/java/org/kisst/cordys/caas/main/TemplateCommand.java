@@ -7,8 +7,8 @@ import java.util.Map;
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
-import org.kisst.cordys.caas.cm.Template;
-import org.kisst.cordys.caas.cm.Template.ETemplateOption;
+import org.kisst.cordys.caas.template.ETemplateOption;
+import org.kisst.cordys.caas.template.Template;
 import org.kisst.cordys.caas.util.FileUtil;
 
 /**
@@ -127,8 +127,8 @@ public class TemplateCommand extends CompositeCommand
         public List<ETemplateOption> getOptions()
         {
             // Build up the list of the components that should be exported.
-            List<Template.ETemplateOption> options = new ArrayList<Template.ETemplateOption>();
-            if (!compOption.isSet() || compOption.get().indexOf(Template.ETemplateOption.ALL.option()) > -1)
+            List<ETemplateOption> options = new ArrayList<ETemplateOption>();
+            if (!compOption.isSet() || compOption.get().indexOf(ETemplateOption.ALL.option()) > -1)
             {
                 // If the option is not set OR that the all is specified we do everything
                 options.add(ETemplateOption.ALL);
@@ -136,7 +136,7 @@ public class TemplateCommand extends CompositeCommand
             else
             {
                 String tmp = compOption.get();
-                for (ETemplateOption o : Template.ETemplateOption.values())
+                for (ETemplateOption o : ETemplateOption.values())
                 {
                     if (tmp.indexOf(o.option()) > -1)
                     {

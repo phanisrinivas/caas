@@ -13,12 +13,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import org.kisst.cordys.caas.User.UserList;
-import org.kisst.cordys.caas.cm.Template;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
+import org.kisst.cordys.caas.template.Template;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;

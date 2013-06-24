@@ -96,6 +96,8 @@ public class CordysSystem extends LdapObject
     public final CordysObjectList<Machine> machine = machines;
     /** Holds an alias for the machines. */
     public final CordysObjectList<Machine> nodes = machines;
+    /** Holds the mapped machines based on the 'nodes' property. */
+    public final Map<String, Machine> mapped = new LinkedHashMap<String, Machine>();
 
     /**
      * Creates a cordys system and initializes it.
@@ -118,6 +120,28 @@ public class CordysSystem extends LdapObject
         this.build = response.getChildText("tuple/old/buildinfo/build");
         this.os = response.getChildText("tuple/old/osinfo/version");
         rememberLdap(this);
+        
+        // Parse the nodes defined for the cluster (if applicable).
+        tmp = env.getProp("system." + name + ".nodes", null);
+        if (!StringUtil.isEmptyOrNull(tmp))
+        {
+            String[] ns = tmp.split(";");
+            for (String node : ns)
+            {
+                String[] tmp2 = node.split(":");
+                if (tmp2.length == 2)
+                {
+                    String logicalName = tmp2[0];
+                    String actual = tmp2[1];
+
+                    Machine m = machines.getByName(actual);
+                    if (m != null)
+                    {
+                        mapped.put(logicalName, m);
+                    }
+                }
+            }
+        }
 
         loadProperties();
     }
@@ -906,7 +930,7 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
         }
-        
+
         File cap = new File(capFile);
 
         if (!cap.exists())
@@ -949,7 +973,7 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
         }
-        
+
         // First get the status of the package. Is it indeed a new one
         XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
         request.add("ApplicationName").setText(name);
@@ -1041,7 +1065,7 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
         }
-        
+
         // First get the status of the package. Is it indeed a new one
         XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
         request.add("ApplicationName").setText(name);
@@ -1110,7 +1134,7 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
         }
-        
+
         // First we need to check that it is indeed incomplete. Also we need the URL of the package to call the
         // DeployCAP method.
         XmlNode request = new XmlNode(Constants.GET_DEPLOYED_CAP_SUMMARY, Constants.XMLNS_CAP);
@@ -1167,6 +1191,16 @@ public class CordysSystem extends LdapObject
     public void donwloadCap(String packageDn, String destination)
     {
         throw new IllegalAccessError("Currently not supported by Cordys yet.");
+    }
+
+    /**
+     * This method gets a list of the mapped machines for this system. If will examine the 'nodes' property of the system. That
+     * 
+     * @return The mapped systems
+     */
+    public Map<String, Machine> getMappedMachines()
+    {
+        return mapped;
     }
 
     /**
@@ -1268,4 +1302,5 @@ public class CordysSystem extends LdapObject
         }
 
     }
+
 }
