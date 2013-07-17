@@ -120,7 +120,7 @@ public class CordysSystem extends LdapObject
         this.build = response.getChildText("tuple/old/buildinfo/build");
         this.os = response.getChildText("tuple/old/osinfo/version");
         rememberLdap(this);
-        
+
         // Parse the nodes defined for the cluster (if applicable).
         tmp = env.getProp("system." + name + ".nodes", null);
         if (!StringUtil.isEmptyOrNull(tmp))
@@ -140,6 +140,15 @@ public class CordysSystem extends LdapObject
                         mapped.put(logicalName, m);
                     }
                 }
+            }
+        }
+
+        // If no mapped systems are defined, we'll create the mapped list with all the nodes and use their node name
+        for (Machine m : machines)
+        {
+            if (!mapped.containsValue(m))
+            {
+                mapped.put(m.getName(), m);
             }
         }
 
