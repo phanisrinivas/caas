@@ -1,6 +1,7 @@
 package org.kisst.cordys.caas.template.strategy;
 
 import static org.kisst.cordys.caas.main.Environment.info;
+import static org.kisst.cordys.caas.main.Environment.debug;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -62,24 +63,35 @@ public class CloningStrategy extends BaseStrategy
                 int scCount = 1;
                 info("No machine defined, so going to do cloning on all mapped systems.");
                 Map<String, Machine> machines = getOrganization().getSystem().getMappedMachines();
-                for (Entry<String, Machine> e : machines.entrySet())
+
+                // If there is only 1 system and only 1 container per node should be created, then we just create it with the
+                // original name.
+                if (machines.size() == 1 && getContainersPerNode() == 1)
                 {
-                    String logicalName = e.getKey();
-                    Machine m = e.getValue();
-
-                    info("Creating " + getContainersPerNode() + " containers on machine " + logicalName + "(real:" + m.getName()
-                            + ")");
-                    for (int count = 0; count < getContainersPerNode(); count++)
+                    debug("Since there is 1 machine and 1 container per node: use original name");
+                    createServiceContainer(serviceGroup, scName, configsNode, container, machines.values().iterator().next());
+                }
+                else
+                {
+                    for (Entry<String, Machine> e : machines.entrySet())
                     {
-                        // Build up the final name
-                        String finalName = getNamingPattern();
-                        finalName = finalName.replaceAll("\\$\\{NAME\\}", scName);
-                        finalName = finalName.replaceAll("\\$\\{SEQUENCE\\}", String.valueOf(scCount));
+                        String logicalName = e.getKey();
+                        Machine m = e.getValue();
 
-                        // Create / update the actual service container.
-                        createServiceContainer(serviceGroup, finalName, configsNode, container, m);
+                        info("Creating " + getContainersPerNode() + " containers on machine " + logicalName + "(real:"
+                                + m.getName() + ")");
+                        for (int count = 0; count < getContainersPerNode(); count++)
+                        {
+                            // Build up the final name
+                            String finalName = getNamingPattern();
+                            finalName = finalName.replaceAll("\\$\\{NAME\\}", scName);
+                            finalName = finalName.replaceAll("\\$\\{SEQUENCE\\}", String.valueOf(scCount));
 
-                        scCount++;
+                            // Create / update the actual service container.
+                            createServiceContainer(serviceGroup, finalName, configsNode, container, m);
+
+                            scCount++;
+                        }
                     }
                 }
             }
