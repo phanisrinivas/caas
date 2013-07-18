@@ -167,4 +167,27 @@ public class DummyCaller implements SoapCaller
         return "dummy";
     }
 
+    @Override
+    public String call(String request, HashMap<String, String> queryParams, long timeout)
+    {
+        return null;
+    }
+
+    @Override
+    public XmlNode call(XmlNode request, HashMap<String, String> queryParams, long timeout)
+    {
+        return null;
+    }
+
+    @Override
+    public String call(String request, long timeout)
+    {
+        return null;
+    }
+
+    @Override
+    public XmlNode call(XmlNode request, long timeout)
+    {
+        return null;
+    }
 }

@@ -53,7 +53,9 @@ public abstract class BaseCaller implements SoapCaller
     protected boolean orgLevelDeployment = false;
     /** Holds the default query parameters that should ALWAYS be sent. */
     protected final HashMap<String, String> queryStringMap = new HashMap<String, String>();
+    /** The start time of the request */
     private long m_startTime;
+    /** The end time of the request */
     private long m_endTime;
 
     /**
@@ -312,6 +314,15 @@ public abstract class BaseCaller implements SoapCaller
     }
 
     /**
+     * @see org.kisst.cordys.caas.soap.SoapCaller#call(java.lang.String, long)
+     */
+    @Override
+    public String call(String request, long timeout)
+    {
+        return call(request, null, timeout);
+    }
+
+    /**
      * @see org.kisst.cordys.caas.soap.SoapCaller#call(java.lang.String, java.util.HashMap)
      */
     public String call(String input, HashMap<String, String> map)
@@ -334,11 +345,31 @@ public abstract class BaseCaller implements SoapCaller
     }
 
     /**
+     * @see org.kisst.cordys.caas.soap.SoapCaller#call(java.lang.String, java.util.HashMap, long)
+     */
+    @Override
+    public String call(String request, HashMap<String, String> queryParams, long timeout)
+    {
+        HashMap<String, String> finalMap = addTimeoutIfNeeded(queryParams, timeout);
+
+        return call(request, finalMap);
+    }
+
+    /**
      * @see org.kisst.cordys.caas.soap.SoapCaller#call(org.kisst.cordys.caas.util.XmlNode)
      */
     public XmlNode call(XmlNode method)
     {
         return call(method, null);
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.soap.SoapCaller#call(org.kisst.cordys.caas.util.XmlNode, long)
+     */
+    @Override
+    public XmlNode call(XmlNode method, long timeout)
+    {
+        return call(method, null, timeout);
     }
 
     /**
@@ -356,6 +387,42 @@ public abstract class BaseCaller implements SoapCaller
         }
 
         return output;
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.soap.SoapCaller#call(org.kisst.cordys.caas.util.XmlNode, java.util.HashMap, long)
+     */
+    @Override
+    public XmlNode call(XmlNode request, HashMap<String, String> queryParams, long timeout)
+    {
+        HashMap<String, String> finalMap = addTimeoutIfNeeded(queryParams, timeout);
+
+        return call(request, finalMap);
+    }
+
+    /**
+     * This method adds the timeout if needed.
+     * 
+     * @param queryParams The current query parameters.
+     * @param timeout The timeout (if not equals to -1)
+     * @return The new hashmap.
+     */
+    protected HashMap<String, String> addTimeoutIfNeeded(HashMap<String, String> queryParams, long timeout)
+    {
+        HashMap<String, String> finalMap = queryParams;
+
+        if (timeout > -1)
+        {
+            // A timeout is defined, so we need to specify the timeout in the query parameters.
+            if (finalMap == null)
+            {
+                finalMap = new LinkedHashMap<String, String>();
+            }
+
+            finalMap.put("timeout", String.valueOf(timeout));
+        }
+
+        return finalMap;
     }
 
     /**

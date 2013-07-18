@@ -40,10 +40,29 @@ public interface SoapCaller
      * This method executes the soap request. The given request should be without the SOAP envelope.
      * 
      * @param request The plain request without the SOAP envelope.
+     * @param timeout The timeout to use.
+     * @return The response
+     */
+    public String call(String request, long timeout);
+
+    /**
+     * This method executes the soap request. The given request should be without the SOAP envelope.
+     * 
+     * @param request The plain request without the SOAP envelope.
      * @param queryParams The additional query parameters for the request.
      * @return The response
      */
     public String call(String request, HashMap<String, String> queryParams);
+
+    /**
+     * This method executes the soap request. The given request should be without the SOAP envelope.
+     * 
+     * @param request The plain request without the SOAP envelope.
+     * @param queryParams The additional query parameters for the request.
+     * @param timeout The timeout to use.
+     * @return The response
+     */
+    public String call(String request, HashMap<String, String> queryParams, long timeout);
 
     /**
      * This method executes the soap request. The given request should be without the SOAP envelope.
@@ -57,10 +76,29 @@ public interface SoapCaller
      * This method executes the soap request. The given request should be without the SOAP envelope.
      * 
      * @param request The plain request without the SOAP envelope.
+     * @param timeout The timeout to use.
+     * @return The response xml node
+     */
+    public XmlNode call(XmlNode request, long timeout);
+
+    /**
+     * This method executes the soap request. The given request should be without the SOAP envelope.
+     * 
+     * @param request The plain request without the SOAP envelope.
      * @param queryParams The additional query parameters for the request.
      * @return The response xml node
      */
     public XmlNode call(XmlNode request, HashMap<String, String> queryParams);
+
+    /**
+     * This method executes the soap request. The given request should be without the SOAP envelope.
+     * 
+     * @param request The plain request without the SOAP envelope.
+     * @param queryParams The additional query parameters for the request.
+     * @param timeout The timeout to use.
+     * @return The response xml node
+     */
+    public XmlNode call(XmlNode request, HashMap<String, String> queryParams, long timeout);
 
     /**
      * This method gets the base URL for this server.

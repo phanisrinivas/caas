@@ -19,6 +19,7 @@ import org.kisst.cordys.caas.util.XmlNode;
  */
 public class PackageList extends CordysObjectList<Package>
 {
+    private static final long DEFAULT_PACKAGE_TIMEOUT = 90000L;
     /** Holds whether or not the system supports CAP packages. */
     private boolean supportsCap;
 
@@ -45,7 +46,7 @@ public class PackageList extends CordysObjectList<Package>
         XmlNode request = new XmlNode("GetInstalledISVPackages", "http://schemas.cordys.com/1.0/isvpackage");
         request.add("computer").setText(system.machines.get(0).getName());
 
-        XmlNode response = c.call(request);
+        XmlNode response = c.call(request, DEFAULT_PACKAGE_TIMEOUT);
 
         // There could be packages that have no file name. Those packages are loaded, but we only have the information in the
         // GetInstalledISVPackages. So let's try to also add the packages of which we know they are there, but have no isvp file.
@@ -64,7 +65,7 @@ public class PackageList extends CordysObjectList<Package>
         if (request != null)
         {
             // There are 1 or more ISV packages available.
-            response = c.call(request);
+            response = c.call(request, DEFAULT_PACKAGE_TIMEOUT);
 
             // Now we have all the definitions. This means we can create the package definitions
             List<XmlNode> isvs = response.getChildren("ISVPackage");
@@ -79,7 +80,7 @@ public class PackageList extends CordysObjectList<Package>
         request = new XmlNode(Constants.GET_DEPLOYED_CAP_SUMMARY, "http://schemas.cordys.com/cap/1.0");
         try
         {
-            response = c.call(request);
+            response = c.call(request, DEFAULT_PACKAGE_TIMEOUT);
 
             supportsCap = true;
         }
@@ -110,7 +111,7 @@ public class PackageList extends CordysObjectList<Package>
 
             // Now get the CAPs that are new
             request = new XmlNode("GetNewCapSummary", "http://schemas.cordys.com/cap/1.0");
-            response = c.call(request);
+            response = c.call(request, DEFAULT_PACKAGE_TIMEOUT);
 
             caps = response.xpath("./*[local-name()='tuple']/*[local-name()='old']/*[local-name()='ApplicationPackage']");
             for (XmlNode node : caps)
