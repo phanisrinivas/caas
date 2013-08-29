@@ -295,7 +295,7 @@ public abstract class LdapObject extends CordysObject {
 		preDeleteHook();
 		XmlNode method=new XmlNode(Constants.DELETE_RECURSIVE, Constants.XMLNS_LDAP);
 		XmlNode tuple=method.add("tuple");
-		tuple.add("old").add(entry.clone());
+		tuple.add("old").add(getEntry().clone());
 		call(method);
 		getParent().clear();
 		getSystem().removeLdap(getDn());
