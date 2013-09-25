@@ -247,12 +247,7 @@ public class XMLStoreObject extends CordysObject
                 // Ignore folders
                 if (Boolean.valueOf(tuple.getAttribute("isFolder")).booleanValue())
                     continue;
-                // Ignore WsApps runtime entries
-                if (tuple.getAttribute("name").endsWith(".cmx"))
-                    continue;
-                // Ignore CAF files
-                if (tuple.getAttribute("name").endsWith(".caf"))
-                    continue;
+
                 XMLStoreObject obj = new XMLStoreObject(tuple.getAttribute("key"), tuple.getAttribute("level"), org);
                 grow(obj);
             }
