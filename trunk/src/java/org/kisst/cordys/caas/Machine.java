@@ -10,6 +10,7 @@
 package org.kisst.cordys.caas;
 
 import static org.kisst.cordys.caas.main.Environment.trace;
+import static org.kisst.cordys.caas.main.Environment.warn;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.List;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.util.Constants;
+import org.kisst.cordys.caas.util.ExceptionUtil;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -32,8 +34,6 @@ public class Machine extends CordysObject
     private final ServiceContainer monitor;
     /** Holds the hostname. */
     private final String hostname;
-    /** Holds the cordys install dir. */
-    private final String cordysInstallDir;
 
     /**
      * Instantiates a new machine.
@@ -45,7 +45,6 @@ public class Machine extends CordysObject
         this.monitor = monitor;
         String tmp = monitor.getName();
         this.hostname = tmp.substring(tmp.indexOf("monitor@") + 8);
-        this.cordysInstallDir = readEIBProperty("CORDYS_INSTALL_DIR");
     }
 
     /**
@@ -118,16 +117,26 @@ public class Machine extends CordysObject
      */
     public void refreshServiceContainers()
     {
-        XmlNode request = new XmlNode(Constants.LIST, Constants.XMLNS_MONITOR);
-        HashMap<String, String> queryParams = new HashMap<String, String>();
-        queryParams.put("receiver", monitor.getDn());
-        XmlNode response = monitor.call(request, queryParams);
-        for (XmlNode tuple : response.getChildren("tuple"))
+        try
         {
-            XmlNode workerprocess = tuple.getChild("old/workerprocess");
-            String dn = workerprocess.getChildText("name");
-            ServiceContainer obj = (ServiceContainer) getSystem().getLdap(dn);
-            obj.setWorkerprocess(workerprocess);
+            XmlNode request = new XmlNode(Constants.LIST, Constants.XMLNS_MONITOR);
+            HashMap<String, String> queryParams = new HashMap<String, String>();
+            queryParams.put("receiver", monitor.getDn());
+            XmlNode response = monitor.call(request, queryParams);
+            for (XmlNode tuple : response.getChildren("tuple"))
+            {
+                XmlNode workerprocess = tuple.getChild("old/workerprocess");
+                String dn = workerprocess.getChildText("name");
+                ServiceContainer obj = (ServiceContainer) getSystem().getLdap(dn);
+                obj.setWorkerprocess(workerprocess);
+            }
+        }
+        catch (Exception e)
+        {
+            warn("The monitor of machine "
+                    + hostname
+                    + " is not running properly. Status of the service containers running on this machine are not reflected properly. ");
+            trace(ExceptionUtil.getStacktrace(e));
         }
     }
 
@@ -356,7 +365,7 @@ public class Machine extends CordysObject
      */
     public String getCordysInstallDir()
     {
-        return cordysInstallDir;
+        return readEIBProperty("CORDYS_INSTALL_DIR");
     }
 
     /**

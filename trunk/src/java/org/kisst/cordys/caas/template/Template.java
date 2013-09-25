@@ -205,14 +205,21 @@ public class Template
             info("Exporting " + org.xmlStoreObjects.getSize() + " " + ETemplateOption.XML_STORE_OBJECTS.description() + "...");
             for (XMLStoreObject xso : org.xmlStoreObjects)
             {
-                org.kisst.caas._2_0.template.XMLStoreObject txso = new org.kisst.caas._2_0.template.XMLStoreObject();
-
-                txso.setKey(xso.getKey());
-                txso.setVersion(XMLStoreVersion.valueOf(xso.getVersion().toUpperCase()));
-                txso.setName(xso.getName());
-                txso.setAny(DOMUtil.convert(xso.getXML()));
-
-                organizationTemplate.getXmlstoreobject().add(txso);
+                try
+                {
+                    org.kisst.caas._2_0.template.XMLStoreObject txso = new org.kisst.caas._2_0.template.XMLStoreObject();
+    
+                    txso.setKey(xso.getKey());
+                    txso.setVersion(XMLStoreVersion.valueOf(xso.getVersion().toUpperCase()));
+                    txso.setName(xso.getName());
+                    txso.setAny(DOMUtil.convert(xso.getXML()));
+    
+                    organizationTemplate.getXmlstoreobject().add(txso);
+                }
+                catch(Exception e)
+                {
+                    error("Error exporting " + xso.getKey(), e);
+                }
             }
             info("Finished exporting " + ETemplateOption.XML_STORE_OBJECTS.description() + " in "
                     + ((System.currentTimeMillis() - startTime) / 1000) + " seconds ... ");
