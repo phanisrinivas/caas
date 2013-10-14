@@ -123,7 +123,7 @@ public class XmlProperty<T>
             }
         }
 
-        return (T) res;
+        return res;
     }
 
     /**
@@ -162,7 +162,7 @@ public class XmlProperty<T>
             else if (m_dataClass == Date.class)
             {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-                _set(sdf.format((T) value));
+                _set(sdf.format(value));
             }
             else if (m_dataClass == Boolean.class)
             {

@@ -213,7 +213,7 @@ public abstract class LdapObjectBase extends LdapObject
             throw new RuntimeException("could not determine class for entry " + entry);
         }
 
-        Constructor<?> cons = ReflectionUtil.getConstructor(resultClass, new Class[] { LdapObject.class, String.class });
+        Constructor<?> cons = ReflectionUtil.getConstructor(resultClass, new Class<?>[] { LdapObject.class, String.class });
         LdapObject result = (LdapObject) ReflectionUtil.createObject(cons, new Object[] { parent, newdn });
         result.setEntry(entry);
         return result;
