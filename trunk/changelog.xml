@@ -81,7 +81,7 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
       <action dev="pgussow" type="fix"><![CDATA[When in a cluster a node is not turned on Caas would not start because it would try to read the installation folder. This is fixed.]]></action>
       <action dev="pgussow" type="fix"><![CDATA[Fixed an issue when trying to delete an entry while it was not loaded.]]></action>
     </release>
-    <release date="2013-10-11" description="Stable release" version="2.0.25">
+    <release date="2013-10-14" description="Stable release" version="2.0.25">
       <action dev="pgussow" type="change"><![CDATA[Changed the way that Caas determines the machines in the Cordys install. Previously it would examine all organizations for service containers. now it only looks at the system organization]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added a new system parameter for the template manager: sys.sys.currentdate. This is filled with the date / time on which the script is run.]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added support for BOP 4.3.]]></action>
