@@ -127,7 +127,7 @@ public class Environment
      */
     public static void debug(String msg)
     {
-        if (debug && !quiet)
+        if ((trace || debug) && !quiet)
             m_log.debug(msg);
     }
 
@@ -138,7 +138,7 @@ public class Environment
      */
     public static void info(String msg)
     {
-        if (verbose && !quiet)
+        if ((trace || debug || verbose) && !quiet)
             m_log.info(msg);
     }
 

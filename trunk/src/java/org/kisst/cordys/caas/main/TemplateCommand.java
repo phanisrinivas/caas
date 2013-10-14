@@ -1,6 +1,8 @@
 package org.kisst.cordys.caas.main;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -72,6 +74,7 @@ public class TemplateCommand extends CompositeCommand
             map.put("sys.org.name", organization.getName());
             map.put("sys.ldap.root", organization.getSystem().getDn());
             map.put("sys.name", this.getSystem().getName());
+            map.put("sys.currentdate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(new Date()));
 
             // Apply the template to the given organization using the given properties.
             templ.apply(organization, map);
