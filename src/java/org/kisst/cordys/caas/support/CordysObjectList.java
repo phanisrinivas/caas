@@ -114,7 +114,7 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
      * @param name
      * @return
      */
-    protected T dirtyGetByName(String name)
+    public T dirtyGetByName(String name)
     {
         return nameIndex.get(name);
     }

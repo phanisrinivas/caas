@@ -15,6 +15,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.kisst.cordys.caas.comp.CompatibilityManagerFactory;
+import org.kisst.cordys.caas.comp.ICompatibilityManager;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.soap.SoapCaller;
@@ -98,6 +100,8 @@ public class CordysSystem extends LdapObject
     public final CordysObjectList<Machine> nodes = machines;
     /** Holds the mapped machines based on the 'nodes' property. */
     public final Map<String, Machine> mapped = new LinkedHashMap<String, Machine>();
+    /** Holds the compatibility manager to use for this Cordys installation. */
+    private ICompatibilityManager m_cm;
 
     /**
      * Creates a cordys system and initializes it.
@@ -120,6 +124,9 @@ public class CordysSystem extends LdapObject
         this.build = response.getChildText("tuple/old/buildinfo/build");
         this.os = response.getChildText("tuple/old/osinfo/version");
         rememberLdap(this);
+
+        // Based on the version we need to create the Compatibility Manager
+        m_cm = CompatibilityManagerFactory.create(this.version);
 
         // Parse the nodes defined for the cluster (if applicable).
         tmp = env.getProp("system." + name + ".nodes", null);
@@ -153,6 +160,26 @@ public class CordysSystem extends LdapObject
         }
 
         loadProperties();
+    }
+
+    /**
+     * This method gets the compatibility manager to use for this Cordys installation.
+     * 
+     * @return The compatibility manager to use for this Cordys installation.
+     */
+    public ICompatibilityManager getCompatibilityManager()
+    {
+        return m_cm;
+    }
+
+    /**
+     * This method sets the compatibility manager to use for this Cordys installation.
+     * 
+     * @param cm The compatibility manager to use for this Cordys installation.
+     */
+    public void setCompatibilityManager(ICompatibilityManager cm)
+    {
+        m_cm = cm;
     }
 
     /**
@@ -1233,7 +1260,10 @@ public class CordysSystem extends LdapObject
         @Override
         protected void retrieveList()
         {
-            for (ServiceContainer sc : serviceContainers)
+            // We cannot use the generic service containers as it would iterate over all organizations. Monitor service containers
+            // are only in the system organization. So we only need to get the ones from the system org. 
+            Organization system = o.getByName("system");
+            for (ServiceContainer sc : system.serviceContainers)
             {
                 if (sc.getName().indexOf("monitor") >= 0)
                 {

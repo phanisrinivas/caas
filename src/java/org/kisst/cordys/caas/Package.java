@@ -81,7 +81,7 @@ public class Package extends CordysObject
      * @param system The parent Cordys system
      * @param definition The definition of this package. This can be either an ISV package definition or an CAP definition.
      */
-    protected Package(CordysSystem system, XmlNode definition)
+    public Package(CordysSystem system, XmlNode definition)
     {
         this.system = system;
 
@@ -165,6 +165,28 @@ public class Package extends CordysObject
             {
                 status = EPackageStatus.loaded;
             }
+        }
+        else if ("Package".equals(definition.getName()))
+        {
+            //It's the new BOP 4.3 way.
+            XmlNode child = definition.xpath("*").get(0);
+            if (child.getName().equals("NewPackageDetails"))
+            {
+                status = EPackageStatus.not_loaded;
+            }
+            else if (child.getName().equals("DeploymentDetails"))
+            {
+                status = EPackageStatus.loaded;
+            }
+            
+            type = EPackageType.cap;
+            name = definition.getAttribute("name");
+            cn = name;
+            
+            buildnumber = child.getChildText("BuildNumber");
+            version = child.getChildText("Version");
+            
+            owner = child.getChildText("Vendor");
         }
         else
         {
