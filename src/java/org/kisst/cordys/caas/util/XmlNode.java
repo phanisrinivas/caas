@@ -74,7 +74,7 @@ public class XmlNode
     @Override
     public XmlNode clone()
     {
-        return new XmlNode((Element) this.element.clone());
+        return new XmlNode(this.element.clone());
     }
 
     public String getName()
