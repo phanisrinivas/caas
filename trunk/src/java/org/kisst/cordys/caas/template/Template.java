@@ -9,7 +9,9 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -208,15 +210,15 @@ public class Template
                 try
                 {
                     org.kisst.caas._2_0.template.XMLStoreObject txso = new org.kisst.caas._2_0.template.XMLStoreObject();
-    
+
                     txso.setKey(xso.getKey());
                     txso.setVersion(XMLStoreVersion.valueOf(xso.getVersion().toUpperCase()));
                     txso.setName(xso.getName());
                     txso.setAny(DOMUtil.convert(xso.getXML()));
-    
+
                     organizationTemplate.getXmlstoreobject().add(txso);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     error("Error exporting " + xso.getKey(), e);
                 }
@@ -557,12 +559,14 @@ public class Template
     }
 
     /**
-     * This method adds the default variables based on the given organization. There are 3 default parameters that are set:
+     * This method adds the default variables based on the given organization. There are 5 default parameters:
      * <ul>
      * <li>sys.org.name - The Cordys organization name</li>
      * <li>sys.ldap.root- The root LDAP DN of the system that this template is connecting to</li>
      * <li>sys.name - The name of the system in the caas.conf</li>
      * <li>sys.user.name - The name of the user that was used to connect to this system</li>
+     * <li>sys.currentdate - The name of the user that was used to connect to this system</li>
+     * </ul>
      * 
      * @param org The organization to get the information from.
      * @param vars The variables list to add the default values to.
@@ -573,6 +577,7 @@ public class Template
         vars.put("sys.ldap.root", org.getSystem().getDn());
         vars.put("sys.name", org.getSystem().getName());
         vars.put("sys.user.name", org.getSystem().getConnectionUser());
+        vars.put("sys.currentdate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(new Date()));
     }
 
     /**
