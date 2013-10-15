@@ -1,8 +1,6 @@
 package org.kisst.cordys.caas.main;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +29,8 @@ public class TemplateCommand extends CompositeCommand
     /**
      * This command will create the template based on the configured system and organization.
      */
-    private Command create = new HostCommand("[options] <template file>", "create a template based on the given system and organization") {
+    private Command create = new HostCommand("[options] <template file>",
+            "create a template based on the given system and organization") {
         /**
          * @see org.kisst.cordys.caas.main.CommandBase#run(java.lang.String[])
          */
@@ -105,8 +104,12 @@ public class TemplateCommand extends CompositeCommand
         /** Holds the name of the organization to connect to */
         protected final Cli.StringOption orgOption = cli.stringOption("o", "organization", "the organization to use", null);
         /** Holds the option that allows the user to specify which types they want to process */
-        protected final Cli.StringOption compOption = cli.stringOption("c", "component",
-                "the components that should be processed. Valid options are:\n" + ETemplateOption.options("                    "), null);
+        protected final Cli.StringOption compOption = cli
+                .stringOption(
+                        "c",
+                        "component",
+                        "the components that should be processed. Valid options are:\n"
+                                + ETemplateOption.options("                    "), null);
 
         /**
          * Instantiates a new host command.
@@ -117,7 +120,7 @@ public class TemplateCommand extends CompositeCommand
         public HostCommand(String usage, String summary)
         {
             super(usage, summary);
-            
+
             setSyntax(usage + "\n" + cli.getSyntax("                "));
         }
 
