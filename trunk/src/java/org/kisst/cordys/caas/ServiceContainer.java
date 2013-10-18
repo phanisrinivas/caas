@@ -213,6 +213,7 @@ public class ServiceContainer extends LdapObjectBase
         ServiceContainer monitor = getSystem().sc.getByName("monitor@" + computer);
         HashMap<String, String> queryParams = new HashMap<String, String>();
         queryParams.put("receiver", monitor.getDn());
+        queryParams.put("timeout", "60000");
         call(request, queryParams);
     }
 
