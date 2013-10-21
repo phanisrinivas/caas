@@ -86,7 +86,7 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
       <action dev="pgussow" type="add"><![CDATA[Added a new system parameter for the template manager: sys.currentdate. This is filled with the date / time on which the script is run.]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added support for BOP 4.3.]]></action>
     </release>
-    <release date="2013-??-??" description="Stable release" version="2.0.26">
+    <release date="2013-10-21" description="Stable release" version="2.0.26">
       <action dev="pgussow" type="fix"><![CDATA[Fixed a bug in the exporting of DSOs. The DSOs were not created in the template XML.]]></action>
       <action dev="pgussow" type="change"><![CDATA[For the restarting of a service container increased the timeout to 60 seconds as 30 seconds is not enough for BPM service containers.]]></action>
     </release>
