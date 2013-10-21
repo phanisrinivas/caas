@@ -190,6 +190,8 @@ public class Template
                     XmlNode configNode = dso.config.getXml();
                     dsc.setAny(DOMUtil.convert(configNode));
                     td.setDatasourceconfiguration(dsc);
+                    
+                    organizationTemplate.getDso().add(td);
                 }
             }
             info("Finished exporting " + ETemplateOption.DSO.description() + " in "
