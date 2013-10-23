@@ -5,7 +5,6 @@ import static org.kisst.cordys.caas.main.Environment.error;
 import static org.kisst.cordys.caas.main.Environment.info;
 import static org.kisst.cordys.caas.main.Environment.warn;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -61,13 +60,15 @@ import org.kisst.cordys.caas.util.XmlNode;
 public class Template
 {
     /** Holds the created template */
-    private final org.kisst.caas._2_0.template.Organization organizationTemplate;
+    private org.kisst.caas._2_0.template.Organization organizationTemplate;
     /** Holds whether or not the template is empty. */
     private boolean empty = true;
     /** Holds the options that should be applied */
     private List<ETemplateOption> options;
     /** Holds the organization from which the template was created. */
     private Organization organization;
+    /** Holds the source template XML which is unparsed and thus used when the template was created. */
+    private String templateXml;
 
     /**
      * Instantiates a new template.
@@ -87,7 +88,7 @@ public class Template
      */
     public Template(String template, List<ETemplateOption> templateOptions)
     {
-        organizationTemplate = parseTemplate(template);
+        templateXml = template;
 
         processTemplateOptions(templateOptions);
     }
@@ -190,7 +191,7 @@ public class Template
                     XmlNode configNode = dso.config.getXml();
                     dsc.setAny(DOMUtil.convert(configNode));
                     td.setDatasourceconfiguration(dsc);
-                    
+
                     organizationTemplate.getDso().add(td);
                 }
             }
@@ -323,7 +324,7 @@ public class Template
         {
             org.kisst.caas._2_0.template.Role tr = new org.kisst.caas._2_0.template.Role();
             tr.setName(role.getName());
-            organizationTemplate.getRole().add(tr);
+            templateOrganization.getRole().add(tr);
 
             if (role.type.get() != null)
             {
@@ -362,38 +363,36 @@ public class Template
     }
 
     /**
-     * This method parses the template XML to the object structure.
-     * 
-     * @param template The template XML string.
-     */
-    private org.kisst.caas._2_0.template.Organization parseTemplate(String template)
-    {
-        return JAXB.unmarshal(new ByteArrayInputStream(template.getBytes()), org.kisst.caas._2_0.template.Organization.class);
-    }
-
-    /**
      * This method gets the template xml from the current object.
      * 
      * @return The template xml
      */
     private String getTemplateXml()
     {
-        StringWriter writer = new StringWriter();
+        String retVal = templateXml;
 
-        try
+        // If a parsed version of the template exists return that. If not, return the XML that was used while creating.
+        if (organizationTemplate != null)
         {
-            JAXBContext jc = JAXBContext.newInstance(organizationTemplate.getClass());
-            Marshaller marshaller = jc.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-            JAXBElement<org.kisst.caas._2_0.template.Organization> tmp = new ObjectFactory().createOrg(organizationTemplate);
-            marshaller.marshal(tmp, writer);
-        }
-        catch (Exception e)
-        {
-            throw new CaasRuntimeException(e);
+            StringWriter writer = new StringWriter();
+
+            try
+            {
+                JAXBContext jc = JAXBContext.newInstance(organizationTemplate.getClass());
+                Marshaller marshaller = jc.createMarshaller();
+                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+                JAXBElement<org.kisst.caas._2_0.template.Organization> tmp = new ObjectFactory().createOrg(organizationTemplate);
+                marshaller.marshal(tmp, writer);
+            }
+            catch (Exception e)
+            {
+                throw new CaasRuntimeException(e);
+            }
+
+            retVal = writer.toString();
         }
 
-        return writer.toString();
+        return retVal;
     }
 
     /**
