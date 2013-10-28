@@ -28,8 +28,12 @@ class Bop43CompatibilityManager extends DefaultCompatibilityManager
         return "D1.003.xxxx";
     }
 
+    /**
+     * @see org.kisst.cordys.caas.comp.DefaultCompatibilityManager#getCAPPackages(org.kisst.cordys.caas.soap.SoapCaller,
+     *      org.kisst.cordys.caas.CordysSystem, org.kisst.cordys.caas.PackageList)
+     */
     @Override
-    public List<Package> getCAPPackages(SoapCaller c, CordysSystem system)
+    public List<Package> getCAPPackages(SoapCaller c, CordysSystem system, PackageList packageList)
     {
         Map<String, Package> retVal = new LinkedHashMap<String, Package>();
 
@@ -87,16 +91,16 @@ class Bop43CompatibilityManager extends DefaultCompatibilityManager
             {
                 xmlPackages.add("Package").setText(node.getText());
             }
-            
-            //Get the details for these packages
+
+            // Get the details for these packages
             response = c.call(request, PackageList.DEFAULT_PACKAGE_TIMEOUT);
-            
-            //Now we can either add the new package or set the new version 
+
+            // Now we can either add the new package or set the new version
             caps = response.xpath("./*[local-name()='Packages']/*[local-name()='Package']");
             for (XmlNode cap : caps)
             {
                 Package p = new Package(system, cap);
-                
+
                 Package loadedPackage = retVal.get(p.getName());
                 if (loadedPackage == null)
                 {
@@ -108,6 +112,9 @@ class Bop43CompatibilityManager extends DefaultCompatibilityManager
                 }
             }
         }
+
+        // Tell the package list whether or not CAP is supported.
+        packageList.setSupportsCap(supportsCap);
 
         return new ArrayList<Package>(retVal.values());
     }
