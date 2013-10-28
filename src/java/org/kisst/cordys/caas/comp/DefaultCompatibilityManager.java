@@ -32,10 +32,10 @@ public class DefaultCompatibilityManager implements ICompatibilityManager
     }
 
     /**
-     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#getCAPPackages(SoapCaller, CordysSystem)
+     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#getCAPPackages(org.kisst.cordys.caas.soap.SoapCaller, org.kisst.cordys.caas.CordysSystem, org.kisst.cordys.caas.PackageList)
      */
     @Override
-    public List<Package> getCAPPackages(SoapCaller c, CordysSystem system)
+    public List<Package> getCAPPackages(SoapCaller c, CordysSystem system, PackageList packageList)
     {
         Map<String, Package> retVal = new LinkedHashMap<String, Package>();
 
@@ -101,6 +101,9 @@ public class DefaultCompatibilityManager implements ICompatibilityManager
             }
         }
 
+        //Tell the package list whether or not CAP is supported.
+        packageList.setSupportsCap(supportsCap);
+        
         return new ArrayList<Package>(retVal.values());
     }
 }

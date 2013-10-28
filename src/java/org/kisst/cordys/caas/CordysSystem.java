@@ -964,7 +964,7 @@ public class CordysSystem extends LdapObject
     {
         if (packages.supportsCap() == false)
         {
-            throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
+            throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
 
         File cap = new File(capFile);
@@ -1007,7 +1007,7 @@ public class CordysSystem extends LdapObject
     {
         if (packages.supportsCap() == false)
         {
-            throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
+            throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
 
         // First get the status of the package. Is it indeed a new one
@@ -1099,7 +1099,7 @@ public class CordysSystem extends LdapObject
     {
         if (packages.supportsCap() == false)
         {
-            throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
+            throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
 
         // First get the status of the package. Is it indeed a new one
@@ -1168,7 +1168,7 @@ public class CordysSystem extends LdapObject
     {
         if (packages.supportsCap() == false)
         {
-            throw new CaasRuntimeException("The system " + name + " doe snot support CAP packages");
+            throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
 
         // First we need to check that it is indeed incomplete. Also we need the URL of the package to call the

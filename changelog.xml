@@ -93,5 +93,8 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
     <release date="2013-10-23" description="Stable release" version="2.0.27">
       <action dev="pgussow" type="unknown"><![CDATA[Fixed a bug in template. The parsing of the XML to objects was done before parameter substitution, but needs to happen after. Otherwise you could not use a parameter for a non-string field.]]></action>
     </release>
+    <release date="2013-10-28" description="Stable release" version="2.0.28">
+      <action dev="pgussow" type="unknown"><![CDATA[Fixed a bug in the compatibility manager. The supportsCap property of the package list was not set correctly anymore.]]></action>
+    </release>
   </body>
 </document>

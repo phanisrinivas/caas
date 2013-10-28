@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Package;
+import org.kisst.cordys.caas.PackageList;
 import org.kisst.cordys.caas.soap.SoapCaller;
 
 /**
@@ -25,7 +26,9 @@ public interface ICompatibilityManager
      * changed.
      * 
      * @param c The connection to Cordys to use.
+     * @param system The system to connect to.
+     * @param packageList The package list object. This is needed to be able to set the 'supportsCap' property.
      * @return The list of packages that are either deployed or can be deployed on the system.
      */
-    List<Package> getCAPPackages(SoapCaller c, CordysSystem system);
+    List<Package> getCAPPackages(SoapCaller c, CordysSystem system, PackageList packageList);
 }

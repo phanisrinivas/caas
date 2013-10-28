@@ -74,10 +74,10 @@ public class PackageList extends CordysObjectList<Package>
                 grow(p);
             }
         }
-        
+
         // Retrieve the CAP packages from the compatibility manager as in 4.3 the SOAP API has changed.
-        List<Package> packages = getSystem().getCompatibilityManager().getCAPPackages(c, system);
-        
+        List<Package> packages = getSystem().getCompatibilityManager().getCAPPackages(c, system, this);
+
         // Add all the found packages to this list.
         for (Package p : packages)
         {
@@ -190,7 +190,7 @@ public class PackageList extends CordysObjectList<Package>
      * 
      * @param supportsCap Whether or not the system supports CAP packages.
      */
-    public void setsupportsCap(boolean supportsCap)
+    public void setSupportsCap(boolean supportsCap)
     {
         this.supportsCap = supportsCap;
     }
