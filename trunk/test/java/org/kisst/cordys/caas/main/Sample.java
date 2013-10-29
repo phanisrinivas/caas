@@ -15,8 +15,6 @@ import java.util.regex.Pattern;
 
 import junit.framework.Assert;
 
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.util.URIUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

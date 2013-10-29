@@ -70,6 +70,14 @@ public class HttpClientCaller extends BaseCaller
                             new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
                 }
             }
+            
+            // Need to use the timeout if specified
+            if (queryStringMap != null && queryStringMap.containsKey("timeout"))
+            {
+                String timeout = queryStringMap.get("timeout");
+                client.getParams().setSoTimeout(Integer.parseInt(timeout));
+            }
+            
             statusCode = client.executeMethod(method);
             response = method.getResponseBodyAsString();
         }

@@ -105,6 +105,7 @@ public class SamlClientCaller extends BaseCaller
             // Set the query string after encoding it
             method.setQueryString(URIUtil.encodeQuery(queryString));
             method.setRequestEntity(new StringRequestEntity(inputSoapRequest, "text/xml", "UTF-8"));
+
             HttpClient client = new HttpClient();
             if (this.proxyPort != null)
             {
@@ -116,7 +117,15 @@ public class SamlClientCaller extends BaseCaller
                 }
             }
 
+            // Need to use the timeout if specified
+            if (queryParams != null && queryParams.containsKey("timeout"))
+            {
+                String timeout = queryParams.get("timeout");
+                client.getParams().setSoTimeout(Integer.parseInt(timeout));
+            }
+
             statusCode = client.executeMethod(method);
+
             response = method.getResponseBodyAsString();
         }
         catch (Exception e)
