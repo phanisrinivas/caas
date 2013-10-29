@@ -95,6 +95,14 @@ public class NativeCaller extends BaseCaller
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setDoInput(true);
+            
+            // Need to use the timeout if specified
+            if (queryStringMap != null && queryStringMap.containsKey("timeout"))
+            {
+                String timeout = queryStringMap.get("timeout");
+                connection.setReadTimeout(Integer.parseInt(timeout));
+            }
+            
             // Dangerous in multithreaded environments
             myAuthenticator.setCredentials(userName, password);
             // Write request data to server
