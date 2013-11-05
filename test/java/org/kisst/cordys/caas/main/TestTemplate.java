@@ -29,10 +29,10 @@ public class TestTemplate
     {
         try
         {
-            String text = FileUtil.loadString("C:/development/workspaces/MainWorkspace/backend-cordys-configuration-nv/templates/nv_config.ctf");
+            String text = FileUtil.loadString("./test/local/test_include.ctf");
             
             Properties p = new Properties();
-            FileUtil.load(p, "C:/development/workspaces/MainWorkspace/backend-cordys-configuration-nv/properties/int.properties");
+            FileUtil.load(p, "P:\\backend-cordys-configuration-nv\\properties\\acc1.properties");
             
             Map<String, String> m = new LinkedHashMap<String, String>();
             for (Object key : p.keySet())

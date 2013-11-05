@@ -1,5 +1,6 @@
 package org.kisst.cordys.caas.main;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,9 @@ public class TemplateCommand extends CompositeCommand
         public void run(String[] args)
         {
             args = checkArgs(args);
-            Template templ = new Template(FileUtil.loadString(args[0]), getOptions());
+            
+            File src = new File(args[0]);
+            Template templ = new Template(FileUtil.loadString(src), getOptions(), src.getParentFile());
 
             // Get the organization in which the template should be applied.
             String orgz = System.getProperty("create.org");

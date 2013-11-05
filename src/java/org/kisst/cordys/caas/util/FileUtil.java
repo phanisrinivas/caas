@@ -27,6 +27,31 @@ import sun.misc.BASE64Encoder;
 
 public class FileUtil
 {
+
+    /**
+     * This method checks whether or not the given path is an absolute path.
+     * 
+     * @param filename The filename to check.
+     * @return true, if the given filename is absolute.
+     */
+    public static boolean isAbsolute(String filename)
+    {
+        boolean retVal = false;
+        if (!StringUtil.isEmptyOrNull(filename))
+        {
+            // Windows / Linux
+            if (filename.startsWith("/")
+                    || filename.startsWith("\\")
+                    // Windows only
+                    || (filename.length() > 3 && filename.charAt(2) == ':' && (filename.charAt(3) == '/' || filename.charAt(3) == '\\')))
+            {
+                retVal = true;
+            }
+        }
+
+        return retVal;
+    }
+
     public static void saveString(File filename, String content)
     {
         FileWriter out = null;
@@ -82,6 +107,11 @@ public class FileUtil
     }
 
     public static String loadString(String filename)
+    {
+        return loadString(new File(filename));
+    }
+
+    public static String loadString(File filename)
     {
         BufferedReader inp = null;
         try
