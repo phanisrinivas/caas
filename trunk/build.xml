@@ -12,6 +12,8 @@
 		<mkdir dir="${builddir}" />
 		<mkdir dir="${builddir}/classes" />
 		<property name="version.postfix" value="" />
+		
+		<property file="wiki.properties"/>
 	</target>
 
 	<target name="compile" description="Compiles Java files" depends="init">
@@ -107,6 +109,37 @@
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
 			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
 		</zip>
+
+		<echo>Uploading file ${builddir}/caas-${project.version}-full.zip to wiki.</echo>
+		<java jar="${wiki.cli}/confluence-cli-2.6.0.jar" fork="true">
+			<arg value="--server" />
+			<arg value="${wiki.server}" />
+
+			<arg value="--user" />
+			<arg value="${wiki.username}" />
+
+			<arg value="--password" />
+			<arg value="${wiki.password}" />
+
+			<arg value="--action" />
+			<arg value="addAttachment" />
+
+			<arg value="--space" />
+			<arg value="${wiki.space}" />
+
+			<arg value="--title" />
+			<arg value="${wiki.title}" />
+
+			<arg value="--file" />
+			<arg value="${builddir}/caas-${project.version}-full.zip" />
+
+			<arg value="--name" />
+			<arg value="caas-${project.version}-full.zip" />
+
+			<arg value="--comment" />
+			<arg value="Release ${project.version} of CAAS" />
+		</java>
+		<echo>Done uploading ${builddir}/caas-${project.version}-full.zip</echo>
 	</target>
 
 	<target name="dist-dev-full" description="creates a zip file for distribution" depends="dist-dev">
