@@ -9,15 +9,16 @@
 
 package org.kisst.cordys.caas;
 
+import static org.kisst.cordys.caas.main.Environment.error;
+import static org.kisst.cordys.caas.main.Environment.get;
+import static org.kisst.cordys.caas.main.Environment.info;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.net.ConnectException;
-
 import java.util.LinkedHashMap;
 import java.util.Properties;
-
-import static org.kisst.cordys.caas.main.Environment.*;
 
 import org.kisst.cordys.caas.main.Environment;
 import org.kisst.cordys.caas.soap.DummyCaller;
@@ -61,7 +62,9 @@ public class Caas
      */
     public static Template template(String filename)
     {
-        return new Template(FileUtil.loadString(filename), null);
+        File src = new File(filename);
+        
+        return new Template(FileUtil.loadString(src), null, src.getParentFile());
     }
 
     /**
