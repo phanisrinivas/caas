@@ -245,7 +245,15 @@ public abstract class BaseStrategy implements ICustomStrategy
                 Package pkg = getOrganization().getSystem().packages.getByName(packageName);
                 if (pkg != null)
                 {
-                    newWSI = pkg.webServiceInterfaces.getByName(wsiName);
+                    if (pkg.webServiceInterfaces != null)
+                    {
+                        newWSI = pkg.webServiceInterfaces.getByName(wsiName);
+                    }
+                    else
+                    {
+                        error("Skipping web service interface " + wsiName + " because package " + packageName
+                                + " has no web services");
+                    }
                 }
             }
             if (newWSI != null)
