@@ -1,7 +1,5 @@
 package org.kisst.cordys.caas.helper
 
-import org.apache.ivy.core.module.descriptor.IncludeRule;
-
 import groovy.transform.ToString;
 
 @ToString(includePackage=false,includeNames=false,excludes="file,parsedMetadata,dependencies")

@@ -689,7 +689,7 @@ public class Template
                     }
 
                     // Read the file content
-                    replacement.append(FileUtil.loadString(source));
+                    replacement.append(processIncludeFiles(FileUtil.loadString(source)));
                 }
                 else if (mFolder.matches())
                 {
@@ -736,7 +736,7 @@ public class Template
                     {
                         debug("Loading file " + new File(source, file).getAbsolutePath());
 
-                        replacement.append(FileUtil.loadString(new File(source, file)));
+                        replacement.append(processIncludeFiles(FileUtil.loadString(source)));
                     }
                 }
 
