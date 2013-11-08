@@ -52,6 +52,7 @@ public class TemplateCommand extends CompositeCommand
             templ.save(args[0], variables);
         }
     };
+
     /**
      * This method will apply the template to the given system and organization.
      */
@@ -61,7 +62,7 @@ public class TemplateCommand extends CompositeCommand
         public void run(String[] args)
         {
             args = checkArgs(args);
-            
+
             File src = new File(args[0]);
             Template templ = new Template(FileUtil.loadString(src), getOptions(), src.getParentFile());
 
