@@ -76,6 +76,7 @@ public class HttpClientCaller extends BaseCaller
             {
                 String timeout = queryStringMap.get("timeout");
                 client.getParams().setSoTimeout(Integer.parseInt(timeout));
+                client.getParams().setConnectionManagerTimeout(Integer.parseInt(timeout));
             }
             
             statusCode = client.executeMethod(method);
