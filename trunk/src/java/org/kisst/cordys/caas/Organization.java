@@ -28,102 +28,65 @@ import org.kisst.cordys.caas.util.XmlNode;
  */
 public class Organization extends LdapObjectBase
 {
-    // Collection to hold the users
     /** Holds the users. */
     public final UserList users = new UserList(this);
-
     /** Holds the user. */
     public final UserList user = users;
-
     /** Holds the u. */
     public final UserList u = users;
-
-    // Collection to hold the roles
     /** Holds the roles. */
     public final ChildList<Role> roles = new ChildList<Role>(this, "cn=organizational roles,", Role.class);
-
     /** Holds the role. */
     public final ChildList<Role> role = roles;
-
     /** Holds the r. */
     public final ChildList<Role> r = roles;
-
-    // Collection to hold the web service interfaces
     /** Holds the web service interfaces. */
     public final ChildList<WebServiceInterface> webServiceInterfaces = new ChildList<WebServiceInterface>(this,
             "cn=method sets,", WebServiceInterface.class);
-
     /** Holds the wsi. */
     public final ChildList<WebServiceInterface> wsi = webServiceInterfaces;
-
-    // Collection to hold the service groups
     /** Holds the service groups. */
     public final ChildList<ServiceGroup> serviceGroups = new ChildList<ServiceGroup>(this, "cn=soap nodes,", ServiceGroup.class);
-
     /** Holds the sg. */
     public final ChildList<ServiceGroup> sg = serviceGroups;
-
-    // Collection to hold the dso types
     /** Holds the dsotypes. */
     public final ChildList<DsoType> dsotypes = new ChildList<DsoType>(this, "cn=data sources,", DsoType.class);
-
     /** Holds the dsotype. */
     public final ChildList<DsoType> dsotype = dsotypes;
-
-    // Collection to hold the service containers
     /** Holds the service containers. */
     public final CordysObjectList<ServiceContainer> serviceContainers;
-
     /** Holds the sc. */
     public final CordysObjectList<ServiceContainer> sc;
-
-    // Collection to hold the bpms
     /** Holds the processes. */
     public final ProcessModel.List processes = new ProcessModel.List(this);
-
     /** Holds the proc. */
     public final ProcessModel.List proc = processes;
-
-    // Collection to hold the xmlstore objects
     /** Holds the xml store objects. */
     public final XMLStoreObject.List xmlStoreObjects = new XMLStoreObject.List(this);
-
     /** Holds the xso. */
     public final XMLStoreObject.List xso = xmlStoreObjects;
-
     /** Holds the x. */
     public final XMLStoreObject.List x = xmlStoreObjects;
-
-    // Collection to hold the dsos
     /** Holds the dsos. */
     public final ChildList<Dso> dsos;
-
     /** Holds the dso. */
     public final ChildList<Dso> dso;
-
     /** Holds the d. */
     public final ChildList<Dso> d;
     /** Holds the assignment root that is used for assigning teams and users. */
     private String m_assignmentRoot;
-
     /** Holds the teams in this organization. */
     public final Team.TeamList teams = new Team.TeamList(this);
-
     /** Alias for the teams. */
     public final Team.TeamList team = teams;
-
     /** Alias for the teams. */
     public final Team.TeamList t = teams;
-
     /** Alias for the teams. */
     public final Team.TeamList ou = teams;
-
     /** Holds all the worklists in this organization. */
     public final Worklist.WorklistList<Organization> worklists = new Worklist.WorklistList<Organization>(this);
-
     /** Alias for the worklists. */
     public final Worklist.WorklistList<Organization> worklist = worklists;
-
     /** Alias for the worklists. */
     public final Worklist.WorklistList<Organization> w = worklists;
 

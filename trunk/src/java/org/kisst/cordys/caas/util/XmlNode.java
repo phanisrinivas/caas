@@ -237,19 +237,25 @@ public class XmlNode
         return this;
     }
 
-    public void setText(String text)
+    public XmlNode setText(String text)
     {
         element.setText(text);
+        
+        return this;
     }
 
-    public void add(XmlNode node)
+    public XmlNode add(XmlNode node)
     {
         element.addContent(node.element);
+        
+        return this;
     }
 
-    public void remove(XmlNode e)
+    public XmlNode remove(XmlNode e)
     {
         element.getChildren().remove(e.element);
+        
+        return this;
     }
 
     public String getPretty()
