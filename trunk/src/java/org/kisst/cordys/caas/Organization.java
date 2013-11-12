@@ -164,12 +164,18 @@ public class Organization extends LdapObjectBase
      */
     public String call(String request)
     {
-     // The reason why we override it here is because when a call is done via the organization, then also the organizational
-        // context should be passed on
-        HashMap<String, String> org = new LinkedHashMap<String, String>();
-        org.put("organization", getName());
-        
-        return getSystem().call(request, org);
+        return call(request, null);
+    }
+    
+    /**
+     * Call.
+     * 
+     * @param request The request
+     * @return The string
+     */
+    public String call(String request, HashMap<String, String> queryParams)
+    {
+        return call(new XmlNode(request), queryParams).toString();
     }
 
     /**
@@ -182,12 +188,30 @@ public class Organization extends LdapObjectBase
     @Override
     public XmlNode call(XmlNode request)
     {
+        return call(request, null);
+    }
+
+    /**
+     * Call.
+     * 
+     * @param request The request
+     * @return The xml node
+     * @see org.kisst.cordys.caas.support.LdapObject#call(org.kisst.cordys.caas.util.XmlNode)
+     */
+    @Override
+    public XmlNode call(XmlNode request, HashMap<String, String> queryParams)
+    {
         // The reason why we override it here is because when a call is done via the organization, then also the organizational
         // context should be passed on
-        HashMap<String, String> org = new LinkedHashMap<String, String>();
-        org.put("organization", getName());
+        HashMap<String, String> params = new LinkedHashMap<String, String>();
+        params.put("organization", getName());
 
-        return super.call(request, org);
+        if (queryParams != null)
+        {
+            params.putAll(queryParams);
+        }
+
+        return super.call(request, params);
     }
 
     /**
@@ -606,7 +630,7 @@ public class Organization extends LdapObjectBase
         protected void retrieveList()
         {
             XmlNode method = new XmlNode(Constants.SEARCH_LDAP, Constants.XMLNS_LDAP);
-            
+
             String dn = this.getParent().getSystem().getDn();
             method.add("dn").setText(dn);
             method.add("scope").setText("1");

@@ -122,6 +122,7 @@ public class SamlClientCaller extends BaseCaller
             {
                 String timeout = queryParams.get("timeout");
                 client.getParams().setSoTimeout(Integer.parseInt(timeout));
+                client.getParams().setConnectionManagerTimeout(Integer.parseInt(timeout));
             }
 
             statusCode = client.executeMethod(method);
