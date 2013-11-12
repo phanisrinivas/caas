@@ -12,8 +12,11 @@ package org.kisst.cordys.caas;
 import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.kisst.cordys.caas.comp.CompatibilityManagerFactory;
 import org.kisst.cordys.caas.comp.ICompatibilityManager;
@@ -1261,7 +1264,7 @@ public class CordysSystem extends LdapObject
         protected void retrieveList()
         {
             // We cannot use the generic service containers as it would iterate over all organizations. Monitor service containers
-            // are only in the system organization. So we only need to get the ones from the system org. 
+            // are only in the system organization. So we only need to get the ones from the system org.
             Organization system = o.getByName("system");
             for (ServiceContainer sc : system.serviceContainers)
             {
@@ -1313,11 +1316,38 @@ public class CordysSystem extends LdapObject
         @Override
         protected void retrieveList()
         {
-            for (Organization o : organizations)
+            // We cannot use the organization here. Because if we have a lot of organizations we will do a LDAP call for each
+            // organization. A more elegant way to get all the service containers is by using a SearchLDAP request on the Service
+            // containers.
+            XmlNode request = new XmlNode(Constants.SEARCH_LDAP, Constants.XMLNS_LDAP);
+            request.add("dn").setText(dn);
+            request.add("scope").setText("3");
+            request.add("filter").setText("(objectclass=bussoapprocessor)");
+            request.add("sort").setText("false");
+            request.add("returnValues").setText("false");
+
+            XmlNode response = getSystem().call(request);
+            
+            Pattern p = Pattern.compile("^cn=([^,]+),cn=([^,]+),cn=soap nodes,o=([^,]+)");
+
+            List<XmlNode> children = response.getChildren("tuple");
+            for (XmlNode child : children)
             {
-                for (ServiceContainer sc : o.serviceContainers)
+                XmlNode e = (XmlNode) child.get("old/entry");
+
+                String scDN = e.getAttribute("dn");
+
+                // From the DN we can find out the organization name and the service group. Based on that we need to find the
+                // parent.
+                Matcher m = p.matcher(scDN);
+                if (m.find())
                 {
+                    ServiceContainer sc = (ServiceContainer) LdapObjectBase.createObject(getSystem(), e);
                     grow(sc);
+                }
+                else
+                {
+                    info(scDN + " doe snot match pattern"); 
                 }
             }
         }
