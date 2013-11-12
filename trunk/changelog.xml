@@ -104,8 +104,10 @@ You can have system-org-user.properties, system-org.properties, system-user.prop
 ${include:file=filename}
 ${include:folder=foldername;pattern=.+\.ctf}]]></action>
     </release>
-    <release date="2013-??-??" description="Stable release" version="2.0.31">
+    <release date="2013-11-12" description="Stable release" version="2.0.31">
       <action dev="pgussow" type="change"><![CDATA[Changed the way the service containers are detected. They used to be based on the organization causing the calls to take a long time.  Now we use a basic search on LDAP to get all service containers at once.]]></action>
+    </release>
+    <release date="2013-??-??" description="Stable release" version="2.0.31">
     </release>
   </body>
 </document>
