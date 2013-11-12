@@ -330,7 +330,7 @@ public abstract class BaseCaller implements SoapCaller
         String soap = "<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP:Body>" + input
                 + "</SOAP:Body></SOAP:Envelope>";
 
-        trace(soap);
+        trace(soap + "\n" + map);
 
         String response = httpCall(soap, map);
 
