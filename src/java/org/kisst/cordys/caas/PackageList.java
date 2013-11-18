@@ -20,7 +20,7 @@ public class PackageList extends CordysObjectList<Package>
     /** The default timeout for retrieving the package list */
     public static final long DEFAULT_PACKAGE_TIMEOUT = 90000L;
     /** Holds whether or not the system supports CAP packages. */
-    private boolean supportsCap;
+    private Boolean supportsCap = null;
 
     /**
      * Instantiates a new package definition list.
@@ -182,6 +182,14 @@ public class PackageList extends CordysObjectList<Package>
      */
     public boolean supportsCap()
     {
+        if (supportsCap == null)
+        {
+            synchronized(getSystem())
+            {
+                supportsCap = getSystem().getCompatibilityManager().supportsCap(system.getSoapCaller(), system);
+            }
+        }
+        
         return supportsCap;
     }
 

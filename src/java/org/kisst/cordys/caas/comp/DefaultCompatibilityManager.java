@@ -32,7 +32,8 @@ public class DefaultCompatibilityManager implements ICompatibilityManager
     }
 
     /**
-     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#getCAPPackages(org.kisst.cordys.caas.soap.SoapCaller, org.kisst.cordys.caas.CordysSystem, org.kisst.cordys.caas.PackageList)
+     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#getCAPPackages(org.kisst.cordys.caas.soap.SoapCaller,
+     *      org.kisst.cordys.caas.CordysSystem, org.kisst.cordys.caas.PackageList)
      */
     @Override
     public List<Package> getCAPPackages(SoapCaller c, CordysSystem system, PackageList packageList)
@@ -101,9 +102,36 @@ public class DefaultCompatibilityManager implements ICompatibilityManager
             }
         }
 
-        //Tell the package list whether or not CAP is supported.
+        // Tell the package list whether or not CAP is supported.
         packageList.setSupportsCap(supportsCap);
-        
+
         return new ArrayList<Package>(retVal.values());
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#supportsCap(org.kisst.cordys.caas.soap.SoapCaller,
+     *      org.kisst.cordys.caas.CordysSystem)
+     */
+    @Override
+    public Boolean supportsCap(SoapCaller c, CordysSystem system)
+    {
+        XmlNode request = new XmlNode(Constants.GET_CAP_DETAILS, "http://schemas.cordys.com/cap/1.0");
+        boolean retVal = true;
+        try
+        {
+            c.call(request, PackageList.DEFAULT_PACKAGE_TIMEOUT);
+        }
+        catch (Exception e)
+        {
+            // Dirty: check if there CAPs are supported on this system:
+            String tmp = ExceptionUtil.getStacktrace(e);
+            if (tmp.indexOf("Could not find a soap node implementing") > -1
+                    && tmp.indexOf("http://schemas.cordys.com/cap/1.0:GetDeployedCapSummary") > -1)
+            {
+                retVal = false;
+            }
+        }
+
+        return retVal;
     }
 }
