@@ -108,6 +108,7 @@ ${include:folder=foldername;pattern=.+\.ctf}]]></action>
       <action dev="pgussow" type="change"><![CDATA[Changed the way the service containers are detected. They used to be based on the organization causing the calls to take a long time.  Now we use a basic search on LDAP to get all service containers at once.]]></action>
     </release>
     <release date="2013-??-??" description="Stable release" version="2.0.32">
+      <action dev="pgussow" type="change"><![CDATA[Changed the parameter of the deployCap to a double instead of a long in order to be able so specify smaller timeouts.]]></action>
     </release>
   </body>
 </document>

@@ -1006,7 +1006,7 @@ public class CordysSystem extends LdapObject
      * @param name The name
      * @param timeoutInMinutes The timeout in minutes.
      */
-    public void deployCap(String name, long timeoutInMinutes)
+    public void deployCap(String name, double timeoutInMinutes)
     {
         if (packages.supportsCap() == false)
         {
@@ -1030,7 +1030,7 @@ public class CordysSystem extends LdapObject
                     + ". Cause could be that there is no Upgrade / Deploy operation for this package");
         }
 
-        long timeout = timeoutInMinutes * 60 * 1000;
+        long timeout = Math.round(timeoutInMinutes * 60 * 1000);
 
         // Now create the request to deploy the package
         request = new XmlNode(Constants.DEPLOY_CAP, Constants.XMLNS_CAP);
