@@ -31,4 +31,13 @@ public interface ICompatibilityManager
      * @return The list of packages that are either deployed or can be deployed on the system.
      */
     List<Package> getCAPPackages(SoapCaller c, CordysSystem system, PackageList packageList);
+
+    /**
+     * This method returns whether or not the system supports CAP packages.
+     * 
+     * @param c The connection to Cordys to use.
+     * @param system The system to connect to.
+     * @return true if the system supports CAP packages. Otherwise false.
+     */
+    Boolean supportsCap(SoapCaller c, CordysSystem system);
 }

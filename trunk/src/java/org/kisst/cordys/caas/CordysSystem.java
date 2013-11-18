@@ -1012,6 +1012,11 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
+        
+        // Add the timeout
+        long timeout = Math.round(timeoutInMinutes * 60 * 1000);
+        HashMap<String, String> p = new LinkedHashMap<String, String>();
+        p.put("timeout", String.valueOf(timeout));
 
         // First get the status of the package. Is it indeed a new one
         XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
@@ -1030,18 +1035,12 @@ public class CordysSystem extends LdapObject
                     + ". Cause could be that there is no Upgrade / Deploy operation for this package");
         }
 
-        long timeout = Math.round(timeoutInMinutes * 60 * 1000);
-
         // Now create the request to deploy the package
         request = new XmlNode(Constants.DEPLOY_CAP, Constants.XMLNS_CAP);
         request.setAttribute("Timeout", String.valueOf(timeout));
         request.setAttribute("revertOnFailure", "false");
 
         request.add("url").setText(url.getText());
-
-        // Add the timeout
-        HashMap<String, String> p = new LinkedHashMap<String, String>();
-        p.put("timeout", String.valueOf(timeout));
 
         call(request, p);
     }
