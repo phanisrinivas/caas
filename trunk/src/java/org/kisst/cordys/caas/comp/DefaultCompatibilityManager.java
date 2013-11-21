@@ -1,6 +1,7 @@
 package org.kisst.cordys.caas.comp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.soap.SoapCaller;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.ExceptionUtil;
+import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
 /**
@@ -133,5 +135,149 @@ public class DefaultCompatibilityManager implements ICompatibilityManager
         }
 
         return retVal;
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#deployCap(java.lang.String, double)
+     */
+    @Override
+    public void deployCap(SoapCaller c, CordysSystem system, String name, double timeoutInMinutes)
+    {
+        // Add the timeout
+        long timeout = Math.round(timeoutInMinutes * 60 * 1000);
+        HashMap<String, String> p = new LinkedHashMap<String, String>();
+        p.put("timeout", String.valueOf(timeout));
+
+        XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
+        request.add("ApplicationName").setText(name);
+
+        XmlNode response = c.call(request);
+
+        XmlNode url = response
+                .xpathSingle(
+                        "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deploy' or @operation='Upgrade' or @operation='Install']/cap:url",
+                        Constants.NS);
+
+        if ((url == null) || StringUtil.isEmptyOrNull(url.getText()))
+        {
+            throw new CaasRuntimeException("Could not find the URL for CAP " + name
+                    + ". Cause could be that there is no Upgrade / Deploy operation for this package");
+        }
+
+        // Now create the request to deploy the package
+        request = new XmlNode(Constants.DEPLOY_CAP, Constants.XMLNS_CAP);
+        request.setAttribute("Timeout", String.valueOf(timeout));
+        request.setAttribute("revertOnFailure", "false");
+
+        request.add("url").setText(url.getText());
+
+        c.call(request, p);
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#revertCap(org.kisst.cordys.caas.soap.SoapCaller,
+     *      org.kisst.cordys.caas.CordysSystem, java.lang.String, long)
+     */
+    @Override
+    public void revertCap(SoapCaller c, CordysSystem system, String name, long timeoutInMinutes)
+    {
+        // First we need to check that it is indeed incomplete. Also we need the URL of the package to call the
+        // DeployCAP method.
+        XmlNode request = new XmlNode(Constants.GET_DEPLOYED_CAP_SUMMARY, Constants.XMLNS_CAP);
+        request.setAttribute("isInComplete", "true");
+
+        XmlNode response = c.call(request);
+
+        XmlNode ap = response.xpathSingle("cap:tuple/cap:old/cap:ApplicationPackage[cap:ApplicationName='" + name + "']",
+                Constants.NS);
+
+        if (ap == null)
+        {
+            throw new CaasRuntimeException("The package " + name + " is not in an incomplete state.");
+        }
+
+        // Now we need to get the URL of the package to undeploy
+        request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
+        request.add("ApplicationName").setText(name);
+        response = c.call(request);
+
+        XmlNode url = response.xpathSingle(
+                "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deploy']/cap:url", Constants.NS);
+
+        if ((url == null) || StringUtil.isEmptyOrNull(url.getText()))
+        {
+            throw new CaasRuntimeException("Could not find the URL for CAP " + name
+                    + ". Cause could be that the package is not deployed");
+        }
+
+        long timeout = timeoutInMinutes * 60 * 1000;
+
+        // Now create the request to revert the deployment of the cap
+        request = new XmlNode(Constants.DEPLOY_CAP, Constants.XMLNS_CAP);
+        request.setAttribute("Timeout", String.valueOf(timeout));
+        request.setAttribute("isRevert", "true");
+        request.setAttribute("revertOnFailure", "false");
+
+        request.add("url").setText(url.getText());
+
+        // Add the timeout
+        HashMap<String, String> p = new LinkedHashMap<String, String>();
+        p.put("timeout", String.valueOf(timeout));
+
+        c.call(request, p);
+    }
+
+    /**
+     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#undeployCap(org.kisst.cordys.caas.soap.SoapCaller,
+     *      org.kisst.cordys.caas.CordysSystem, java.lang.String, java.lang.String, java.lang.Boolean, long)
+     */
+    @Override
+    public void undeployCap(SoapCaller c, CordysSystem system, String name, String userInputs, Boolean deleteReferences,
+            long timeoutInMinutes)
+    {
+        // First get the status of the package. Is it indeed a new one
+        XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
+        request.add("ApplicationName").setText(name);
+
+        XmlNode response = c.call(request);
+
+        XmlNode url = response
+                .xpathSingle(
+                        "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deployed' or @operation='Deploy']/cap:url",
+                        Constants.NS);
+
+        if ((url == null) || StringUtil.isEmptyOrNull(url.getText()))
+        {
+            throw new CaasRuntimeException("Could not find the URL for CAP " + name
+                    + ". Cause could be that the package is not deployed");
+        }
+
+        long timeout = timeoutInMinutes * 60 * 1000;
+
+        // Now create the request to deploy the package
+        request = new XmlNode(Constants.UNDEPLOY_CAP, Constants.XMLNS_CAP);
+        request.setAttribute("Timeout", String.valueOf(timeout));
+
+        request.add("CAP").setText(name);
+
+        XmlNode ui = request.add("UserInputs");
+
+        if (!StringUtil.isEmptyOrNull(userInputs))
+        {
+            ui.add(new XmlNode(userInputs));
+        }
+
+        XmlNode dr = request.add("deletereference");
+
+        if (deleteReferences != null)
+        {
+            dr.setText(deleteReferences.toString());
+        }
+
+        // Add the timeout
+        HashMap<String, String> p = new LinkedHashMap<String, String>();
+        p.put("timeout", String.valueOf(timeout));
+
+        c.call(request, p);
     }
 }

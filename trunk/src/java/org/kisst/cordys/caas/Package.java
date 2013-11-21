@@ -9,6 +9,8 @@
 
 package org.kisst.cordys.caas;
 
+import java.util.List;
+
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.CordysObject;
@@ -168,7 +170,7 @@ public class Package extends CordysObject
         }
         else if ("Package".equals(definition.getName()))
         {
-            //It's the new BOP 4.3 way.
+            // It's the new BOP 4.3 way.
             XmlNode child = definition.xpath("*").get(0);
             if (child.getName().equals("NewPackageDetails"))
             {
@@ -178,15 +180,24 @@ public class Package extends CordysObject
             {
                 status = EPackageStatus.loaded;
             }
-            
+
             type = EPackageType.cap;
             name = definition.getAttribute("name");
             cn = name;
-            
+
             buildnumber = child.getChildText("BuildNumber");
             version = child.getChildText("Version");
-            
+
             owner = child.getChildText("Vendor");
+
+            // If there is a new version available set it's details.
+            List<XmlNode> newDetails = definition.xpath("*[local-name()='NewPackageDetails']");
+            if (newDetails != null && newDetails.size() > 0)
+            {
+                XmlNode tmp = newDetails.get(0);
+
+                setNewVersion("ver" + tmp.getChild("Version").getText() + "build" + tmp.getChild("BuildNumber").getText());
+            }
         }
         else
         {

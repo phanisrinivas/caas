@@ -40,4 +40,38 @@ public interface ICompatibilityManager
      * @return true if the system supports CAP packages. Otherwise false.
      */
     Boolean supportsCap(SoapCaller c, CordysSystem system);
+
+    /**
+     * This method will deploy the latest version of the given CAP package name. It will first check to see if there is a package
+     * to deploy and whether it's an upgrade or a fresh load.
+     * 
+     * @param c The connection to Cordys to use.
+     * @param system The system to connect to.
+     * @param name The name
+     * @param timeoutInMinutes The timeout in minutes.
+     */
+    void deployCap(SoapCaller c, CordysSystem system, String name, double timeoutInMinutes);
+
+    /**
+     * This method will revert the given incomplete cap package.
+     * 
+     * @param c The connection to Cordys to use.
+     * @param system The system to connect to.
+     * @param name The package DN of the package.
+     * @param timeoutInMinutes The timeout in minutes
+     */
+    void revertCap(SoapCaller c, CordysSystem system, String name, long timeoutInMinutes);
+
+    /**
+     * This method will undeploy the given cap package.
+     * 
+     * @param c The connection to Cordys to use.
+     * @param system The system to connect to.
+     * @param name The package DN of the package.
+     * @param userInputs The user inputs XML.
+     * @param deleteReferences Whether or not to delete the references of the package
+     * @param timeoutInMinutes The timeout in minutes
+     */
+    void undeployCap(SoapCaller c, CordysSystem system, String name, String userInputs, Boolean deleteReferences,
+            long timeoutInMinutes);
 }

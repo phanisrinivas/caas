@@ -1012,37 +1012,9 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
-        
-        // Add the timeout
-        long timeout = Math.round(timeoutInMinutes * 60 * 1000);
-        HashMap<String, String> p = new LinkedHashMap<String, String>();
-        p.put("timeout", String.valueOf(timeout));
 
         // First get the status of the package. Is it indeed a new one
-        XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
-        request.add("ApplicationName").setText(name);
-
-        XmlNode response = call(request);
-
-        XmlNode url = response
-                .xpathSingle(
-                        "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deploy' or @operation='Upgrade']/cap:url",
-                        Constants.NS);
-
-        if ((url == null) || StringUtil.isEmptyOrNull(url.getText()))
-        {
-            throw new CaasRuntimeException("Could not find the URL for CAP " + name
-                    + ". Cause could be that there is no Upgrade / Deploy operation for this package");
-        }
-
-        // Now create the request to deploy the package
-        request = new XmlNode(Constants.DEPLOY_CAP, Constants.XMLNS_CAP);
-        request.setAttribute("Timeout", String.valueOf(timeout));
-        request.setAttribute("revertOnFailure", "false");
-
-        request.add("url").setText(url.getText());
-
-        call(request, p);
+        m_cm.deployCap(getSoapCaller(), this, name, timeoutInMinutes);
     }
 
     /**
@@ -1103,51 +1075,8 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
-
-        // First get the status of the package. Is it indeed a new one
-        XmlNode request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
-        request.add("ApplicationName").setText(name);
-
-        XmlNode response = call(request);
-
-        XmlNode url = response
-                .xpathSingle(
-                        "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deployed' or @operation='Deploy']/cap:url",
-                        Constants.NS);
-
-        if ((url == null) || StringUtil.isEmptyOrNull(url.getText()))
-        {
-            throw new CaasRuntimeException("Could not find the URL for CAP " + name
-                    + ". Cause could be that the package is not deployed");
-        }
-
-        long timeout = timeoutInMinutes * 60 * 1000;
-
-        // Now create the request to deploy the package
-        request = new XmlNode(Constants.UNDEPLOY_CAP, Constants.XMLNS_CAP);
-        request.setAttribute("Timeout", String.valueOf(timeout));
-
-        request.add("CAP").setText(name);
-
-        XmlNode ui = request.add("UserInputs");
-
-        if (!StringUtil.isEmptyOrNull(userInputs))
-        {
-            ui.add(new XmlNode(userInputs));
-        }
-
-        XmlNode dr = request.add("deletereference");
-
-        if (deleteReferences != null)
-        {
-            dr.setText(deleteReferences.toString());
-        }
-
-        // Add the timeout
-        HashMap<String, String> p = new LinkedHashMap<String, String>();
-        p.put("timeout", String.valueOf(timeout));
-
-        call(request, p);
+        
+        m_cm.undeployCap(getSoapCaller(), this, name, userInputs, deleteReferences, timeoutInMinutes);
     }
 
     /**
@@ -1172,51 +1101,8 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
-
-        // First we need to check that it is indeed incomplete. Also we need the URL of the package to call the
-        // DeployCAP method.
-        XmlNode request = new XmlNode(Constants.GET_DEPLOYED_CAP_SUMMARY, Constants.XMLNS_CAP);
-        request.setAttribute("isInComplete", "true");
-
-        XmlNode response = call(request);
-
-        XmlNode ap = response.xpathSingle("cap:tuple/cap:old/cap:ApplicationPackage[cap:ApplicationName='" + name + "']",
-                Constants.NS);
-
-        if (ap == null)
-        {
-            throw new CaasRuntimeException("The package " + name + " is not in an incomplete state.");
-        }
-
-        // Now we need to get the URL of the package to undeploy
-        request = new XmlNode(Constants.GET_CAP_DEPLOYMENT_DETAILS, Constants.XMLNS_CAP);
-        request.add("ApplicationName").setText(name);
-        response = call(request);
-
-        XmlNode url = response.xpathSingle(
-                "cap:tuple/cap:old/cap:ApplicationPackage/cap:node/cap:Application[@operation='Deploy']/cap:url", Constants.NS);
-
-        if ((url == null) || StringUtil.isEmptyOrNull(url.getText()))
-        {
-            throw new CaasRuntimeException("Could not find the URL for CAP " + name
-                    + ". Cause could be that the package is not deployed");
-        }
-
-        long timeout = timeoutInMinutes * 60 * 1000;
-
-        // Now create the request to revert the deployment of the cap
-        request = new XmlNode(Constants.DEPLOY_CAP, Constants.XMLNS_CAP);
-        request.setAttribute("Timeout", String.valueOf(timeout));
-        request.setAttribute("isRevert", "true");
-        request.setAttribute("revertOnFailure", "false");
-
-        request.add("url").setText(url.getText());
-
-        // Add the timeout
-        HashMap<String, String> p = new LinkedHashMap<String, String>();
-        p.put("timeout", String.valueOf(timeout));
-
-        call(request, p);
+        
+        m_cm.revertCap(getSoapCaller(), this, name, timeoutInMinutes);
     }
 
     /**
@@ -1326,7 +1212,7 @@ public class CordysSystem extends LdapObject
             request.add("returnValues").setText("false");
 
             XmlNode response = getSystem().call(request);
-            
+
             Pattern p = Pattern.compile("^cn=([^,]+),cn=([^,]+),cn=soap nodes,o=([^,]+)");
 
             List<XmlNode> children = response.getChildren("tuple");
@@ -1346,7 +1232,7 @@ public class CordysSystem extends LdapObject
                 }
                 else
                 {
-                    info(scDN + " doe snot match pattern"); 
+                    info(scDN + " doe snot match pattern");
                 }
             }
         }

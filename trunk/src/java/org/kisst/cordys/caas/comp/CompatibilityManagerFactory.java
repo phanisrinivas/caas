@@ -3,6 +3,9 @@ package org.kisst.cordys.caas.comp;
 import static org.kisst.cordys.caas.main.Environment.debug;
 import static org.kisst.cordys.caas.main.Environment.info;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.kisst.cordys.caas.util.StringUtil;
 
 /**
@@ -33,9 +36,21 @@ public class CompatibilityManagerFactory
         {
             debug("Cordys version: " + cordysVersion);
 
-            if (cordysVersion.startsWith("D1.003"))
+            Pattern p = Pattern.compile("([^.]+)\\.(\\d+)\\.(\\d+)");
+            Matcher m = p.matcher(cordysVersion);
+            if (m.find())
             {
-                retVal = new Bop43CompatibilityManager();
+                String release = m.group(1);
+                int major = Integer.parseInt(m.group(2));
+
+                if ("D1".equals(release) && major == 2)
+                {
+                    retVal = new Bop42CompatibilityManager();
+                }
+                else if ("D1".equals(release) && major >= 3)
+                {
+                    retVal = new Bop43CompatibilityManager();
+                }
             }
         }
 

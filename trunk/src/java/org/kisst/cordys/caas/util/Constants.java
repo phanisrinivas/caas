@@ -13,7 +13,10 @@ public class Constants
     public static final String GET_NEW_CAP_SUMMARY = "GetNewCapSummary";
     public static final String DEPLOY_CAP = "DeployCAP";
     public static final String GET_CAP_DEPLOYMENT_DETAILS = "GetCapDeploymentDetails";
+    /** New 4.3 method */
+    public static final String GET_PACKAGE_DETAILS = "GetPackageDetails";
     public static final String GET_DEPLOYED_CAP_SUMMARY = "GetDeployedCapSummary";
+    public static final String GET_ACTIONS = "GetActions";
     public static final String UNDEPLOY_CAP = "UnDeployCAP";
     public static final String LOAD_ISVP = "LoadISVPackage";
     public static final String UPGRADE_ISVP = "UpgradeISVPackage";
@@ -59,7 +62,7 @@ public class Constants
     public static final String[][] NS = new String[][] { { "mon", XMLNS_MONITOR }, { "ldap", XMLNS_LDAP }, { "isv", XMLNS_ISV },
             { "xs", XMLNS_XMLSTORE }, { "coboc", XMLNS_COBOC }, { "cap", XMLNS_CAP }, { "ua", XMLNS_USER_ASSIGNMENT },
             { "nw", XMLNS_NOTIFICATION_WORKFLOW } };
-    
+
     /** Holds the regex to get the CN of the current entry. */
     public static final Pattern GET_CN = Pattern.compile("^cn=([^,]+)");
 
