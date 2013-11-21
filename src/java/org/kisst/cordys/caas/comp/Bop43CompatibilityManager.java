@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.DeployedPackageInfo;
+import org.kisst.cordys.caas.IDeployedPackageInfo;
 import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.Package.EPackageStatus;
 import org.kisst.cordys.caas.PackageList;
@@ -265,5 +267,33 @@ class Bop43CompatibilityManager extends Bop42CompatibilityManager
         p.put("timeout", String.valueOf(timeout));
 
         c.call(request, p);
+    }
+    
+    /**
+     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#loadCAPInfo(org.kisst.cordys.caas.soap.SoapCaller, org.kisst.cordys.caas.CordysSystem, org.kisst.cordys.caas.Package)
+     */
+    @Override
+    public IDeployedPackageInfo loadCAPInfo(SoapCaller c, CordysSystem system, Package p)
+    {
+        DeployedPackageInfo retVal = null;
+        
+        XmlNode request = new XmlNode(Constants.GET_PACKAGE_DETAILS, Constants.XMLNS_CAP);
+        request.add("Packages").add("Package").setText(p.getName());
+
+        XmlNode response = c.call(request);
+
+        XmlNode deploymentDetails = response.xpathSingle(
+                "cap:Packages/cap:Package/cap:DeploymentDetails[cap:ClusterStatus='DEPLOYED']", Constants.NS);
+
+        if (deploymentDetails != null)
+        {
+            String vendor = deploymentDetails.getChildText("Vendor");
+            String version = deploymentDetails.getChildText("Version");
+            String buildNumber = deploymentDetails.getChildText("BuildNumber");
+
+            retVal =  new DeployedPackageInfo(p.getPackageDN(), null, vendor, version, buildNumber);
+        }
+        
+        return retVal;
     }
 }

@@ -3,6 +3,7 @@ package org.kisst.cordys.caas.comp;
 import java.util.List;
 
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.IDeployedPackageInfo;
 import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.PackageList;
 import org.kisst.cordys.caas.soap.SoapCaller;
@@ -74,4 +75,14 @@ public interface ICompatibilityManager
      */
     void undeployCap(SoapCaller c, CordysSystem system, String name, String userInputs, Boolean deleteReferences,
             long timeoutInMinutes);
+
+    /**
+     * This method loads the CAP details.
+     * 
+     * @param soapCaller The soap caller
+     * @param system The system
+     * @param package1 The package1
+     * @return The i deployed package info
+     */
+    IDeployedPackageInfo loadCAPInfo(SoapCaller soapCaller, CordysSystem system, Package package1);
 }

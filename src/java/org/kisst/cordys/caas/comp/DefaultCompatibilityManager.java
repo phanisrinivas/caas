@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.kisst.cordys.caas.CordysSystem;
+import org.kisst.cordys.caas.DeployedPackageInfo;
+import org.kisst.cordys.caas.IDeployedPackageInfo;
 import org.kisst.cordys.caas.Package;
 import org.kisst.cordys.caas.PackageList;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
@@ -279,5 +281,33 @@ public class DefaultCompatibilityManager implements ICompatibilityManager
         p.put("timeout", String.valueOf(timeout));
 
         c.call(request, p);
+    }
+    
+    /**
+     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#loadCAPInfo(org.kisst.cordys.caas.soap.SoapCaller, org.kisst.cordys.caas.CordysSystem, org.kisst.cordys.caas.Package)
+     */
+    @Override
+    public IDeployedPackageInfo loadCAPInfo(SoapCaller soapCaller, CordysSystem system, Package p)
+    {
+        DeployedPackageInfo retVal = null;
+        
+        XmlNode request = new XmlNode(Constants.GET_CAP_DETAILS, Constants.XMLNS_CAP);
+        XmlNode cap = request.add("cap");
+        cap.setText(p.getPackageDN());
+
+        XmlNode response = system.call(request);
+
+        XmlNode header = (XmlNode) response.get("tuple/old/ApplicationPackage/ApplicationDetails/Header");
+
+        if (header != null)
+        {
+            String vendor = header.getChildText("Vendor");
+            String version = header.getChildText("Version");
+            String buildNumber = header.getChildText("BuildNumber");
+
+            retVal =  new DeployedPackageInfo(p.getPackageDN(), null, vendor, version, buildNumber);
+        }
+        
+        return retVal;
     }
 }
