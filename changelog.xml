@@ -107,7 +107,8 @@ ${include:folder=foldername;pattern=.+\.ctf}]]></action>
     <release date="2013-11-12" description="Stable release" version="2.0.31">
       <action dev="pgussow" type="change"><![CDATA[Changed the way the service containers are detected. They used to be based on the organization causing the calls to take a long time.  Now we use a basic search on LDAP to get all service containers at once.]]></action>
     </release>
-    <release date="2013-??-??" description="Stable release" version="2.0.32">
+    <release date="2013-11-21" description="Stable release" version="2.0.32">
+      <action dev="pgussow" type="fix"><![CDATA[The deployCap and undeployCap methods were broken for Bop 4.3. This is now fixed.]]></action>
       <action dev="pgussow" type="change"><![CDATA[Changed the parameter of the deployCap to a double instead of a long in order to be able so specify smaller timeouts.]]></action>
     </release>
   </body>

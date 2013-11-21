@@ -56,6 +56,15 @@ public abstract class CordysObjectList<T extends CordysObject> extends CordysObj
         return list;
     }
 
+    /**
+     * This method sets that the list is available. This is usefull when the retrieveList() method knows the list is complete and
+     * wants to do stuff.
+     */
+    protected void setListAvailable()
+    {
+        listAvailable = true;
+    }
+
     @Override
     public void myclear()
     {
