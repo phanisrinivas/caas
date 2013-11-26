@@ -986,6 +986,9 @@ public class CordysSystem extends LdapObject
 
         // With ISV packages we needed to upload it to each monitor individually. But with CAP it is not needed anymore.
         call(request);
+
+        // Clean the packages list as it needs to be updated with the new package.
+        packages.clear();
     }
 
     /**
@@ -1075,7 +1078,7 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
-        
+
         m_cm.undeployCap(getSoapCaller(), this, name, userInputs, deleteReferences, timeoutInMinutes);
     }
 
@@ -1101,7 +1104,7 @@ public class CordysSystem extends LdapObject
         {
             throw new CaasRuntimeException("The system " + name + " does not support CAP packages");
         }
-        
+
         m_cm.revertCap(getSoapCaller(), this, name, timeoutInMinutes);
     }
 
