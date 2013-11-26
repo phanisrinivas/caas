@@ -111,5 +111,8 @@ ${include:folder=foldername;pattern=.+\.ctf}]]></action>
       <action dev="pgussow" type="fix"><![CDATA[The deployCap and undeployCap methods were broken for Bop 4.3. This is now fixed.]]></action>
       <action dev="pgussow" type="change"><![CDATA[Changed the parameter of the deployCap to a double instead of a long in order to be able so specify smaller timeouts.]]></action>
     </release>
+    <release date="2013-11-??" description="Stable release" version="2.0.33">
+      <action dev="pgussow" type="fix"><![CDATA[When a CAP is uploaded the packages list is cleared so that it can be properly reloaded.]]></action>
+    </release>
   </body>
 </document>
