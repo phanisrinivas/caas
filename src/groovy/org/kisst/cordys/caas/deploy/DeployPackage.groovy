@@ -9,7 +9,7 @@ import org.kisst.cordys.caas.helper.Log;
  * This script will upload an deploy the given package to the given Cordys environment using CAAS
  */
 
-def cli = new CliBuilder(usage: 'run.cmd com/tatasteel/tse/groovy/deploy/DeployPackage [-h] [-f "capfolder" | -c "capfile"] -s "system"')
+def cli = new CliBuilder(usage: 'run.cmd org/kisst/cordys/caas/deploy/DeployPackage [-h] [-f "capfolder" | -c "capfile"] -s "system"')
 cli.h(longOpt: 'help'  , 'usage information', required: false)
 cli.c(longOpt: 'cap', 'The CAP file that should be deployed', required: false, args: 1 )
 cli.f(longOpt: 'folder', 'The folder containing the caps that should be deployed.', required: false, args: 1 )
