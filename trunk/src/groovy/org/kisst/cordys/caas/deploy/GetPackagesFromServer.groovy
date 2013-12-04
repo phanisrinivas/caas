@@ -6,7 +6,9 @@
  * - Cordys root to get the packages from
  * - name of the system to get the packages from
  */
-package org.kisst.cordys.caas
+package org.kisst.cordys.caas.deploy
+
+import org.kisst.cordys.caas.Caas;
 
 if (args.length < 3 || args.length > 4) {
     println ''

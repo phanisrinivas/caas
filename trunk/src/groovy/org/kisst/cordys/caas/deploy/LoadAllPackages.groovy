@@ -1,7 +1,7 @@
 /**
  * This script will load all packages that are in the tmp/tobeloaded folder
  */
-package org.kisst.cordys.caas
+package org.kisst.cordys.caas.deploy
 
 import groovy.io.FileType;
 
