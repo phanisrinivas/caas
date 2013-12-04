@@ -1,0 +1,6 @@
+# This file is an example of hold the caas-user.conf should look like. It needs to contain the 
+# username / passwords for the servers you'd like to connect to. 
+# Note: this file should not be in Subversion!
+
+system.local.gateway.username=someadminuser
+system.local.gateway.password=someadminuser

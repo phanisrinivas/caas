@@ -1,0 +1,4 @@
+# This example file contains the properties that are used for the template commands.
+
+# The Cordys installation folder (used for file paths)
+cordys.installdir=C:\\Cordys\\BOP\\local
