@@ -5,7 +5,7 @@ system.local.gateway.url.base=http://localhost/home
 system.local.gateway.old=true
 
 # For 4.1 systems use this:
-system.local.gateway.url=http://localhost/cordys/com.eibus.web.soap.Gateway.wcp
+#system.local.gateway.url=http://localhost/cordys/com.eibus.web.soap.Gateway.wcp
 
 # To use the Cordys based authentication
 system.local.gateway.class=SamlClientCaller
