@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Oct 24, 2013 1:24:43 PM                                                        
+
+     configuration    
+     This ant file is primairily used to compile the groovy files into classes so that they can be run properly.
+                   
+     pgussow                                                                
+     ====================================================================== -->
+<project name="CAASDeployment" default="compile">
+	<path id="my.classpath">
+		<fileset dir="lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<description>
+            This ant file is primairily used to compile the groovy files into classes so that they can be run properly.
+    </description>
+
+	<!-- ================================= 
+          target: compile              
+         ================================= -->
+	<target name="compile" description="This ant file is primairily used to compile the groovy files into classes so that they can be run properly.">
+        <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="my.classpath" />
+
+		<groovyc srcdir="scripts" destdir="classes" />
+	</target>
+
+</project>

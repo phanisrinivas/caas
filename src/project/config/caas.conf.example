@@ -1,0 +1,18 @@
+# Rename this file to caas.conf and enter the proper details of the server that you'd like to connect to.
+
+# The location of the web gateway. The configuration below is for 4.2 systems and up.
+system.local.gateway.url.base=http://localhost/home
+system.local.gateway.old=true
+
+# For 4.1 systems use this:
+system.dev.gateway.url=http://localhost/cordys/com.eibus.web.soap.Gateway.wcp
+
+# To use the Cordys based authentication
+system.local.gateway.class=SamlClientCaller
+
+# The 2 properties below need to be set when using NTLM
+#system.local.gateway.ntlmdomain=NTDOM
+#system.local.gateway.ntlmhost=localhost
+
+# Contains the properties to be used for substitution
+system.local.properties.file=../properties/local.properties

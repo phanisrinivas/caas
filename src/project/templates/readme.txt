@@ -1,0 +1,1 @@
+In this folder you should store the templates that you've created using the template commands.
