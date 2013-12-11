@@ -116,5 +116,8 @@ ${include:folder=foldername;pattern=.+\.ctf}]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added additional files to the dist-full so that you can extract the zip file and can immediately import the project into Eclipse]]></action>
       <action dev="pgussow" type="fix"><![CDATA[When a CAP is uploaded the packages list is cleared so that it can be properly reloaded.]]></action>
     </release>
+    <release date="2013-12-11" description="Stable release" version="2.1.1">
+      <action dev="pgussow" type="add"><![CDATA[Added a cmd wrapper for the DeployPackage script]]></action>
+    </release>
   </body>
 </document>
