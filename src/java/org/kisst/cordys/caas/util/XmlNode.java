@@ -118,6 +118,11 @@ public class XmlNode
         else
             return attr.getValue();
     }
+    
+    public void removeAttribute(String name)
+    {
+        element.removeAttribute(name);
+    }
 
     public XmlNode getChild(String path)
     {
