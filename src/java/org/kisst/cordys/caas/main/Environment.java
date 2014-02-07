@@ -10,11 +10,10 @@
 package org.kisst.cordys.caas.main;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.ConsoleAppender;
@@ -25,6 +24,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.xml.XMLLayout;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
 import org.kisst.cordys.caas.util.StringUtil;
@@ -65,7 +65,7 @@ public class Environment
     /** Holds whether or not to display the verbose messages */
     public static boolean verbose = false;
     /** Holds the properties loaded for this environment. */
-    private Properties props = new Properties();
+    private LoadedPropertyMap properties = new LoadedPropertyMap();
     /** Holds the location from where the caas.conf file is loaded */
     private File m_caasConf;
     /** Holds the folder in which the caas.conf is located */
@@ -77,6 +77,50 @@ public class Environment
     private Environment()
     {
         initEnvironment();
+    }
+
+    /**
+     * Enable trace.
+     */
+    public static void toTrace()
+    {
+        trace = true;
+        debug = true;
+        quiet = false;
+        verbose = true;
+    }
+
+    /**
+     * Enable Debug.
+     */
+    public static void toDebug()
+    {
+        trace = false;
+        debug = true;
+        quiet = false;
+        verbose = true;
+    }
+
+    /**
+     * Enable Verbose.
+     */
+    public static void toVerbose()
+    {
+        trace = false;
+        debug = false;
+        quiet = false;
+        verbose = true;
+    }
+
+    /**
+     * Enable quiet.
+     */
+    public static void toQuiet()
+    {
+        trace = false;
+        debug = false;
+        quiet = true;
+        verbose = false;
     }
 
     /**
@@ -182,7 +226,7 @@ public class Environment
      */
     public String getProp(String key, String defaultValue)
     {
-        return props.getProperty(key, defaultValue);
+        return properties.get(key, defaultValue);
     }
 
     /**
@@ -190,9 +234,9 @@ public class Environment
      * 
      * @return The properties for the environment.
      */
-    public Properties getProperties()
+    public LoadedPropertyMap getProperties()
     {
-        return props;
+        return properties;
     }
 
     /**
@@ -205,6 +249,8 @@ public class Environment
      * the following files to customize the properties in the default system file. The properties (once defined) will not be
      * overwritten. The sequence of the files is:
      * <ul>
+     * <li><systemname>/<orgname>/*-user.properties</li>
+     * <li><systemname>/<orgname>/*.properties</li>
      * <li><systemname>-<orgname>-user.properties</li>
      * <li><systemname>-<orgname>.properties</li>
      * <li><systemname>-user.properties</li>
@@ -214,12 +260,15 @@ public class Environment
      * @param systemName - Cordys system name as mentioned in the caas.conf file
      * @return map - A Map object containing all the properties of the given system
      */
-    public Map<String, String> loadSystemProperties(String systemName, String org)
+    public LoadedPropertyMap loadSystemProperties(String systemName, String org)
     {
         if (StringUtil.isEmptyOrNull(systemName))
         {
             throw new CaasRuntimeException("Unable to load the properties as the Cordys system name is null");
         }
+
+        // Create the map that will be filled.
+        LoadedPropertyMap retVal = new LoadedPropertyMap();
 
         // Either the properties file defined in the caas.conf OR the file in the current folder OR the file in the user's home
         // folder MUST be present.
@@ -236,6 +285,24 @@ public class Environment
             File propsFileInConfFile = new File(StringUtil.getUnixStyleFilePath(propsFileInConf));
             File folder = propsFileInConfFile.getParentFile();
 
+            // A property file has been set. Now we also support getting files from a folder structure based on where the main
+            // property file is set. The folder must be the name of the system and there must be a sub folder with the
+            // organization name.
+            File sysLevelPropertyFolder = new File(folder, systemName);
+            File orgLevelPropertyFolder = new File(sysLevelPropertyFolder, org);
+            if (orgLevelPropertyFolder.exists())
+            {
+                // Load the org level property files from the folder.
+                loadAllPropertiesFromFolder(files, orgLevelPropertyFolder);
+            }
+
+            if (sysLevelPropertyFolder.exists())
+            {
+                // Now that the org-level proeprties have been added we can also add the system level properties.
+                loadAllPropertiesFromFolder(files, sysLevelPropertyFolder);
+            }
+
+            // Now add the 'normal' property files.
             if (!StringUtil.isEmptyOrNull(org))
             {
                 files.add(new File(folder, systemName + "-" + org + "-user.properties"));
@@ -243,6 +310,7 @@ public class Environment
             }
             files.add(new File(folder, systemName + "-user.properties"));
             files.add(propsFileInConfFile);
+
             if (propsFileInConfFile.exists())
             {
                 anyExist = true;
@@ -286,7 +354,43 @@ public class Environment
         }
 
         // All the possible file locations have been collected. So now we can start to load the properties.
-        return FileUtil.loadProperties(files);
+        return FileUtil.loadProperties(files, retVal);
+    }
+
+    /**
+     * This method will identify all files from which properties should be loaded. First all the -user variants will be loaded.
+     * Then the normal property files.
+     * 
+     * @param files The collection to add the discovered files to.
+     * @param folder The folder to scan. Note that it will NOT recursively scan for property files.
+     */
+    private void loadAllPropertiesFromFolder(List<File> files, File folder)
+    {
+        debug("Adding files from folder " + folder.getAbsolutePath());
+        String[] userFiles = folder.list(new FilenameFilter() {
+            public boolean accept(File dir, String name)
+            {
+                return name != null && name.endsWith("-user.properties");
+            }
+        });
+
+        for (String userFile : userFiles)
+        {
+            files.add(new File(folder, userFile));
+        }
+
+        // Now add the normal properties files.
+        String[] normalFiles = folder.list(new FilenameFilter() {
+            public boolean accept(File dir, String name)
+            {
+                return name != null && !name.endsWith("-user.properties") && name.endsWith(".properties");
+            }
+        });
+
+        for (String normalFile : normalFiles)
+        {
+            files.add(new File(folder, normalFile));
+        }
     }
 
     /**
@@ -301,14 +405,14 @@ public class Environment
      * 
      * @param filename The name of the caas.conf file that should be loaded.
      */
-    public Properties loadProperties(String filename)
+    public LoadedPropertyMap loadProperties(String filename)
     {
         if (!FileUtil.doesFileExist(filename))
         {
             throw new CaasRuntimeException("File " + filename + " does not exist");
         }
 
-        props.clear();
+        properties.clear();
 
         m_caasConf = new File(filename);
         m_caasConfFolder = m_caasConf.getParentFile();
@@ -321,9 +425,9 @@ public class Environment
         files.add(m_caasConf);
 
         // Check to see if the caas-user.conf file is present.
-        FileUtil.load(props, files);
+        FileUtil.loadProperties(files, properties);
 
-        return props;
+        return properties;
     }
 
     /**

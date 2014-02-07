@@ -1,12 +1,11 @@
 package org.kisst.cordys.caas.main;
 
-import java.util.Map;
-import java.util.Properties;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
 import org.kisst.cordys.caas.util.Constants;
-import static org.junit.Assert.*;
 
 /**
  * Holds the Class Properties_Test.
@@ -31,14 +30,14 @@ public class Properties_Test
     {
         Environment env = Environment.get();
 
-        Properties p = env.getProperties();
+        LoadedPropertyMap p = env.getProperties();
 
-        assertEquals(p.getProperty("system.dev.gateway.old"), "true");
-        assertEquals(p.getProperty("system.dev.gateway.username"), "pgussow");
-        assertEquals(p.getProperty("system.dev.gateway.class"), "SamlClientCaller");
-        
-        Map<String, String> sp = env.loadSystemProperties("dev", "org");
-        
+        assertEquals(p.get("system.dev.gateway.old"), "true");
+        assertEquals(p.get("system.dev.gateway.username"), "pgussow");
+        assertEquals(p.get("system.dev.gateway.class"), "SamlClientCaller");
+
+        LoadedPropertyMap sp = env.loadSystemProperties("dev", "org");
+
         assertEquals(sp.get("organization.name"), "dev-org-user");
         assertEquals(sp.get("dev.only"), "true");
 
