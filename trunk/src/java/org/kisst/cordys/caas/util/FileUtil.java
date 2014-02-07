@@ -9,6 +9,8 @@
 
 package org.kisst.cordys.caas.util;
 
+import static org.kisst.cordys.caas.main.Environment.debug;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
@@ -21,7 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.kisst.cordys.caas.main.Environment.*;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
+import org.kisst.cordys.caas.support.LoadedPropertyMap.LoadedProperty;
 
 import sun.misc.BASE64Encoder;
 
@@ -221,10 +224,26 @@ public class FileUtil
      * @param files The files to load.
      * @return The map containing the properties to use.
      */
-    public static Map<String, String> loadProperties(List<File> files)
+    public static LoadedPropertyMap loadProperties(List<File> files)
     {
-        LinkedHashMap<String, String> retVal = new LinkedHashMap<String, String>();
-
+        return loadProperties(files, new LoadedPropertyMap());
+    }
+    
+    /**
+     * This method will load all the properties that are defined in the given files. Once a property is loaded it will not be
+     * overwritten. So make sure you pass on the most important file as the first one.
+     * 
+     * @param files The files to load.
+     * @param lpm The map to add them to. If null a map will be created. 
+     * @return The map containing the properties to use.
+     */
+    public static LoadedPropertyMap loadProperties(List<File> files, LoadedPropertyMap lpm)
+    {
+        if (lpm == null)
+        {
+            lpm = new LoadedPropertyMap();
+        }
+        
         if (files != null)
         {
             for (File file : files)
@@ -239,22 +258,16 @@ public class FileUtil
                     // Now that the file was loaded we can copy the non-existing properties to the result.
                     for (Object key : tmp.keySet())
                     {
-                        if (!retVal.containsKey(key))
-                        {
-                            retVal.put((String) key, (String) tmp.get(key));
-                            trace("  LOAD: property " + key + " from file " + file.getAbsolutePath() + " with value "
-                                    + tmp.get(key));
-                        }
-                        else
-                        {
-                            trace("IGNORE: property " + key + " from file " + file.getAbsolutePath()
-                                    + " because it is already defined");
-                        }
+                        LoadedProperty lp = new LoadedProperty((String)key, (String)tmp.get(key), file.getAbsolutePath());
+
+                        // Always add these properties. If the property is already defined it will just be registered.
+                        lpm.put(lp);
                     }
                 }
             }
         }
-        return retVal;
+        
+        return lpm;
     }
 
     /**
