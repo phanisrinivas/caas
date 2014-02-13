@@ -1,15 +1,13 @@
 package org.kisst.cordys.caas.cm;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Dso;
 import org.kisst.cordys.caas.DsoType;
 import org.kisst.cordys.caas.Organization;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -57,17 +55,15 @@ public class DsoObjective extends AbstractObjective
     {
         // All the values that we've read from the caaspm file still have the variable names. So in order to properly check them
         // we need to substitube all PM-values based on the template
-        Properties props = m_org.getSystem().getProperties();
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-        Map<String, String> variables = new HashMap<String, String>((Map) props);
+        LoadedPropertyMap props = m_org.getSystem().getProperties();
 
-        String type = StringUtil.substitute(m_type, variables);
-        String name = StringUtil.substitute(m_name, variables);
-        String description = StringUtil.substitute(m_description, variables);
-        String username = StringUtil.substitute(m_component.getChildText("userName"), variables);
-        String password = StringUtil.substitute(m_component.getChildText("password"), variables);
-        String connectionString = StringUtil.substitute(m_component.getChildText("connectionString"), variables);
-        String defaultDatabase = StringUtil.substitute(m_component.getChildText("defaultDatabase"), variables);
+        String type = StringUtil.substitute(m_type, props);
+        String name = StringUtil.substitute(m_name, props);
+        String description = StringUtil.substitute(m_description, props);
+        String username = StringUtil.substitute(m_component.getChildText("userName"), props);
+        String password = StringUtil.substitute(m_component.getChildText("password"), props);
+        String connectionString = StringUtil.substitute(m_component.getChildText("connectionString"), props);
+        String defaultDatabase = StringUtil.substitute(m_component.getChildText("defaultDatabase"), props);
 
         StringBuilder sb = new StringBuilder(1024);
         status = OK;

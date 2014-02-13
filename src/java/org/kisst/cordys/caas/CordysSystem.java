@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +27,7 @@ import org.kisst.cordys.caas.support.CordysObject;
 import org.kisst.cordys.caas.support.CordysObjectList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
 import org.kisst.cordys.caas.support.XmlObjectList;
 import org.kisst.cordys.caas.util.Constants;
 import org.kisst.cordys.caas.util.FileUtil;
@@ -52,7 +52,7 @@ public class CordysSystem extends LdapObject
     /** Holds the environment details. */
     private final Environment env;
     /** Holds the properties. */
-    private Properties properties = new Properties();
+    private LoadedPropertyMap properties = new LoadedPropertyMap();
     /** Holds the version of the Cordys instance. */
     public final String version;
     /** Holds the build number of the Cordys instance. */
@@ -273,9 +273,9 @@ public class CordysSystem extends LdapObject
      * 
      * @return properties of the cordys system
      */
-    public Properties getProperties()
+    public LoadedPropertyMap getProperties()
     {
-        return this.properties;
+        return properties;
     }
 
     /**
@@ -314,7 +314,7 @@ public class CordysSystem extends LdapObject
 
         if (propertyFile != null)
         {
-            FileUtil.load(properties, propertyFile);
+            FileUtil.loadProperties(properties, new File(propertyFile));
         }
     }
 
@@ -323,7 +323,7 @@ public class CordysSystem extends LdapObject
      */
     private void setDefaultProperties()
     {
-        properties.setProperty("LDAP_ROOT", this.getDn());
+        properties.put("LDAP_ROOT", this.getDn(), "default");
     }
 
     /**

@@ -124,5 +124,10 @@ ${include:folder=foldername;pattern=.+\.ctf}]]></action>
 
 Note that the property files in these new fodlers are loaded first and thus are higher in the hierarchy as the previous files.]]></action>
     </release>
+    <release date="2014-02-13" description="Stable release" version="2.1.3">
+      <action dev="pgussow" type="change"><![CDATA[Removed all the uses of the Properties class in favor of the LoadedPropertyMap.
+
+This also fixed some bugs when creating a template.]]></action>
+    </release>
   </body>
 </document>

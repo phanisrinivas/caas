@@ -49,6 +49,7 @@ import org.kisst.cordys.caas.WebServiceInterface;
 import org.kisst.cordys.caas.XMLStoreObject;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
 import org.kisst.cordys.caas.template.strategy.ICustomStrategy;
 import org.kisst.cordys.caas.template.strategy.StrategyFactory;
 import org.kisst.cordys.caas.util.DOMUtil;
@@ -547,7 +548,7 @@ public class Template
      * @param filename absolute path of the template file
      * @param vars Map containing the properties
      */
-    public void save(String filename, Map<String, String> vars)
+    public void save(String filename, LoadedPropertyMap vars)
     {
         // Add the organization name, system name and LDAP root to the map
         if (organization != null)
@@ -578,7 +579,7 @@ public class Template
      * @param org The organization to get the information from.
      * @param vars The variables list to add the default values to.
      */
-    private void addDefaultVariables(Organization org, Map<String, String> vars)
+    private void addDefaultVariables(Organization org, LoadedPropertyMap vars)
     {
         vars.put("sys.org.name", org.getName());
         vars.put("sys.ldap.root", org.getSystem().getDn());
@@ -772,7 +773,7 @@ public class Template
      * @param org Organization to which the template needs to be applied
      * @param vars Map containing the properties
      */
-    public void apply(Organization org, Map<String, String> vars)
+    public void apply(Organization org, LoadedPropertyMap vars)
     {
         // Add the default system properties used for mapping.
         addDefaultVariables(org, vars);

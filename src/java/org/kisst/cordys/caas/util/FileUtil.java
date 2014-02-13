@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -228,13 +229,50 @@ public class FileUtil
     {
         return loadProperties(files, new LoadedPropertyMap());
     }
-    
+
     /**
      * This method will load all the properties that are defined in the given files. Once a property is loaded it will not be
      * overwritten. So make sure you pass on the most important file as the first one.
      * 
      * @param files The files to load.
-     * @param lpm The map to add them to. If null a map will be created. 
+     * @return The map containing the properties to use.
+     */
+    public static LoadedPropertyMap loadProperties(File... files)
+    {
+        LoadedPropertyMap retVal = new LoadedPropertyMap();
+
+        if (files != null)
+        {
+            loadProperties(Arrays.asList(files), retVal);
+        }
+
+        return retVal;
+    }
+
+    /**
+     * This method will load all the properties that are defined in the given files. Once a property is loaded it will not be
+     * overwritten. So make sure you pass on the most important file as the first one.
+     * 
+     * @param files The files to load.
+     * @param lpm The map to add them to. If null a map will be created.
+     * @return The map containing the properties to use.
+     */
+    public static LoadedPropertyMap loadProperties(LoadedPropertyMap lpm, File... files)
+    {
+        if (files != null)
+        {
+            loadProperties(Arrays.asList(files), lpm);
+        }
+
+        return lpm;
+    }
+
+    /**
+     * This method will load all the properties that are defined in the given files. Once a property is loaded it will not be
+     * overwritten. So make sure you pass on the most important file as the first one.
+     * 
+     * @param files The files to load.
+     * @param lpm The map to add them to. If null a map will be created.
      * @return The map containing the properties to use.
      */
     public static LoadedPropertyMap loadProperties(List<File> files, LoadedPropertyMap lpm)
@@ -243,7 +281,7 @@ public class FileUtil
         {
             lpm = new LoadedPropertyMap();
         }
-        
+
         if (files != null)
         {
             for (File file : files)
@@ -258,7 +296,7 @@ public class FileUtil
                     // Now that the file was loaded we can copy the non-existing properties to the result.
                     for (Object key : tmp.keySet())
                     {
-                        LoadedProperty lp = new LoadedProperty((String)key, (String)tmp.get(key), file.getAbsolutePath());
+                        LoadedProperty lp = new LoadedProperty((String) key, (String) tmp.get(key), file.getAbsolutePath());
 
                         // Always add these properties. If the property is already defined it will just be registered.
                         lpm.put(lp);
@@ -266,7 +304,7 @@ public class FileUtil
                 }
             }
         }
-        
+
         return lpm;
     }
 
@@ -279,7 +317,7 @@ public class FileUtil
     public static Map<String, String> loadMap(String filename)
     {
         Properties p = new Properties();
-        FileUtil.load(p, "C:/development/workspaces/MainWorkspace/backend-cordys-configuration-nv/properties/int.properties");
+        FileUtil.load(p, filename);
 
         Map<String, String> m = new LinkedHashMap<String, String>();
         for (Object key : p.keySet())
