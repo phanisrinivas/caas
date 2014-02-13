@@ -836,9 +836,7 @@ public class CordysSystem extends LdapObject
         }
 
         String pomptsetsXML = FileUtil.loadString(isvpPromptSetFilePath);
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        HashMap<String, String> variables = new HashMap<String, String>((Map) properties);
-        pomptsetsXML = StringUtil.substitute(pomptsetsXML, variables);
+        pomptsetsXML = StringUtil.substitute(pomptsetsXML, properties);
 
         XmlNode promposetsXMLNode = new XmlNode(pomptsetsXML);
         return promposetsXMLNode;
