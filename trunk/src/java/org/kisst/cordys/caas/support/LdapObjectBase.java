@@ -249,7 +249,8 @@ public abstract class LdapObjectBase extends LdapObject
     }
 
     /**
-     * This method calculates the parent for the given entry. The calculation can be a bit tricky. Especially if the given DN is part 
+     * This method calculates the parent for the given entry. The calculation can be a bit tricky. Especially if the given DN is
+     * part
      * 
      * @param system The system
      * @param dn The dn
@@ -288,25 +289,28 @@ public abstract class LdapObjectBase extends LdapObject
             {
                 continue;
             }
-            
-            //Now check if the entry is a loaded package.
+
+            // Now check if the entry is a loaded package.
             Matcher m = PKG.matcher(dn);
             if (m.find())
             {
-                //It is a package DN. So we need to have the cn, because that is the name of the package which we can use to look up the runtime package.
+                // It is a package DN. So we need to have the cn, because that is the name of the package which we can use to look
+                // up the runtime package.
                 String cn = m.group(1);
-                
-                Package p = system.packages.getByName(cn);
-                
-                //For some reason sometimes the package is not found
-                if (p == null)
+                if (!"authenticated users".equals("cn"))
                 {
-                    Environment.warn("Could not find package with name " + cn);
-                }
-                else
-                {
-                    system.rememberLdap(p.getRuntime());
-                    return p.getRuntime();
+                    Package p = system.packages.getByName(cn);
+
+                    // For some reason sometimes the package is not found
+                    if (p == null)
+                    {
+                        Environment.warn("Could not find package with name " + cn);
+                    }
+                    else
+                    {
+                        system.rememberLdap(p.getRuntime());
+                        return p.getRuntime();
+                    }
                 }
             }
 

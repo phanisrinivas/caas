@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -537,7 +538,6 @@ public class Template
                     }
                 }
             }
-
         }
     }
 
@@ -563,6 +563,12 @@ public class Template
 
         FileUtil.saveString(new File(filename), actualTemplate);
 
+        info("Actual property values used for substitution:");
+        for (Entry<String, String> e : vars.entrySet())
+        {
+            info(" - " + e.getKey() + ": " + e.getValue());
+        }
+        
         info("Template successfully exported to " + filename);
     }
 
@@ -581,11 +587,11 @@ public class Template
      */
     private void addDefaultVariables(Organization org, LoadedPropertyMap vars)
     {
-        vars.put("sys.org.name", org.getName());
-        vars.put("sys.ldap.root", org.getSystem().getDn());
-        vars.put("sys.name", org.getSystem().getName());
-        vars.put("sys.user.name", org.getSystem().getConnectionUser());
-        vars.put("sys.currentdate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(new Date()));
+        vars.put("sys.org.name", org.getName(), "default");
+        vars.put("sys.ldap.root", org.getSystem().getDn(), "default");
+        vars.put("sys.name", org.getSystem().getName(), "default");
+        vars.put("sys.user.name", org.getSystem().getConnectionUser(), "default");
+        vars.put("sys.currentdate", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(new Date()), "default");
     }
 
     /**
