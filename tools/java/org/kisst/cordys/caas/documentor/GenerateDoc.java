@@ -97,7 +97,7 @@ public class GenerateDoc
         {
             GenerateDoc gd = new GenerateDoc("./src/java");
 
-            String documentation = gd.document("c:/temp");
+            String documentation = gd.document("d:/temp");
 
             System.out.println(documentation);
         }
