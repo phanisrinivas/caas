@@ -772,7 +772,7 @@ public class Template
     {
         apply(org, conf.getProps());
     }
-
+    
     /**
      * Applies the template to the given organization
      * 
@@ -780,6 +780,18 @@ public class Template
      * @param vars Map containing the properties
      */
     public void apply(Organization org, LoadedPropertyMap vars)
+    {
+        apply(org, vars, false);
+    }
+
+    /**
+     * Applies the template to the given organization.
+     * 
+     * @param org Organization to which the template needs to be applied
+     * @param vars Map containing the properties
+     * @param validate Whether or not the configuration should only be validated. This means that no configuration changes will happen.
+     */
+    public void apply(Organization org, LoadedPropertyMap vars, boolean validate)
     {
         // Add the default system properties used for mapping.
         addDefaultVariables(org, vars);
@@ -801,6 +813,13 @@ public class Template
         String tmp = getFinalTemplateXml(vars);
         org.kisst.caas._2_0.template.Organization template = JAXB.unmarshal(new StringReader(tmp),
                 org.kisst.caas._2_0.template.Organization.class);
+        
+        if (validate)
+        {
+            info("Template is valid. Final template XML:");
+            info(tmp);
+            return;
+        }
 
         for (DSO dso : template.getDso())
         {
