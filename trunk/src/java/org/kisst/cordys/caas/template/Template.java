@@ -743,7 +743,7 @@ public class Template
                     {
                         debug("Loading file " + new File(source, file).getAbsolutePath());
 
-                        replacement.append(processIncludeFiles(FileUtil.loadString(source)));
+                        replacement.append(processIncludeFiles(FileUtil.loadString(new File(source, file))));
                     }
                 }
 

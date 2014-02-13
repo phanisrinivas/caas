@@ -129,5 +129,8 @@ Note that the property files in these new fodlers are loaded first and thus are 
 
 This also fixed some bugs when creating a template.]]></action>
     </release>
+    <release date="2014-02-??" description="Stable release" version="2.1.4">
+      <action dev="pgussow" type="change"><![CDATA[Some bug fixes in the include system.]]></action>
+    </release>
   </body>
 </document>
