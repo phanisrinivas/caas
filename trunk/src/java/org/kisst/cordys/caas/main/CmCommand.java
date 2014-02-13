@@ -11,9 +11,6 @@ package org.kisst.cordys.caas.main;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
@@ -23,6 +20,7 @@ import org.kisst.cordys.caas.cm.CaasPackage;
 import org.kisst.cordys.caas.cm.CcmFilesObjective;
 import org.kisst.cordys.caas.cm.Objective;
 import org.kisst.cordys.caas.cm.gui.CcmGui;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
 import org.kisst.cordys.caas.template.Template;
 
 /**
@@ -182,10 +180,8 @@ public class CmCommand extends CompositeCommand
                 }
                 Template tpl = new Template(org, null, null, u);
 
-                Properties props = getSystem().getProperties();
-                @SuppressWarnings({ "rawtypes", "unchecked" })
-                Map<String, String> variables = new HashMap<String, String>((Map) props);
-                tpl.save(filename, variables);
+                LoadedPropertyMap props = getSystem().getProperties();
+                tpl.save(filename, props);
             }
         }
     };
@@ -209,10 +205,8 @@ public class CmCommand extends CompositeCommand
                 Template tpl = new Template(org, null, isvp, null);
                 if (!tpl.isEmpty())
                 {
-                    Properties props = getSystem().getProperties();
-                    @SuppressWarnings({ "rawtypes", "unchecked" })
-                    Map<String, String> variables = new HashMap<String, String>((Map) props);
-                    tpl.save(filename, variables);
+                    LoadedPropertyMap props = getSystem().getProperties();
+                    tpl.save(filename, props);
                 }
             }
         }
@@ -229,7 +223,7 @@ public class CmCommand extends CompositeCommand
         public void run(String[] args)
         {
             Environment.warn("Deprecated command. Please use 'caas template create' syntax");
-            
+
             TemplateCommand tc = new TemplateCommand();
             Command cc = tc.getCreateCommand();
 
@@ -246,7 +240,7 @@ public class CmCommand extends CompositeCommand
         public void run(String[] args)
         {
             Environment.warn("Deprecated command. Please use 'caas template apply' syntax");
-            
+
             TemplateCommand tc = new TemplateCommand();
             Command cc = tc.getApplyCommand();
 

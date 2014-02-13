@@ -23,7 +23,7 @@ import org.kisst.cordys.caas.util.StringUtil;
  * 
  * @author pgussow
  */
-public class LoadedPropertyMap implements Map<String, String>
+public class LoadedPropertyMap implements Map<String, String>, Cloneable
 {
     /** Holds the actual values of the properties to be used. */
     private TreeMap<String, String> m_actualHashMap = new TreeMap<String, String>();
@@ -200,6 +200,18 @@ public class LoadedPropertyMap implements Map<String, String>
     }
 
     /**
+     * This method adds a new property to the map.
+     * 
+     * @param key The key
+     * @param value The value
+     * @param source The source
+     */
+    public void put(String key, String value, String source)
+    {
+        put(new LoadedProperty(key, value, source));
+    }
+
+    /**
      * @see java.util.Map#remove(java.lang.Object)
      */
     @Override
@@ -256,9 +268,34 @@ public class LoadedPropertyMap implements Map<String, String>
     }
 
     /**
+     * @see java.lang.Object#clone()
+     */
+    @Override
+    public Object clone() throws CloneNotSupportedException
+    {
+        LoadedPropertyMap cln = new LoadedPropertyMap();
+
+        cln.m_actualHashMap = new TreeMap<String, String>(this.m_actualHashMap);
+
+        for (String name : this.m_loadedProperties.keySet())
+        {
+            Map<String, LoadedProperty> sourceProps = this.m_loadedProperties.get(name);
+            Map<String, LoadedProperty> newList = new LinkedHashMap<String, LoadedPropertyMap.LoadedProperty>();
+            cln.m_loadedProperties.put(name, newList);
+
+            for (Entry<String, LoadedPropertyMap.LoadedProperty> entry : sourceProps.entrySet())
+            {
+                newList.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return cln;
+    }
+
+    /**
      * Holds the details of the loaded property.
      */
-    public static class LoadedProperty
+    public static class LoadedProperty implements Cloneable
     {
         /** Holds the name of the property. */
         private String m_name;
@@ -350,5 +387,18 @@ public class LoadedPropertyMap implements Map<String, String>
         {
             m_name = name;
         }
+
+        @Override
+        protected Object clone() throws CloneNotSupportedException
+        {
+            LoadedProperty retVal = (LoadedProperty) super.clone();
+
+            retVal.m_name = m_name;
+            retVal.m_source = m_source;
+            retVal.m_value = m_value;
+
+            return retVal;
+        }
     }
+
 }

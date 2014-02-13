@@ -3,11 +3,11 @@ package org.kisst.cordys.caas.main;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
 import org.kisst.cordys.caas.template.ETemplateOption;
 import org.kisst.cordys.caas.template.Template;
 import org.kisst.cordys.caas.util.FileUtil;
@@ -46,7 +46,7 @@ public class TemplateCommand extends CompositeCommand
             Template templ = new Template(organization, null, getOptions());
 
             // Load the properties for the given organization
-            Map<String, String> variables = Environment.get().loadSystemProperties(getSystem().getName(), organization.getName());
+            LoadedPropertyMap variables = Environment.get().loadSystemProperties(getSystem().getName(), organization.getName());
 
             // Save the template
             templ.save(args[0], variables);
@@ -71,15 +71,15 @@ public class TemplateCommand extends CompositeCommand
             Organization organization = getOrg(orgz);
 
             // Load the properties for the given organization.
-            Map<String, String> map = Environment.get().loadSystemProperties(this.getSystem().getName(), organization.getName());
+            LoadedPropertyMap lpm = Environment.get().loadSystemProperties(this.getSystem().getName(), organization.getName());
 
             // Add the organization name, system name and LDAP root to the map
-            map.put("sys.org.name", organization.getName());
-            map.put("sys.ldap.root", organization.getSystem().getDn());
-            map.put("sys.name", this.getSystem().getName());
+            lpm.put("sys.org.name", organization.getName(), "dynamic");
+            lpm.put("sys.ldap.root", organization.getSystem().getDn(), "dynamic");
+            lpm.put("sys.name", this.getSystem().getName(), "dynamic");
 
             // Apply the template to the given organization using the given properties.
-            templ.apply(organization, map);
+            templ.apply(organization, lpm);
         }
     };
 

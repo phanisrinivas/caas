@@ -1,11 +1,8 @@
 package org.kisst.cordys.caas.cm;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -23,9 +20,9 @@ public class XmlStoreObjective extends CompositeObjective
 
     /**
      * Instantiates a new xml store objective.
-     *
-     * @param  org   The org
-     * @param  node  The node
+     * 
+     * @param org The org
+     * @param node The node
      */
     public XmlStoreObjective(Organization org, XmlNode node)
     {
@@ -48,7 +45,7 @@ public class XmlStoreObjective extends CompositeObjective
     }
 
     /**
-     * @see  org.kisst.cordys.caas.cm.Objective#getSystem()
+     * @see org.kisst.cordys.caas.cm.Objective#getSystem()
      */
     public CordysSystem getSystem()
     {
@@ -65,8 +62,8 @@ public class XmlStoreObjective extends CompositeObjective
 
         /**
          * Instantiates a new text objective.
-         *
-         * @param  node  The node
+         * 
+         * @param node The node
          */
         public TextObjective(XmlNode node)
         {
@@ -75,23 +72,23 @@ public class XmlStoreObjective extends CompositeObjective
         }
 
         /**
-         * @see  java.lang.Object#toString()
+         * @see java.lang.Object#toString()
          */
-        @Override public String toString()
+        @Override
+        public String toString()
         {
             return "TextObjective(" + xmlContentString + ")";
         }
 
         /**
-         * @see  org.kisst.cordys.caas.cm.AbstractObjective#myCheck(org.kisst.cordys.caas.cm.Objective.Ui)
+         * @see org.kisst.cordys.caas.cm.AbstractObjective#myCheck(org.kisst.cordys.caas.cm.Objective.Ui)
          */
-        @Override protected void myCheck(Ui ui)
+        @Override
+        protected void myCheck(Ui ui)
         {
             // All the values that we've read from the caaspm file still have the variable names. So in order to
             // properly check them we need to substitube all PM-values based on the template
-            Properties props = org.getSystem().getProperties();
-            @SuppressWarnings({ "rawtypes", "unchecked" })
-            Map<String, String> variables = new HashMap<String, String>((Map) props);
+            LoadedPropertyMap variables = org.getSystem().getProperties();
 
             // Reparse the XML with the parameters replaced
             String actual = StringUtil.substitute(xmlContentString, variables);
@@ -122,20 +119,21 @@ public class XmlStoreObjective extends CompositeObjective
             }
         }
 
-        
         /**
          * @see org.kisst.cordys.caas.cm.AbstractObjective#myConfigure(org.kisst.cordys.caas.cm.Objective.Ui)
          */
-        @Override protected void myConfigure(Ui ui)
-        { 
+        @Override
+        protected void myConfigure(Ui ui)
+        {
             /* do nothing, automatically editing not supported */
         }
 
         /**
          * @see org.kisst.cordys.caas.cm.AbstractObjective#myPurge(org.kisst.cordys.caas.cm.Objective.Ui)
          */
-        @Override protected void myPurge(Ui ui)
-        { 
+        @Override
+        protected void myPurge(Ui ui)
+        {
             /* do nothing, automatically editing not supported */
         }
     }
