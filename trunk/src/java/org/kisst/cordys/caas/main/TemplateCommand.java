@@ -82,6 +82,36 @@ public class TemplateCommand extends CompositeCommand
             templ.apply(organization, lpm);
         }
     };
+    
+    /**
+     * This method will apply the template to the given system and organization.
+     */
+    private Command validate = new HostCommand("[options] <template file>",
+            "Validates the template and outputs the final template with filled in variables") {
+        @Override
+        public void run(String[] args)
+        {
+            args = checkArgs(args);
+
+            File src = new File(args[0]);
+            Template templ = new Template(FileUtil.loadString(src), getOptions(), src.getParentFile());
+
+            // Get the organization in which the template should be applied.
+            String orgz = System.getProperty("create.org");
+            Organization organization = getOrg(orgz);
+
+            // Load the properties for the given organization.
+            LoadedPropertyMap lpm = Environment.get().loadSystemProperties(this.getSystem().getName(), organization.getName());
+
+            // Add the organization name, system name and LDAP root to the map
+            lpm.put("sys.org.name", organization.getName(), "dynamic");
+            lpm.put("sys.ldap.root", organization.getSystem().getDn(), "dynamic");
+            lpm.put("sys.name", this.getSystem().getName(), "dynamic");
+
+            // Apply the template to the given organization using the given properties.
+            templ.apply(organization, lpm, true);
+        }
+    };
 
     /**
      * Instantiates a new cm command.
@@ -94,6 +124,7 @@ public class TemplateCommand extends CompositeCommand
 
         commands.put("apply", apply);
         commands.put("create", create);
+        commands.put("validate", validate);
     }
 
     /**
