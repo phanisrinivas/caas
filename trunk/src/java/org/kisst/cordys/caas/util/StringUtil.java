@@ -165,7 +165,8 @@ public class StringUtil
     }
 
     /**
-     * Substitutes the Map keys found in the given string with their corresponding values from the Map.
+     * Substitutes the Map keys found in the given string with their corresponding values from the Map. It supports nested
+     * parameters as well. This means that if the resolved text again contains parameters it will resolve those as well.
      * 
      * @param text The original text that should be checked and replaced.
      * @param vars The replacements for the parameters in the source string.
@@ -189,7 +190,9 @@ public class StringUtil
             if (replacement != null)
             {
                 matcher.appendReplacement(buffer, "");
-                buffer.append(replacement);
+
+                //Recursively call itself to make sure the full value is expanded.
+                buffer.append(substitute(replacement, vars));
             }
         }
         matcher.appendTail(buffer);
@@ -199,7 +202,7 @@ public class StringUtil
         {
             LOG.debug("After:\n" + retVal);
         }
-
+        
         return retVal;
     }
 

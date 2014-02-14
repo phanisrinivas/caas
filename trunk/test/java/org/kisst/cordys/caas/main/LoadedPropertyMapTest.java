@@ -44,9 +44,15 @@ public class LoadedPropertyMapTest
 
         // Check the values
         assertEquals(4, all.size());
-        assertEquals("first.properties", lp.get("set.in.all"));
+        assertEquals("first.properties-dev-user", lp.get("set.in.all"));
+
+        // The property values should support property-in-property values. The definition of nested.test is
+        // nested-set.in.all_${set.in.all}. This means that it's value should be resolved after loading to
+        // nested-set.in.all_first.properties
+        
+        assertEquals("Error in nested resolving of properties", "nested-set.in.all_first.properties-dev-user", lp.get("nested.test"));
     }
-    
+
     /**
      * This method tests that the properties for the dev system and the organization system are loaded properly.
      */
@@ -76,7 +82,7 @@ public class LoadedPropertyMapTest
         assertEquals(3, all.size());
         assertEquals("dev-system-level", lp.get("set.in.all"));
     }
-    
+
     /**
      * This method tests that the properties for the dev system and the organization system are loaded properly.
      */
@@ -111,7 +117,7 @@ public class LoadedPropertyMapTest
         assertEquals("The value of set.in.all is either onlyuser.properties or first-user.properties", true,
                 "onlyuser.properties".equals(lp.get("set.in.all")) || "first-user.properties".equals(lp.get("set.in.all")));
     }
-    
+
     /**
      * This method tests that the properties for the dev system and the organization system are loaded properly.
      */

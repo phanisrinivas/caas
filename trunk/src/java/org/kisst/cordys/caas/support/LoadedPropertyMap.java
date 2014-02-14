@@ -212,6 +212,28 @@ public class LoadedPropertyMap implements Map<String, String>, Cloneable
     }
 
     /**
+     * This method can be called to resolve all actual values. Resolving actual values means that if an actual value contains a
+     * reference to a parameter it will resolve that variable. It supports unlimited nesting.
+     */
+    public void resolveActualValues()
+    {
+        TreeMap<String, String> replaced = new TreeMap<String, String>();
+
+        trace("Before:");
+        trace(toString());
+
+        for (Entry<String, String> e : m_actualHashMap.entrySet())
+        {
+            replaced.put(e.getKey(), StringUtil.substitute(e.getValue(), m_actualHashMap));
+        }
+
+        m_actualHashMap = replaced;
+
+        trace("After:");
+        trace(toString());
+    }
+
+    /**
      * @see java.util.Map#remove(java.lang.Object)
      */
     @Override

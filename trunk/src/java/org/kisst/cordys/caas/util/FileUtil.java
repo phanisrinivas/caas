@@ -10,6 +10,10 @@
 package org.kisst.cordys.caas.util;
 
 import static org.kisst.cordys.caas.main.Environment.debug;
+import org.kisst.cordys.caas.support.LoadedPropertyMap;
+import org.kisst.cordys.caas.support.LoadedPropertyMap.LoadedProperty;
+
+import sun.misc.BASE64Encoder;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -18,16 +22,12 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import org.kisst.cordys.caas.support.LoadedPropertyMap;
-import org.kisst.cordys.caas.support.LoadedPropertyMap.LoadedProperty;
-
-import sun.misc.BASE64Encoder;
 
 public class FileUtil
 {
@@ -41,13 +41,16 @@ public class FileUtil
     public static boolean isAbsolute(String filename)
     {
         boolean retVal = false;
+
         if (!StringUtil.isEmptyOrNull(filename))
         {
+
             // Windows / Linux
             if (filename.startsWith("/")
                     || filename.startsWith("\\")
                     // Windows only
-                    || (filename.length() > 3 && filename.charAt(2) == ':' && (filename.charAt(3) == '/' || filename.charAt(3) == '\\')))
+                    || ((filename.length() > 3) && (filename.charAt(2) == ':') && ((filename.charAt(3) == '/') || (filename
+                            .charAt(3) == '\\'))))
             {
                 retVal = true;
             }
@@ -59,6 +62,7 @@ public class FileUtil
     public static void saveString(File filename, String content)
     {
         FileWriter out = null;
+
         try
         {
             out = new FileWriter(filename);
@@ -70,8 +74,10 @@ public class FileUtil
         }
         finally
         {
+
             if (out != null)
             {
+
                 try
                 {
                     out.close();
@@ -84,9 +90,16 @@ public class FileUtil
         }
     }
 
+    /**
+     * This method loads the proeprties from the given filename into the passed on properties object.
+     * 
+     * @param props The props object to load the properties in.
+     * @param filename The filename to load.
+     */
     public static void load(Properties props, String filename)
     {
         FileInputStream inp = null;
+
         try
         {
             inp = new FileInputStream(filename);
@@ -98,8 +111,10 @@ public class FileUtil
         }
         finally
         {
+
             try
             {
+
                 if (inp != null)
                     inp.close();
             }
@@ -118,16 +133,20 @@ public class FileUtil
     public static String loadString(File filename)
     {
         BufferedReader inp = null;
+
         try
         {
             inp = new BufferedReader(new FileReader(filename));
+
             StringBuilder result = new StringBuilder();
             String line;
+
             while ((line = inp.readLine()) != null)
             {
                 result.append(line);
                 result.append("\n");
             }
+
             return result.toString();
         }
         catch (java.io.IOException e)
@@ -136,8 +155,10 @@ public class FileUtil
         }
         finally
         {
+
             try
             {
+
                 if (inp != null)
                     inp.close();
             }
@@ -151,14 +172,17 @@ public class FileUtil
     /**
      * Checks for the existence of the given file
      * 
-     * @param fileName
+     * @param fileName The name of the file.
      * @return boolean returns true if the file exists, false if it doesn't or if the fileName is null
      */
     public static boolean doesFileExist(String fileName)
     {
+
         if (fileName == null)
             return false;
+
         File file = new File(fileName);
+
         return file.exists();
     }
 
@@ -166,19 +190,23 @@ public class FileUtil
      * This webService encodes the files content in Base64 format Usage: For uploading an ISVP to a remote node in the cluster,
      * the isvp file has to be encoded and uploaded. This webService encodes the isvp content
      * 
-     * @param filePath
+     * @param filePath The file to encode.
      * @return String Base64 encoded content of the file
      */
     public static String encodeFile(String filePath)
     {
         FileInputStream fin = null;
+
         try
         {
             fin = new FileInputStream(filePath);
+
             byte[] fileContent = new byte[fin.available()];
             DataInputStream din = new DataInputStream(fin);
             din.readFully(fileContent);
+
             BASE64Encoder encoder = new BASE64Encoder();
+
             return new String(encoder.encode(fileContent));
 
         }
@@ -196,25 +224,6 @@ public class FileUtil
                 catch (IOException e)
                 {
                 }
-        }
-    }
-
-    /**
-     * This method will load the property files identified by the given list. If a file in the list does not exist it is ignored.
-     * If a property is already defined it will NOT be overwritten!
-     * 
-     * @param props The properties object to put the properties in.
-     * @param files The files to add to the properties.
-     */
-    public static void load(Properties props, List<File> files)
-    {
-        if (props != null)
-        {
-            Map<String, String> tmp = loadProperties(files);
-            for (String key : tmp.keySet())
-            {
-                props.setProperty(key, tmp.get(key));
-            }
         }
     }
 
@@ -259,6 +268,7 @@ public class FileUtil
      */
     public static LoadedPropertyMap loadProperties(LoadedPropertyMap lpm, File... files)
     {
+
         if (files != null)
         {
             loadProperties(Arrays.asList(files), lpm);
@@ -277,6 +287,7 @@ public class FileUtil
      */
     public static LoadedPropertyMap loadProperties(List<File> files, LoadedPropertyMap lpm)
     {
+
         if (lpm == null)
         {
             lpm = new LoadedPropertyMap();
@@ -284,8 +295,10 @@ public class FileUtil
 
         if (files != null)
         {
+
             for (File file : files)
             {
+
                 if (file.exists())
                 {
                     debug("Loading file " + file.getAbsolutePath());
@@ -305,6 +318,10 @@ public class FileUtil
             }
         }
 
+        // Now that all properties have been loaded we need to finalize the property values. The value of a property could itself
+        // also contain a reference to a property. So what we will do is tell the LoadedPropertyMap to resolve all actual values.
+        lpm.resolveActualValues();
+
         return lpm;
     }
 
@@ -320,6 +337,7 @@ public class FileUtil
         FileUtil.load(p, filename);
 
         Map<String, String> m = new LinkedHashMap<String, String>();
+
         for (Object key : p.keySet())
         {
             String value = p.getProperty((String) key);
