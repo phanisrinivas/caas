@@ -563,10 +563,10 @@ public class Template
 
         FileUtil.saveString(new File(filename), actualTemplate);
 
-        info("Actual property values used for substitution:");
+        debug("Actual property values used for substitution:");
         for (Entry<String, String> e : vars.entrySet())
         {
-            info(" - " + e.getKey() + ": " + e.getValue());
+            debug(" - " + e.getKey() + ": " + e.getValue());
         }
         
         info("Template successfully exported to " + filename);
