@@ -297,7 +297,7 @@ public abstract class LdapObjectBase extends LdapObject
                 // It is a package DN. So we need to have the cn, because that is the name of the package which we can use to look
                 // up the runtime package.
                 String cn = m.group(1);
-                if (!"authenticated users".equals("cn"))
+                if (!"authenticated users".equals(cn))
                 {
                     Package p = system.packages.getByName(cn);
 
