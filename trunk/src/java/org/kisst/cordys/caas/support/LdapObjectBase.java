@@ -121,7 +121,7 @@ public abstract class LdapObjectBase extends LdapObject
 
         LdapObject current = this;
 
-        while (current != null && retVal != null)
+        while (current != null && retVal == null)
         {
             if (current instanceof Organization)
             {
