@@ -133,5 +133,8 @@ This also fixed some bugs when creating a template.]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added support for nested property resolving.]]></action>
       <action dev="pgussow" type="change"><![CDATA[Some bug fixes in the include system.]]></action>
     </release>
+    <release date="2014-04-03" description="Stable release" version="2.1.5">
+      <action dev="pgussow" type="add"><![CDATA[Fixed a bug in determining the organization for an entry]]></action>
+    </release>
   </body>
 </document>
