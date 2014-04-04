@@ -256,6 +256,7 @@ public abstract class BaseStrategy implements ICustomStrategy
                     }
                 }
             }
+            
             if (newWSI != null)
             {
                 result.add(newWSI);
