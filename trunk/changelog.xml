@@ -2,7 +2,7 @@
     <properties>
         <title>CAAS 2.x changelog</title>
         <author email="pgussow@cordys.com">Phillip Gussow</author>
-        <svn>$Revision: 144 $</svn>
+        <svn>$Revision: 144$</svn>
     </properties>
     <template>
         <release date="YYYY-MM-DD" description="OPTIONAL DESCRIPTION" version="x.y.z">
