@@ -243,7 +243,7 @@ public abstract class BaseStrategy implements ICustomStrategy
             else
             {
                 Package pkg = getOrganization().getSystem().packages.getByName(packageName);
-                if (pkg != null)
+                if (pkg != null && pkg.isLoaded())
                 {
                     if (pkg.webServiceInterfaces != null)
                     {
