@@ -12,8 +12,8 @@
 		<mkdir dir="${builddir}" />
 		<mkdir dir="${builddir}/classes" />
 		<property name="version.postfix" value="" />
-		
-		<property file="wiki.properties"/>
+
+		<property file="wiki.properties" />
 	</target>
 
 	<target name="compile" description="Compiles Java files" depends="init">
@@ -86,7 +86,7 @@
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
 			<zipfileset dir="src/schema" prefix="schema" />
-            <zipfileset dir="src/project"/>
+			<zipfileset dir="src/project" />
 		</zip>
 	</target>
 
@@ -97,7 +97,7 @@
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
 			<zipfileset dir="src/schema" prefix="schema" />
-            <zipfileset dir="src/project"/>
+			<zipfileset dir="src/project" />
 		</zip>
 	</target>
 
@@ -110,7 +110,7 @@
 			<zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
 			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
-			<zipfileset dir="src/project"/>
+			<zipfileset dir="src/project" />
 		</zip>
 
 		<echo>Uploading file ${builddir}/caas-${project.version}-full.zip to wiki.</echo>
@@ -154,7 +154,7 @@
 			<zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
 			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
-		    <zipfileset dir="src/project"/>
+			<zipfileset dir="src/project" />
 		</zip>
 	</target>
 
@@ -167,7 +167,7 @@
 			<zipfileset dir="src/schema" prefix="schema" />
 			<zipfileset dir="lib" prefix="lib" includes="*.jar" excludes="jython.jar" />
 			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
-            <zipfileset dir="src/project"/>
+			<zipfileset dir="src/project" />
 		</zip>
 	</target>
 
@@ -215,5 +215,11 @@
 
 	<target name="clean" depends="init">
 		<delete dir="${builddir}/classes" />
+		<delete>
+			<fileset dir="${builddir}">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+
 	</target>
 </project>
