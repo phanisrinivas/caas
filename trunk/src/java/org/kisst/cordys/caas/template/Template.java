@@ -1094,6 +1094,7 @@ public class Template
                 }
                 else
                 {
+                    warn("Could not find role " + dnRole + " in the Cordys system");
                     newRoles.add(dnRole);
                 }
             }
