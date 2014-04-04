@@ -138,6 +138,7 @@ This also fixed some bugs when creating a template.]]></action>
     </release>
     <release date="2014-04-04" description="Stable release" version="2.1.6">
       <action dev="pgussow" type="add"><![CDATA[Implemented a safer version of the run.cmd being able to hande all parameters.]]></action>
+      <action dev="pgussow" type="fix"><![CDATA[The template apply action could fail if a role dn was used of a package that was already uploaded, but not yet deployed.]]></action>
     </release>
   </body>
 </document>

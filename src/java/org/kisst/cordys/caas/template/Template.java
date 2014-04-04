@@ -568,7 +568,7 @@ public class Template
         {
             debug(" - " + e.getKey() + ": " + e.getValue());
         }
-        
+
         info("Template successfully exported to " + filename);
     }
 
@@ -772,7 +772,7 @@ public class Template
     {
         apply(org, conf.getProps());
     }
-    
+
     /**
      * Applies the template to the given organization
      * 
@@ -789,7 +789,8 @@ public class Template
      * 
      * @param org Organization to which the template needs to be applied
      * @param vars Map containing the properties
-     * @param validate Whether or not the configuration should only be validated. This means that no configuration changes will happen.
+     * @param validate Whether or not the configuration should only be validated. This means that no configuration changes will
+     *            happen.
      */
     public void apply(Organization org, LoadedPropertyMap vars, boolean validate)
     {
@@ -813,7 +814,7 @@ public class Template
         String tmp = getFinalTemplateXml(vars);
         org.kisst.caas._2_0.template.Organization template = JAXB.unmarshal(new StringReader(tmp),
                 org.kisst.caas._2_0.template.Organization.class);
-        
+
         if (validate)
         {
             info("Template is valid. Final template XML:");
@@ -1051,7 +1052,8 @@ public class Template
             }
 
             info("configuring user " + name + " with roles ... ");
-            // Assigning roles
+
+            // Now the roles need to be assigned to the user.
             User user = org.users.getByName(name);
             ArrayList<String> newRoles = new ArrayList<String>();
             for (org.kisst.caas._2_0.template.Role child : tu.getRole())
@@ -1060,23 +1062,40 @@ public class Template
                 String isvpName = child.getPackage();
                 String roleName = child.getName();
                 String dnRole = null;
+
+                // First step is to look up the actual role in the system. The role can be either an organizational role or a role
+                // that comes from a CAp package.
                 if (isvpName == null) // Assign organizational role if the isvp name is not mentioned
                 {
                     role = org.roles.getByName(roleName);
+                    // The roledn is built up as a string for fallback mechanism.
                     dnRole = "cn=" + roleName + ",cn=organizational roles," + org.getDn();
                 }
                 else
-                // Assign ISVP role
                 {
-                    Package isvp = org.getSystem().isvp.getByName(isvpName);
-                    if (isvp != null)
-                        role = isvp.roles.getByName(roleName);
+                    Package pkg = org.getSystem().isvp.getByName(isvpName);
+
+                    // It could be that the package has been uploaded, but not yet deployed.
+                    if (pkg != null && pkg.isLoaded())
+                    {
+                        role = pkg.roles.getByName(roleName);
+                    }
+
+                    // The roledn is built up as a string for fallback mechanism.
                     dnRole = "cn=" + roleName + ",cn=" + isvpName + "," + org.getSystem().getDn();
                 }
+
+                // If the role has been found we'll use the actual DN from the found role. In case the role has not been found we
+                // will just add the DN to to role list so that when that role becomes available there is no need to ruin the
+                // template again.
                 if (role != null)
+                {
                     newRoles.add(role.getDn());
+                }
                 else
+                {
                     newRoles.add(dnRole);
+                }
             }
 
             // TODO: Process assignments
