@@ -7,6 +7,7 @@ import java.util.List;
 import org.kisst.cordys.caas.Caas;
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.Organization;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.support.LoadedPropertyMap;
 import org.kisst.cordys.caas.template.ETemplateOption;
 import org.kisst.cordys.caas.template.Template;
@@ -82,7 +83,7 @@ public class TemplateCommand extends CompositeCommand
             templ.apply(organization, lpm);
         }
     };
-    
+
     /**
      * This method will apply the template to the given system and organization.
      */
@@ -206,14 +207,24 @@ public class TemplateCommand extends CompositeCommand
          */
         protected Organization getOrg(String defaultOrg)
         {
+            Organization retVal = null;
+            
             if (orgOption.isSet())
             {
-                return getSystem().org.getByName(orgOption.get());
+                retVal = getSystem().org.getByName(orgOption.get());
             }
             else
             {
-                return getSystem().org.getByName(defaultOrg);
+                retVal = getSystem().org.getByName(defaultOrg);
             }
+            
+            if (retVal == null)
+            {
+                throw new CaasRuntimeException("Could not find organization " + (orgOption.isSet() ? orgOption.get() : "unknown")
+                        + " in system " + Caas.defaultSystem);
+            }
+            
+            return retVal;
         }
 
         /**
