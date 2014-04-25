@@ -39,7 +39,7 @@ public class Environment
     static
     {
         // Initialize the Log4J logging system.
-        Layout layout = new PatternLayout("%-5p [%c]: %m%n");
+        Layout layout = new PatternLayout("%-5p [%d{HH:mm:ss,SSS}] [%c]: %m%n");
         ConsoleAppender ca = new ConsoleAppender(layout);
 
         if (!Logger.getRootLogger().getAllAppenders().hasMoreElements())

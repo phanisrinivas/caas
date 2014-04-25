@@ -21,7 +21,7 @@
 			<compilerarg value="-Xlint" />
 			<classpath>
 				<fileset dir="${libdir}">
-					<include name="*.jar" />
+					<include name="**/*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
@@ -36,7 +36,7 @@
 		<manifestclasspath jarfile="${basedir}/caas.jar" property="manifest.cp">
 			<classpath>
 				<fileset dir="${libdir}">
-					<include name="*.jar" />
+					<include name="**/*.jar" />
 					<exclude name="caas-*" />
 				</fileset>
 			</classpath>
@@ -61,7 +61,7 @@
 		<manifestclasspath jarfile="${basedir}/lib/caas-nogroovy.jar" property="manifest.cp.nogroovy">
 			<classpath>
 				<fileset dir="${libdir}">
-					<include name="*.jar" />
+					<include name="**/*.jar" />
 					<exclude name="groov*" />
 					<exclude name="caas-*" />
 				</fileset>
@@ -134,7 +134,7 @@
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
 			<zipfileset dir="src/schema" prefix="schema" />
-			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
+			<zipfileset dir="lib" prefix="lib" includes="**/*.jar" />
 			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
 			<zipfileset dir="src/project" />
 		</zip>
@@ -178,7 +178,7 @@
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
 			<zipfileset dir="src/schema" prefix="schema" />
-			<zipfileset dir="lib" prefix="lib" includes="*.jar" />
+			<zipfileset dir="lib" prefix="lib" includes="**/*.jar" />
 			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
 			<zipfileset dir="src/project" />
 		</zip>
@@ -191,7 +191,7 @@
 			<zipfileset dir="src/groovy" prefix="scripts" />
 			<zipfileset dir="bin" prefix="bin" />
 			<zipfileset dir="src/schema" prefix="schema" />
-			<zipfileset dir="lib" prefix="lib" includes="*.jar" excludes="jython.jar" />
+			<zipfileset dir="lib" prefix="lib" includes="**/*.jar" excludes="jython.jar" />
 			<zipfileset dir="build" prefix="lib" includes="caas-nogroovy.jar" />
 			<zipfileset dir="src/project" />
 		</zip>

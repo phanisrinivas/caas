@@ -9,27 +9,39 @@
 
 package org.kisst.cordys.caas.soap;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.auth.params.AuthPNames;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.NTLMSchemeFactory;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
+import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.main.Environment;
 
 /**
@@ -43,6 +55,7 @@ public class HttpClientCaller extends BaseCaller
     private final String ntlmhost;
     /** Holds the ntlmdomain. */
     private final String ntlmdomain;
+    private BasicHttpContext localContext;
 
     /**
      * Instantiates a new http client caller.
@@ -66,18 +79,45 @@ public class HttpClientCaller extends BaseCaller
         }
 
         // Add the username/password
+        localContext = new BasicHttpContext();
+        List<String> authpref = new ArrayList<String>();
+
         if (ntlmdomain == null)
         {
+            AuthCache authCache = new BasicAuthCache();
+            NTLMSchemeFactory f = new NTLMSchemeFactory();
+            AuthScheme ns = f.newInstance(null);
+
+            URL url;
+            try
+            {
+                url = new URL(urlBase);
+            }
+            catch (MalformedURLException e)
+            {
+                throw new CaasRuntimeException(e);
+            }
+
+            HttpHost host = new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
+            authCache.put(host, ns);
+
             cp.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(userName, password));
+
+            localContext.setAttribute("http.auth.auth-cache", authCache);
+
+            authpref.add(AuthPolicy.NTLM);
+            authpref.add(AuthPolicy.DIGEST);
         }
         else
         {
             cp.setCredentials(AuthScope.ANY, new NTCredentials(userName, password, ntlmhost, ntlmdomain));
+            authpref.add(AuthPolicy.BASIC);
         }
 
         // Create the HttpClient that should be used.
         client = new DefaultHttpClient();
         client.setCredentialsProvider(cp);
+        client.getParams().setParameter(AuthPNames.TARGET_AUTH_PREF, authpref);
 
         // Set the proxy server if defined.
         if (this.proxyPort != null)
@@ -85,7 +125,6 @@ public class HttpClientCaller extends BaseCaller
             HttpHost proxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
             client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
-
     }
 
     /**
@@ -102,7 +141,7 @@ public class HttpClientCaller extends BaseCaller
         try
         {
             Map<String, String> qp = createRequestParameters(extraRequestParameters);
-            
+
             // Build up the URI.
             URIBuilder ub = new URIBuilder(baseGatewayUrl);
             for (Entry<String, String> e : qp.entrySet())
@@ -126,7 +165,7 @@ public class HttpClientCaller extends BaseCaller
                 HttpConnectionParams.setSoTimeout(params, Integer.parseInt(timeout));
             }
 
-            HttpResponse hr = client.execute(method);
+            HttpResponse hr = client.execute(method, localContext);
             statusCode = hr.getStatusLine().getStatusCode();
 
             response = EntityUtils.toString(hr.getEntity());
