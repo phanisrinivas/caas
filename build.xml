@@ -78,6 +78,32 @@
 			</manifest>
 		</jar>
 	</target>
+	
+	<target name="debug-cp-jar" description="Creates a jar file with all dependency jars in a classpath jar" depends="init">
+        <!-- Create the jar that will include all the dependencies in the classpath -->
+        <manifestclasspath jarfile="${basedir}/test/local/debugcp.jar" property="manifest.cp">
+            <classpath>
+                <fileset dir="${libdir}">
+                    <include name="**/*.jar" />
+                    <exclude name="caas-*" />
+                </fileset>
+            </classpath>
+        </manifestclasspath>
+
+        <!-- Read the version.properties file to determine the version -->
+        <property file="version.properties" />
+        <property name="project.version" value="${base.version}.${build.number}${version.postfix}" />
+
+        <jar jarfile="${basedir}/test/local/debugcp.jar" basedir="${builddir}/classes">
+            <manifest>
+                <attribute name="Implementation-Vendor" value="kisst.org" />
+                <attribute name="Implementation-Title" value="Caas" />
+                <attribute name="Implementation-Version" value="${project.version}" />
+                <attribute name="Class-Path" value="${manifest.cp}" />
+                <attribute name="Main-Class" value="org.kisst.cordys.caas.main.CaasMain" />
+            </manifest>
+        </jar>
+    </target>
 
 	<target name="dist" description="creates a zip file for distribution" depends="jar,-inc-buildnumber">
 		<zip destfile="${builddir}/caas-${project.version}.zip">

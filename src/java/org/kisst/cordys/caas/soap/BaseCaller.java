@@ -13,6 +13,8 @@ import static org.kisst.cordys.caas.main.Environment.trace;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,7 +54,7 @@ public abstract class BaseCaller implements SoapCaller
      */
     protected boolean orgLevelDeployment = false;
     /** Holds the default query parameters that should ALWAYS be sent. */
-    protected final HashMap<String, String> queryStringMap = new HashMap<String, String>();
+    private final HashMap<String, String> queryStringMap = new HashMap<String, String>();
     /** The start time of the request */
     private long m_startTime;
     /** The end time of the request */
@@ -303,6 +305,40 @@ public abstract class BaseCaller implements SoapCaller
             baseGatewayUrl += location;
         }
         return baseGatewayUrl;
+    }
+
+    /**
+     * This method creates a new HashMap with the request parameters that should be used for a request. This method will ALWAYS
+     * return a new Map. If there are no default parameters AND there are no extra parameters then the map will be empty.
+     * <p>
+     * First the default parameters are added. Then the extra ones. This means that the extra parameters can override the default
+     * ones.
+     * </p>
+     * 
+     * @param extraParams The extra params to add.
+     * @return The map with all the parameters that should be used.
+     */
+    protected Map<String, String> createRequestParameters(Map<String, String> extraParams)
+    {
+        Map<String, String> retVal = new LinkedHashMap<String, String>();
+        
+        if (queryStringMap != null && queryStringMap.size() > 0)
+        {
+            for (Entry<String, String> e : queryStringMap.entrySet())
+            {
+                retVal.put(e.getKey(), e.getValue());
+            }
+        }
+        
+        if (extraParams != null && extraParams.size() > 0)
+        {
+            for (Entry<String, String> e : extraParams.entrySet())
+            {
+                retVal.put(e.getKey(), e.getValue());
+            }
+        }
+        
+        return retVal;
     }
 
     /**

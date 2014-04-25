@@ -9,85 +9,135 @@
 
 package org.kisst.cordys.caas.soap;
 
-import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.NTCredentials;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.util.URIUtil;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
 import org.kisst.cordys.caas.main.Environment;
-import org.kisst.cordys.caas.util.StringUtil;
 
+/**
+ * This is the basic caller that is used when using a NTLM based connection.
+ */
 public class HttpClientCaller extends BaseCaller
 {
-    private final HttpClient client = new HttpClient();
+    /** Holds the client. */
+    private final DefaultHttpClient client;
+    /** Holds the ntlmhost. */
     private final String ntlmhost;
+    /** Holds the ntlmdomain. */
     private final String ntlmdomain;
 
+    /**
+     * Instantiates a new http client caller.
+     * 
+     * @param name The name
+     */
     public HttpClientCaller(String name)
     {
         super(name);
+
         ntlmhost = Environment.get().getProp("system." + name + ".gateway.ntlmhost", null);
         ntlmdomain = Environment.get().getProp("system." + name + ".gateway.ntlmdomain", null);
+
+        CredentialsProvider cp = new BasicCredentialsProvider();
+
+        // Add the proxy user if it is set
+        if (this.proxyUser != null)
+        {
+            cp.setCredentials(new AuthScope(proxyHost, Integer.parseInt(proxyPort)), new UsernamePasswordCredentials(
+                    this.proxyUser, this.proxyPassword));
+        }
+
+        // Add the username/password
         if (ntlmdomain == null)
-            client.getState().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(userName, password));
+        {
+            cp.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(userName, password));
+        }
         else
-            client.getState().setCredentials(AuthScope.ANY, new NTCredentials(userName, password, ntlmhost, ntlmdomain));
+        {
+            cp.setCredentials(AuthScope.ANY, new NTCredentials(userName, password, ntlmhost, ntlmdomain));
+        }
+
+        // Create the HttpClient that should be used.
+        client = new DefaultHttpClient();
+        client.setCredentialsProvider(cp);
+
+        // Set the proxy server if defined.
+        if (this.proxyPort != null)
+        {
+            HttpHost proxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort));
+            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        }
 
     }
 
+    /**
+     * @see org.kisst.cordys.caas.soap.SoapCaller#httpCall(java.lang.String, java.lang.String, java.util.HashMap)
+     */
     @Override
-    public String httpCall(String baseGatewayUrl, String input, HashMap<String, String> queryStringMap)
+    public String httpCall(String baseGatewayUrl, String input, HashMap<String, String> extraRequestParameters)
     {
         int statusCode;
         String response;
-        PostMethod method = new PostMethod(baseGatewayUrl);
 
         logStart();
 
         try
         {
-            method.setDoAuthentication(true);
-
-            if (queryStringMap != null && queryStringMap.size() > 0)
-            {
-                method.setQueryString(URIUtil.encodeQuery(StringUtil.mapToString(queryStringMap)));
-            }
-
-            method.setRequestEntity(new StringRequestEntity(input, "text/xml", "UTF-8"));
-            if (this.proxyPort != null)
-            {
-                client.getHostConfiguration().setProxy(proxyHost, Integer.parseInt(proxyPort));
-                if (this.proxyUser != null)
-                {
-                    client.getState().setProxyCredentials(new AuthScope(proxyHost, Integer.parseInt(proxyPort)),
-                            new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
-                }
-            }
+            Map<String, String> qp = createRequestParameters(extraRequestParameters);
             
+            // Build up the URI.
+            URIBuilder ub = new URIBuilder(baseGatewayUrl);
+            for (Entry<String, String> e : qp.entrySet())
+            {
+                ub.addParameter(e.getKey(), e.getValue());
+            }
+
+            HttpPost method = new HttpPost(ub.build());
+
+            // Set the XML data for the request
+            method.setEntity(new StringEntity(input, ContentType.create("text/xml", "UTF-8")));
+
             // Need to use the timeout if specified
-            if (queryStringMap != null && queryStringMap.containsKey("timeout"))
+            if (qp.containsKey("timeout"))
             {
-                String timeout = queryStringMap.get("timeout");
-                client.getParams().setSoTimeout(Integer.parseInt(timeout));
-                client.getParams().setConnectionManagerTimeout(Integer.parseInt(timeout));
+                String timeout = qp.get("timeout");
+
+                HttpParams params = client.getParams();
+
+                HttpConnectionParams.setConnectionTimeout(params, Integer.parseInt(timeout));
+                HttpConnectionParams.setSoTimeout(params, Integer.parseInt(timeout));
             }
-            
-            statusCode = client.executeMethod(method);
-            response = method.getResponseBodyAsString();
+
+            HttpResponse hr = client.execute(method);
+            statusCode = hr.getStatusLine().getStatusCode();
+
+            response = EntityUtils.toString(hr.getEntity());
         }
-        catch (HttpException e)
+        catch (Exception e)
         {
-            throw new RuntimeException(e);
-        }
-        catch (IOException e)
-        {
+            if (e instanceof RuntimeException)
+            {
+                throw (RuntimeException) e;
+            }
+
             throw new RuntimeException(e);
         }
         finally
@@ -97,9 +147,9 @@ public class HttpClientCaller extends BaseCaller
 
         if (statusCode != HttpStatus.SC_OK)
         {
-            throw new RuntimeException("WebService failed: " + method.getStatusLine() + "\n" + response);
+            throw new RuntimeException("WebService failed: " + statusCode + "\n" + response);
         }
-        
+
         return response;
     }
 }

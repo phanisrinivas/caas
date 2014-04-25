@@ -140,8 +140,10 @@ This also fixed some bugs when creating a template.]]></action>
       <action dev="pgussow" type="add"><![CDATA[Implemented a safer version of the run.cmd being able to hande all parameters.]]></action>
       <action dev="pgussow" type="fix"><![CDATA[The template apply action could fail if a role dn was used of a package that was already uploaded, but not yet deployed.]]></action>
     </release>
-    <release date="2014-04-??" description="Stable release" version="2.1.7">
+    <release date="2014-04-24" description="Stable release" version="2.2.0">
       <action dev="pgussow" type="add"><![CDATA[Check if the organization is not present when a template is being applied / created.]]></action>
+      <action dev="pgussow" type="change"><![CDATA[Migrated the HTTP code to use apache HTTP client 4.2.1.]]></action>
+      <action dev="pgussow" type="add"><![CDATA[Added the HTTPBuilder classes to the CAAS project to easily do HTTP requests.]]></action>
     </release>
   </body>
 </document>
