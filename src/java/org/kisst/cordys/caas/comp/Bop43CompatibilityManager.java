@@ -157,6 +157,19 @@ class Bop43CompatibilityManager extends Bop42CompatibilityManager
             }
 
             String version = xmlVersion.getText();
+            
+            //Now we need to verify that there are no cyclic dependencies. If so the deploy should fail.
+            request = new XmlNode(Constants.GET_CLUSTER_IMPACT, Constants.XMLNS_CAP);
+            XmlNode tmp = request.add("Packages");
+            tmp.setAttribute("severity", "NONE");
+            tmp.setAttribute("dependencies", "true");
+            tmp.setAttribute("operation", "deploy");
+            
+            tmp = tmp.add("Package");
+            tmp.setAttribute(version, version);
+            tmp.setText(name);
+            
+            c.call(request, p);
 
             // Now we need to build up the URL that is to be used to deploy the actual package.
             String url = c.getUrlBase() + "system/wcp/capcontent/packages/com.cordys.web.cap.CAPGateway.wcp?capName=" + name

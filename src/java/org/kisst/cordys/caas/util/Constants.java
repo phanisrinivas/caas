@@ -15,6 +15,8 @@ public class Constants
     public static final String GET_CAP_DEPLOYMENT_DETAILS = "GetCapDeploymentDetails";
     /** New 4.3 method */
     public static final String GET_PACKAGE_DETAILS = "GetPackageDetails";
+    /** The name of the GetclusterImpact to detect cyclic dependencies. 4.3 and up */
+    public static final String GET_CLUSTER_IMPACT = "GetClusterImpact";
     public static final String GET_DEPLOYED_CAP_SUMMARY = "GetDeployedCapSummary";
     public static final String GET_ACTIONS = "GetActions";
     public static final String UNDEPLOY_CAP = "UnDeployCAP";
