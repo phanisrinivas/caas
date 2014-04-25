@@ -326,7 +326,10 @@ public abstract class BaseCaller implements SoapCaller
         {
             for (Entry<String, String> e : queryStringMap.entrySet())
             {
-                retVal.put(e.getKey(), e.getValue());
+                if (!StringUtil.isEmptyOrNull(e.getValue()))
+                {
+                    retVal.put(e.getKey(), e.getValue());
+                }
             }
         }
         
@@ -334,7 +337,10 @@ public abstract class BaseCaller implements SoapCaller
         {
             for (Entry<String, String> e : extraParams.entrySet())
             {
-                retVal.put(e.getKey(), e.getValue());
+                if (!StringUtil.isEmptyOrNull(e.getValue()))
+                {
+                    retVal.put(e.getKey(), e.getValue());
+                }
             }
         }
         
