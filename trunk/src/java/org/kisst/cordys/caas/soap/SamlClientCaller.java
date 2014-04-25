@@ -65,7 +65,7 @@ public class SamlClientCaller extends BaseCaller
      * @param addArtifact The add artifact
      * @return response - SOAP Response XML string
      */
-    public String sendHttpRequest(String url, String inputSoapRequest, HashMap<String, String> queryParams, boolean addArtifact)
+    public String sendHttpRequest(String url, String inputSoapRequest, HashMap<String, String> extraParams, boolean addArtifact)
     {
         int statusCode, pos;
         String response, baseURL = null;
@@ -87,12 +87,12 @@ public class SamlClientCaller extends BaseCaller
 
         // Build up the list of query parameters that shuld be sent. This is a combination of the default ones and the custom
         // ones. Note that the custom ones can override the default ones.
-        Map<String, String> qp = createRequestParameters(queryParams);
+        Map<String, String> qp = createRequestParameters(extraParams);
 
         // Add the SAML artifact Id to the map of query string parameters
         if (addArtifact)
         {
-            queryParams.put(SAML_ARTIFACT_NAME, artifactID);
+            qp.put(SAML_ARTIFACT_NAME, artifactID);
         }
 
         CredentialsProvider cp = new BasicCredentialsProvider();
