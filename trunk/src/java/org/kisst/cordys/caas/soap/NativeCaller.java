@@ -24,28 +24,50 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.HashMap;
 
-import org.apache.commons.httpclient.util.URIUtil;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.util.StringUtil;
 
+/**
+ * Holds the Class NativeCaller.
+ */
 public class NativeCaller extends BaseCaller
 {
+
+    /**
+     * Holds the Class MyAuthenticator.
+     */
     private static class MyAuthenticator extends Authenticator
     {
+
+        /** Holds the username. */
         private String username = null;
+
+        /** Holds the password. */
         private String password = null;
 
+        /**
+         * Instantiates a new my authenticator.
+         */
         private MyAuthenticator()
         {
             Authenticator.setDefault(this);
         }
 
+        /**
+         * This method sets the credentials.
+         * 
+         * @param username The username
+         * @param password The password
+         */
         public void setCredentials(String username, String password)
         {
             this.username = username;
             this.password = password;
         }
 
+        /**
+         * @see java.net.Authenticator#getPasswordAuthentication()
+         */
         @Override
         public PasswordAuthentication getPasswordAuthentication()
         {
@@ -59,13 +81,22 @@ public class NativeCaller extends BaseCaller
         }
     }
 
+    /** Holds the Constant myAuthenticator. */
     protected static final MyAuthenticator myAuthenticator = new MyAuthenticator();
 
+    /**
+     * Instantiates a new native caller.
+     * 
+     * @param name The name
+     */
     public NativeCaller(String name)
     {
         super(name);
     }
 
+    /**
+     * @see org.kisst.cordys.caas.soap.SoapCaller#httpCall(java.lang.String, java.lang.String, java.util.HashMap)
+     */
     @Override
     public String httpCall(String baseGatewayUrl, String request, HashMap<String, String> queryStringMap)
     {
@@ -87,7 +118,7 @@ public class NativeCaller extends BaseCaller
             {
                 completeGatewayUrl = baseGatewayUrl;
             }
-            URL url = new URL(URIUtil.encodeQuery(completeGatewayUrl));
+            URL url = new URL(completeGatewayUrl);
             connection = (HttpURLConnection) url.openConnection();
             byte[] requestBytes = request.getBytes();
             connection.setRequestProperty("Content-Length", "" + requestBytes.length);
@@ -95,14 +126,14 @@ public class NativeCaller extends BaseCaller
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setDoInput(true);
-            
+
             // Need to use the timeout if specified
             if (queryStringMap != null && queryStringMap.containsKey("timeout"))
             {
                 String timeout = queryStringMap.get("timeout");
                 connection.setReadTimeout(Integer.parseInt(timeout));
             }
-            
+
             // Dangerous in multithreaded environments
             myAuthenticator.setCredentials(userName, password);
             // Write request data to server
