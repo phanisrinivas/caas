@@ -36,7 +36,7 @@ public class CompatibilityManagerFactory
         {
             debug("Cordys version: " + cordysVersion);
 
-            Pattern p = Pattern.compile("([^.]+)\\.(\\d+)\\.(\\d+)");
+            Pattern p = Pattern.compile("([^.]+)\\.(\\d+)(\\.(\\d+)){0,1}");
             Matcher m = p.matcher(cordysVersion);
             if (m.find())
             {
@@ -47,9 +47,13 @@ public class CompatibilityManagerFactory
                 {
                     retVal = new Bop42CompatibilityManager();
                 }
-                else if ("D1".equals(release) && major >= 3)
+                else if ("D1".equals(release) && major == 3)
                 {
                     retVal = new Bop43CompatibilityManager();
+                }
+                else if ("D1".equals(release) && major >= 4)
+                {
+                    retVal = new OpenText10_5CompatibilityManager();
                 }
             }
         }

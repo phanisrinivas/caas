@@ -30,12 +30,6 @@ public class Package extends CordysObject
         cap, isvp
     };
 
-    /** Holds the package types. */
-    public enum EPackageStatus
-    {
-        loaded, incomplete, not_loaded
-    };
-
     /** Holds the reference to the Cordys system that is being used. */
     private final CordysSystem system;
     /** Holds the name of the package. This is the Package DN that would be used in case the package is loaded. */
@@ -170,17 +164,28 @@ public class Package extends CordysObject
         }
         else if ("Package".equals(definition.getName()))
         {
-            // It's the new BOP 4.3 way.
-            XmlNode child = definition.xpath("*").get(0);
-            if (child.getName().equals("NewPackageDetails"))
+            // It's the new BOP 4.3 way. There are several situations possible: a new package (only the tag NewPackageDetails is
+            // available), a deployed package (only the tag DeploymentDetails is available) or a package could be upgraded (both
+            // tags are available).
+            XmlNode child = null;
+            boolean isDeployed = definition.xpath("*[local-name()='DeploymentDetails']").size() > 0;
+
+            // The child to use to get the data from is the deployed one.
+            if (isDeployed)
             {
-                status = EPackageStatus.not_loaded;
+                child = definition.xpath("*[local-name()='DeploymentDetails']").get(0);
             }
-            else if (child.getName().equals("DeploymentDetails"))
+            else
             {
-                status = EPackageStatus.loaded;
+                // The package is not deployed, so we can use the first child element we find.
+                child = definition.xpath("*").get(0);
             }
 
+            // Get the status of the package
+            String cs = child.getChildText("ClusterStatus");
+            status = EPackageStatus.parse(cs);
+
+            // Get the rest of the package details
             type = EPackageType.cap;
             name = definition.getAttribute("name");
             cn = name;
@@ -197,6 +202,10 @@ public class Package extends CordysObject
                 XmlNode tmp = newDetails.get(0);
 
                 setNewVersion("ver" + tmp.getChild("Version").getText() + "build" + tmp.getChild("BuildNumber").getText());
+                if (isDeployed)
+                {
+                    canUpgrade = true;
+                }
             }
         }
         else
@@ -209,7 +218,7 @@ public class Package extends CordysObject
 
         this.definition = definition.detach();
 
-        if (status == EPackageStatus.loaded)
+        if (status == EPackageStatus.loaded || status == EPackageStatus.partial)
         {
             // The package is loaded, so we can read the main entry from the LDAP.
             runtime = new RuntimePackage(this, "cn=" + cn + "," + system.getDn());

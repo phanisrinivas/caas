@@ -1,5 +1,7 @@
 package org.kisst.cordys.caas.comp;
 
+import static org.kisst.cordys.caas.main.Environment.warn;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -8,14 +10,13 @@ import java.util.Map;
 
 import org.kisst.cordys.caas.CordysSystem;
 import org.kisst.cordys.caas.DeployedPackageInfo;
+import org.kisst.cordys.caas.EPackageStatus;
 import org.kisst.cordys.caas.IDeployedPackageInfo;
 import org.kisst.cordys.caas.Package;
-import org.kisst.cordys.caas.Package.EPackageStatus;
 import org.kisst.cordys.caas.PackageList;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.soap.SoapCaller;
 import org.kisst.cordys.caas.util.Constants;
-import org.kisst.cordys.caas.util.ExceptionUtil;
 import org.kisst.cordys.caas.util.StringUtil;
 import org.kisst.cordys.caas.util.XmlNode;
 
@@ -24,7 +25,8 @@ import org.kisst.cordys.caas.util.XmlNode;
  */
 class Bop43CompatibilityManager extends Bop42CompatibilityManager
 {
-    private static final String GET_PACKAGES_BY_STATUS = "GetPackagesByStatus";
+    /** Holds the name of the operation GetPackagesByStatus to get all the packages in the system. */
+    public static final String GET_PACKAGES_BY_STATUS = "GetPackagesByStatus";
 
     /**
      * @see org.kisst.cordys.caas.comp.DefaultCompatibilityManager#getVersionDetails()
@@ -44,84 +46,40 @@ class Bop43CompatibilityManager extends Bop42CompatibilityManager
     {
         Map<String, Package> retVal = new LinkedHashMap<String, Package>();
 
-        // Next step is to get the list of deployed CAP packages
-        XmlNode request = new XmlNode(Constants.GET_DEPLOYED_CAP_SUMMARY, "http://schemas.cordys.com/cap/1.0");
-        XmlNode response = null;
-        boolean supportsCap = false;
-        try
+        // Tell the package list that this instance supports CAP packages.
+        packageList.setSupportsCap(true);
+
+        // Step 1: Now get all the CAPs that are known to the system
+        XmlNode request = new XmlNode(GET_PACKAGES_BY_STATUS, "http://schemas.cordys.com/cap/1.0");
+        XmlNode states = request.add("States");
+        states.add("Status").setText("New");
+        states.add("Status").setText("Deployed");
+        states.add("Status").setText("Upgrade");
+        states.add("Status").setText("Incomplete");
+        states.add("Status").setText("Partial");
+
+        XmlNode response = c.call(request, PackageList.DEFAULT_PACKAGE_TIMEOUT);
+
+        // Step2: build up the request to get all the details for all the CAPs that have been found.
+        request = new XmlNode("GetPackageDetails", "http://schemas.cordys.com/cap/1.0");
+        XmlNode xmlPackages = request.add("Packages");
+
+        List<XmlNode> knownCAP = response.xpath("./*[local-name()='Packages']/*[local-name()='Package']");
+        for (XmlNode node : knownCAP)
         {
-            response = c.call(request, PackageList.DEFAULT_PACKAGE_TIMEOUT);
-
-            supportsCap = true;
-        }
-        catch (Exception e)
-        {
-            // Dirty: check if there CAPs are supported on this system:
-            String tmp = ExceptionUtil.getStacktrace(e);
-            if (tmp.indexOf("Could not find a soap node implementing") > -1
-                    && tmp.indexOf("http://schemas.cordys.com/cap/1.0:GetDeployedCapSummary") > -1)
-            {
-                supportsCap = false;
-            }
-            else
-            {
-                throw new CaasRuntimeException(e);
-            }
-        }
-
-        if (supportsCap)
-        {
-            List<XmlNode> caps = response
-                    .xpath("./*[local-name()='tuple']/*[local-name()='old']/*[local-name()='ApplicationPackage']");
-            for (XmlNode node : caps)
-            {
-                Package p = new Package(system, node);
-                retVal.put(p.getName(), p);
-            }
-
-            // Now get the CAPs that are new
-            request = new XmlNode(GET_PACKAGES_BY_STATUS, "http://schemas.cordys.com/cap/1.0");
-            XmlNode states = request.add("States");
-            states.add("Status").setText("New");
-            states.add("Status").setText("Upgrade");
-            states.add("Status").setText("Incomplete");
-            states.add("Status").setText("Partial");
-
-            response = c.call(request, PackageList.DEFAULT_PACKAGE_TIMEOUT);
-
-            // Build up the request for getting the details
-            request = new XmlNode("GetPackageDetails", "http://schemas.cordys.com/cap/1.0");
-            XmlNode xmlPackages = request.add("Packages");
-
-            caps = response.xpath("./*[local-name()='Packages']/*[local-name()='Package']");
-            for (XmlNode node : caps)
-            {
-                xmlPackages.add("Package").setText(node.getText());
-            }
-
-            // Get the details for these packages
-            response = c.call(request, PackageList.DEFAULT_PACKAGE_TIMEOUT);
-
-            // Now we can either add the new package or set the new version
-            caps = response.xpath("./*[local-name()='Packages']/*[local-name()='Package']");
-            for (XmlNode cap : caps)
-            {
-                Package p = new Package(system, cap);
-
-                Package loadedPackage = retVal.get(p.getName());
-                if (loadedPackage == null)
-                {
-                    retVal.put(p.getName(), p);
-                }
-                else
-                {
-                    loadedPackage.setNewVersion(p.getNewVersion());
-                }
-            }
+            xmlPackages.add("Package").setText(node.getText());
         }
 
-        // Tell the package list whether or not CAP is supported.
-        packageList.setSupportsCap(supportsCap);
+        // Step 3: Get the details for all known packages
+        response = c.call(request, PackageList.DEFAULT_PACKAGE_TIMEOUT);
+
+        // Now we can either add the new package or set the new version
+        knownCAP = response.xpath("./*[local-name()='Packages']/*[local-name()='Package']");
+        for (XmlNode cap : knownCAP)
+        {
+            Package p = new Package(system, cap);
+            retVal.put(p.getName(), p);
+        }
 
         return new ArrayList<Package>(retVal.values());
     }
@@ -138,7 +96,7 @@ class Bop43CompatibilityManager extends Bop42CompatibilityManager
         p.put("timeout", String.valueOf(timeout));
 
         Package pkg = system.packages.getByName(name);
-        if (pkg.status == EPackageStatus.not_loaded || !StringUtil.isEmptyOrNull(pkg.newVersion))
+        if (pkg.status != EPackageStatus.loaded || !StringUtil.isEmptyOrNull(pkg.newVersion))
         {
             // Now we need to get the version that we can deploy
             XmlNode request = new XmlNode(Constants.GET_ACTIONS, Constants.XMLNS_CAP);
@@ -157,18 +115,18 @@ class Bop43CompatibilityManager extends Bop42CompatibilityManager
             }
 
             String version = xmlVersion.getText();
-            
-            //Now we need to verify that there are no cyclic dependencies. If so the deploy should fail.
+
+            // Now we need to verify that there are no cyclic dependencies. If so the deploy should fail.
             request = new XmlNode(Constants.GET_CLUSTER_IMPACT, Constants.XMLNS_CAP);
             XmlNode tmp = request.add("Packages");
             tmp.setAttribute("severity", "NONE");
             tmp.setAttribute("dependencies", "true");
             tmp.setAttribute("operation", "deploy");
-            
+
             tmp = tmp.add("Package");
             tmp.setAttribute(version, version);
             tmp.setText(name);
-            
+
             c.call(request, p);
 
             // Now we need to build up the URL that is to be used to deploy the actual package.
@@ -183,6 +141,10 @@ class Bop43CompatibilityManager extends Bop42CompatibilityManager
             request.add("url").setText(url);
 
             c.call(request, p);
+        }
+        else
+        {
+            warn("Cannot deploy package " + name + " because status is " + pkg.status + " and/or no new version is found");
         }
     }
 
@@ -281,15 +243,16 @@ class Bop43CompatibilityManager extends Bop42CompatibilityManager
 
         c.call(request, p);
     }
-    
+
     /**
-     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#loadCAPInfo(org.kisst.cordys.caas.soap.SoapCaller, org.kisst.cordys.caas.CordysSystem, org.kisst.cordys.caas.Package)
+     * @see org.kisst.cordys.caas.comp.ICompatibilityManager#loadCAPInfo(org.kisst.cordys.caas.soap.SoapCaller,
+     *      org.kisst.cordys.caas.CordysSystem, org.kisst.cordys.caas.Package)
      */
     @Override
     public IDeployedPackageInfo loadCAPInfo(SoapCaller c, CordysSystem system, Package p)
     {
         DeployedPackageInfo retVal = null;
-        
+
         XmlNode request = new XmlNode(Constants.GET_PACKAGE_DETAILS, Constants.XMLNS_CAP);
         request.add("Packages").add("Package").setText(p.getName());
 
@@ -304,9 +267,9 @@ class Bop43CompatibilityManager extends Bop42CompatibilityManager
             String version = deploymentDetails.getChildText("Version");
             String buildNumber = deploymentDetails.getChildText("BuildNumber");
 
-            retVal =  new DeployedPackageInfo(p.getPackageDN(), null, vendor, version, buildNumber);
+            retVal = new DeployedPackageInfo(p.getPackageDN(), null, vendor, version, buildNumber);
         }
-        
+
         return retVal;
     }
 }
