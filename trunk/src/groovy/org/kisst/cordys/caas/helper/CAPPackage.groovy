@@ -1,5 +1,7 @@
 package org.kisst.cordys.caas.helper
 
+import org.kisst.cordys.caas.EPackageStatus;
+
 import groovy.transform.ToString;
 
 @ToString(includePackage=false,includeNames=false,excludes="file,parsedMetadata,dependencies")
@@ -7,6 +9,7 @@ class CAPPackage {
     def file
     def name
     def parsedMetadata
+    def status = EPackageStatus.not_loaded
     def Map<String, Dependency> dependencies = new LinkedHashMap<String, Dependency>();
 
     def getMetadata = {

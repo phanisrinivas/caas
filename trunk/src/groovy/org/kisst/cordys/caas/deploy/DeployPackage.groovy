@@ -1,19 +1,38 @@
 package org.kisst.cordys.caas.deploy
 
-import org.kisst.cordys.caas.Caas;
-import org.kisst.cordys.caas.CordysSystem;
-import org.kisst.cordys.caas.helper.CAPPackage;
-import org.kisst.cordys.caas.helper.Log;
+import org.kisst.cordys.caas.Caas
+import org.kisst.cordys.caas.CordysSystem
+import org.kisst.cordys.caas.EPackageStatus
+import org.kisst.cordys.caas.helper.CAPPackage
+import org.kisst.cordys.caas.helper.Log
 
 /**
- * This script will upload an deploy the given package to the given Cordys environment using CAAS
+ * This script will upload an deploy the given package to the given Cordys environment using CAAS. This is the script to be used
+ * whenever a package needs to be deployed.
+ * 
+ * This script has been wrapped in the deploy_package.cmd to make the calling of this script easier.
+ * 
+ * Normal usage from i.e. Jenkins is this commandline: 
+ * deploy_package.cmd -f <folder> -s <targetsystem>
+ * 
+ * The options that can be passed on are:
+ * -h:  Just displays the help information
+ * -c:  The CAP file that should be deployed. You can use this option if you want to deploy a single CAP file.
+ * -f:  The folder in which the CAP files are that should be deployed. You can use both -c and -f at the same time even though
+ *      that doesn't really make sense. If you put just one CAP file in the folder then it behaves just like the -c option
+ * -s:  The name of the system to which these files should be deployed. The name must be defined in the caas.conf of course.
+ * -e:  Indicates whether or not the script should exit with a non-zero exit code when the package cannot be deployed. This
+ *      can be because of 2 reasons: the package is already loaded and up to date OR the version you're trying to deploy is
+ *      older than the version currently deployed. When not specified this parameter has the value true
+ * 
+ * The minimal parameters that must be specified are (-c or -f) AND -s.
  */
 
 def cli = new CliBuilder(usage: 'run.cmd org/kisst/cordys/caas/deploy/DeployPackage [-h] [-f "capfolder" | -c "capfile"] -s "system"')
 cli.h(longOpt: 'help'  , 'usage information', required: false)
 cli.c(longOpt: 'cap', 'The CAP file that should be deployed', required: false, args: 1 )
 cli.f(longOpt: 'folder', 'The folder containing the caps that should be deployed.', required: false, args: 1 )
-cli.s(longOpt: 'system', 'The name of the parameter for the property file', required: true  , args: 1 )
+cli.s(longOpt: 'system', 'The name of the parameter for the property file', required: true, args: 1 )
 cli.e(longOpt: 'exitonexists', 'Indicates whether or not the script should exit with a non-zero exit code when the package cannot be deployed. Default value is true', required: false, args: 1 )
 
 OptionAccessor opt = cli.parse(args);
@@ -81,11 +100,15 @@ toBeDeployed.keySet().each { Log.debug it }
 
 // First upload all packages
 toBeDeployed.values().each {
-    Log.info 'Uploading package ' + it.name + ' from file ' + it.file
-    system.uploadCap(it.file.absolutePath)
+    if (it.status == EPackageStatus.not_loaded) {
+        Log.info 'Uploading package ' + it.name + ' from file ' + it.file
+        system.uploadCap(it.file.absolutePath)
+    } else {
+        Log.warn("Not uploading package as it already has status " + it.status);
+    }
 }
 
-// Upload and deploy the packages
+// Deploy the packages that are needed.
 toBeDeployed.values().each {
     Log.info 'Deploying package ' + it.name + ' using 60 minutes as the timeout'
     system.deployCap(it.name, 60)
@@ -127,13 +150,15 @@ def processCap(CordysSystem system, File srcCap, Map<String, CAPPackage> toBeDep
         toBeDeployed.put(cp.name, cp);
     } else {
         // Package is already loaded. Need to double check the version numbers.
-        if (pkg.info == null) {
+        if (pkg.info == null || pkg.status == EPackageStatus.incomplete) {
             Log.info 'Package ' + name + ' is incomplete'
+            cp.status = EPackageStatus.incomplete
             toBeDeployed.put(cp.name, cp);
         } else {
             def loadedVersion = pkg.fullVersion
             Log.info 'Package ' + name + ' already loaded. Checking version ' + realVersion + " against loaded version " + loadedVersion
             if (loadedVersion == realVersion) {
+                cp.status = EPackageStatus.loaded
                 upToDate.put(cp.name, cp);
                 Log.info '--> Package ' + name + ' is up-to-date'
             } else {
