@@ -146,12 +146,15 @@ This also fixed some bugs when creating a template.]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added the HTTPBuilder classes to the CAAS project to easily do HTTP requests.]]></action>
     </release>
     <release date="2014-05-09" description="Stable release" version="2.2.1">
+      <action dev="pgussow" type="fix"><![CDATA[Fixed the order of the classpath for the script files]]></action>
       <action dev="pgussow" type="update"><![CDATA[Made sure that the status of the packages are properly reflected. Use this simple script:
 s = Caas.getSystem("dev")
 s.p.each { println String.format('%1$80s %2$s', it.name, it.status) }]]></action>
       <action dev="pgussow" type="update"><![CDATA[Made the Bop43 Compatibility handler more in line with the 10.5 handler]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added support for OpenText 10.5:
 - Removed the dependency on GetDeployedCAPSummary web service as it has dissappeared]]></action>
+    </release>
+    <release date="2014-05-??" description="Stable release" version="2.2.2">
     </release>
   </body>
 </document>

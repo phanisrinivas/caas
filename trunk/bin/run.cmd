@@ -20,4 +20,4 @@ goto loop
 
 :afterloop
 
-%JAVA_EXE% %JAVA_OPTS% -cp ../caas.jar;../classes org.kisst.cordys.caas.main.CaasMain -c ..\config\caas.conf -v run ..\scripts\%GROOVY_SCRIPT%.groovy %REST_OF_PARAMETERS%
+%JAVA_EXE% %JAVA_OPTS% -cp ../classes;../caas.jar org.kisst.cordys.caas.main.CaasMain -c ..\config\caas.conf -v run ..\scripts\%GROOVY_SCRIPT%.groovy %REST_OF_PARAMETERS%
