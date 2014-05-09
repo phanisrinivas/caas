@@ -153,9 +153,9 @@ s.p.each { println String.format('%1$80s %2$s', it.name, it.status) }]]></action
       <action dev="pgussow" type="update"><![CDATA[Made the Bop43 Compatibility handler more in line with the 10.5 handler]]></action>
       <action dev="pgussow" type="add"><![CDATA[Added support for OpenText 10.5:
 - Removed the dependency on GetDeployedCAPSummary web service as it has dissappeared]]></action>
-    </release>
-    <release date="2014-05-09" description="Stable release" version="2.2.2">
       <action dev="pgussow" type="fix"><![CDATA[Updated the DeployPackage script to be able to handle incomplete packages. It will skip the upload in that scenario.]]></action>
+    </release>
+    <release date="2014-05-??" description="Stable release" version="2.2.2">
     </release>
   </body>
 </document>
