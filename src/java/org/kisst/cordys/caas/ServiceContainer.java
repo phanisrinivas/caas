@@ -91,6 +91,8 @@ public class ServiceContainer extends LdapObjectBase
         XmlNode request = new XmlNode(Constants.LIST, Constants.XMLNS_MONITOR);
         ServiceContainer monitor = getSystem().sc.getByName("monitor@" + computer);
         HashMap<String, String> queryParams = new HashMap<String, String>();
+        if (monitor==null)
+            throw new RuntimeException("could not find monitor for "+this.getDn());
         queryParams.put("receiver", monitor.getDn());
         XmlNode response = call(request, queryParams);
         for (XmlNode tuple : response.getChildren("tuple"))
