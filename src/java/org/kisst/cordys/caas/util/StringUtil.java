@@ -28,6 +28,8 @@ public class StringUtil
      */
     public static String quotedName(String name)
     {
+        if (name==null)
+            return "<null>";
         if ((name.indexOf(' ') >= 0) || (name.indexOf('.') >= 0) || (name.indexOf('-') >= 0))
         {
             return '"' + name + '"';
