@@ -104,13 +104,17 @@ public class Package extends CordysObject
         if ("isvp".equals(definition.getName()))
         {
             type = EPackageType.isvp;
-            name = definition.getAttribute("cn");
+            String tmpcn = definition.getAttribute("cn");
+            if (tmpcn==null)
+                cn=(String) definition.get("loadingdetails/description/cn/text()");
+            else
+                cn=tmpcn;
+            name = cn;
             filename = "platform-standard";
 
             owner = (String) definition.get("loadingdetails/description/owner/text()");
             buildnumber = (String) definition.get("loadingdetails/description/build/text()");
             version = (String) definition.get("loadingdetails/description/version/text()");
-            cn = definition.getAttribute("cn");
 
             // ISV packages are always loaded.
             status = EPackageStatus.loaded;
@@ -122,6 +126,13 @@ public class Package extends CordysObject
         {
             type = EPackageType.isvp;
             name = definition.getAttribute("cn");
+            if (name==null) {
+                name=(String) definition.get("description/cn/text()");
+                if (name==null) {
+                    throw new IncompleteDefinitionException(definition);
+                }
+            }
+
             filename = definition.getAttribute("file");
 
             owner = (String) definition.get("description/owner/text()");
@@ -233,6 +244,14 @@ public class Package extends CordysObject
         }
     }
 
+    public static class IncompleteDefinitionException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        public final XmlNode def;
+        public IncompleteDefinitionException(XmlNode def) {
+            super("Could not create package based on definition node "+def);
+            this.def=def;
+        }
+    }
     /**
      * @see org.kisst.cordys.caas.support.CordysObject#getSystem()
      */

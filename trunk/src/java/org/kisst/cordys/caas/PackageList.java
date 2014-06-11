@@ -1,6 +1,7 @@
 package org.kisst.cordys.caas;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.kisst.cordys.caas.soap.SamlClientCaller;
@@ -59,6 +60,8 @@ public class PackageList extends CordysObjectList<Package>
             }
         }
 
+        getISVPackageDefinitions(response);        
+        /*
         // Next step is to get the definition of the packages for which filenames are specified.
         request = buildGetISVPackageDefinition(response);
         if (request != null)
@@ -74,7 +77,8 @@ public class PackageList extends CordysObjectList<Package>
                 grow(p);
             }
         }
-
+         */
+        
         // Retrieve the CAP packages from the compatibility manager as in 4.3 the SOAP API has changed.
         List<Package> packages = getSystem().getCompatibilityManager().getCAPPackages(c, system, this);
 
@@ -119,42 +123,51 @@ public class PackageList extends CordysObjectList<Package>
         return response;
     }
 
-    /**
-     * This method will build up the request for getting the package details of the ISV packages that are present.
-     * 
-     * @param packages The packages that are available.
-     * @return The request for getting the definition details.
-     */
-    private XmlNode buildGetISVPackageDefinition(XmlNode packages)
+    private void getISVPackageDefinitions(XmlNode packages)
     {
-        XmlNode retVal = new XmlNode("GetISVPackageDefinition", Constants.XMLNS_ISV);
-
+        XmlNode request = new XmlNode("GetISVPackageDefinition", Constants.XMLNS_ISV);
+        LinkedHashMap<String, XmlNode> defs = new LinkedHashMap<String,XmlNode>();
+        
         List<XmlNode> tmp = packages.xpath(".//isv:computer/isv:isvp", Constants.NS);
         if (tmp == null || tmp.size() == 0)
+            return;
+        for (XmlNode url : tmp)
         {
-            // There are no ISV packages. This means that we should not send this message.
-            retVal = null;
-        }
-        else
-        {
-            for (XmlNode url : tmp)
+            // Found an ISV package, so we need to create the element in the new request for it. On a CU6 machine there are a
+            // few packages that are mentioned in the 'GetInstalledISVPackages', but they do not have a corresponding LDAP
+            // entry.
+            String packageName = url.getAttribute("name");
+            defs.put(packageName, url);
+            if (!StringUtil.isEmptyOrNull(packageName))
             {
-                // Found an ISV package, so we need to create the element in the new request for it. On a CU6 machine there are a
-                // few packages that are mentioned in the 'GetInstalledISVPackages', but they do not have a corresponding LDAP
-                // entry.
-                String packageName = url.getAttribute("name");
-                if (!StringUtil.isEmptyOrNull(packageName))
-                {
-                    XmlNode node = retVal.add("file");
-                    node.setAttribute("type", "isvpackage");
-                    node.setAttribute("detail", "false");
-                    node.setAttribute("wizardsteps", "true");
-                    node.setText(packageName);
+                XmlNode node = request.add("file");
+                node.setAttribute("type", "isvpackage");
+                node.setAttribute("detail", "false");
+                node.setAttribute("wizardsteps", "true");
+                node.setText(packageName);
+            }
+        }
+        SoapCaller c = system.getSoapCaller();
+        XmlNode response = c.call(request, DEFAULT_PACKAGE_TIMEOUT);
+
+        List<XmlNode> isvs = response.getChildren("ISVPackage");
+        for (XmlNode node : isvs)
+        {
+            try {
+                Package p = new Package(getSystem(), node);
+                grow(p);
+            }
+            catch (Package.IncompleteDefinitionException e) {
+                String key= e.def.getAttribute("file");
+                if (key!=null) {
+                    XmlNode def = defs.get(key);
+                    if (def!=null) {
+                        Package p = new Package(getSystem(), def);
+                        grow(p);
+                    }
                 }
             }
         }
-
-        return retVal;
     }
 
     /**
