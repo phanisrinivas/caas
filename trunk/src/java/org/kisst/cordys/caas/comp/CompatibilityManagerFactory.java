@@ -55,6 +55,10 @@ public class CompatibilityManagerFactory
                 {
                     retVal = new OpenText10_5CompatibilityManager();
                 }
+                else if ("C3".equals(release))
+                {
+                    retVal= new C3DefaultCompatibilityManager();
+                }
             }
         }
 
