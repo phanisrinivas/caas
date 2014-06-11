@@ -118,6 +118,7 @@ public class NativeCaller extends BaseCaller
             {
                 completeGatewayUrl = baseGatewayUrl;
             }
+            completeGatewayUrl=completeGatewayUrl.replace(" ","%20");
             URL url = new URL(completeGatewayUrl);
             connection = (HttpURLConnection) url.openConnection();
             byte[] requestBytes = request.getBytes();
