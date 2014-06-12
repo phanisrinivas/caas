@@ -34,6 +34,11 @@ public class Machine extends CordysObject
     private final ServiceContainer monitor;
     /** Holds the hostname. */
     private final String hostname;
+    
+    /** Holds the list of packages for this machines. */
+    public final PackageList packages;
+    /** Holds an alias for the loaded packages. */
+    public final PackageList p;
 
     /**
      * Instantiates a new machine.
@@ -45,6 +50,8 @@ public class Machine extends CordysObject
         this.monitor = monitor;
         String tmp = monitor.getName();
         this.hostname = tmp.substring(tmp.indexOf("monitor@") + 8);
+        this.packages=new PackageList(this);
+        this.p=packages;
     }
 
     /**

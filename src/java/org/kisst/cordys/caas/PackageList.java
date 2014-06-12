@@ -22,15 +22,17 @@ public class PackageList extends CordysObjectList<Package>
     public static final long DEFAULT_PACKAGE_TIMEOUT = 90000L;
     /** Holds whether or not the system supports CAP packages. */
     private Boolean supportsCap = null;
+    private final  Machine machine;
 
     /**
      * Instantiates a new package definition list.
      * 
      * @param system The system
      */
-    PackageList(CordysSystem system)
+    PackageList(Machine machine)
     {
-        super(system);
+        super(machine.getSystem());
+        this.machine=machine;
     }
 
     /**
@@ -44,7 +46,7 @@ public class PackageList extends CordysObjectList<Package>
         SoapCaller c = system.getSoapCaller();
 
         XmlNode request = new XmlNode("GetInstalledISVPackages", "http://schemas.cordys.com/1.0/isvpackage");
-        request.add("computer").setText(system.machines.get(0).getName());
+        request.add("computer").setText(machine.getName());
 
         XmlNode response = c.call(request, DEFAULT_PACKAGE_TIMEOUT);
 
