@@ -67,16 +67,21 @@ public class CordysSystem extends LdapObject
     public final Organization.OrganizationList org = organizations;
     /** Holds an alias for the organizations. */
     public final Organization.OrganizationList o = organizations;
+    
+    // The following PackageLists are maintained for backward compatibility
+    // There is now a PackageList for each machine
     /** Holds the list of packages for this system. */
-    public final PackageList packages = new PackageList(this);
+    public final PackageList packages;
     /** Holds an alias for the loaded packages. */
-    public final PackageList p = packages;
+    public final PackageList p;
     /** Holds an alias for the packages. This is for backwards compatibility. */
-    public final PackageList isvp = packages;
+    public final PackageList isvp;
     /** Holds an alias for the packages. This is for backwards compatibility. */
-    public final PackageList i = packages;
+    public final PackageList i;
     /** Holds an alias for the packages. This is for backwards compatibility. */
-    public final PackageList isvps = packages;
+    public final PackageList isvps;
+    
+    
     /** Holds the all the authenticated users in this Cordys instance. */
     public final ChildList<AuthenticatedUser> authenticatedUsers = new ChildList<AuthenticatedUser>(this,
             "cn=authenticated users,", AuthenticatedUser.class);
@@ -105,6 +110,7 @@ public class CordysSystem extends LdapObject
     public final Map<String, Machine> mapped = new LinkedHashMap<String, Machine>();
     /** Holds the compatibility manager to use for this Cordys installation. */
     private ICompatibilityManager m_cm;
+
 
     /**
      * Creates a cordys system and initializes it.
@@ -152,7 +158,6 @@ public class CordysSystem extends LdapObject
                 }
             }
         }
-
         // If no mapped systems are defined, we'll create the mapped list with all the nodes and use their node name
         for (Machine m : machines)
         {
@@ -163,6 +168,12 @@ public class CordysSystem extends LdapObject
         }
 
         loadProperties();
+        
+        this.packages = machines.get(0).packages;
+        this.p = packages;
+        this.isvp = packages;
+        this.i = packages;
+        this.isvps = packages;
     }
 
     /**
