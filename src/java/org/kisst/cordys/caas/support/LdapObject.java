@@ -52,13 +52,22 @@ public abstract class LdapObject extends CordysObject {
 		public void set(String value) {
 			checkIfMayBeModified(); 
 			XmlNode newEntry=getEntry().clone();
-			newEntry.getChild(path).setText(value);
+			XmlNode child = newEntry.getChildWithCreate(path);
+			if (child==null) {
+			    
+			}
+			child.setText(value);
 			updateLdap(newEntry);
 		}
 	}
 	public class XmlProperty extends StringProperty {
 		public XmlProperty(String path) {super(path);}
-		public XmlNode getXml() { return new XmlNode(get()); }
+		public XmlNode getXml() {
+		    String xml = get();
+		    if (xml==null)
+		        return null;
+		    return new XmlNode(get());
+		}
 		public void set(XmlNode value) { set(value.toString()); }
 	}
 	public class XmlSubProperty extends AbstractProperty {

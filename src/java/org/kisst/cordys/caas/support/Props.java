@@ -148,8 +148,13 @@ public class Props<T> implements Iterable<T>
                 result.append("alias(" + ((Alias) value).origName + ")");
             else if (value instanceof XmlNode)
                 result.append(((XmlNode) value).shortString(40));
-            else if (value instanceof LdapObject.XmlProperty)
-                result.append(((LdapObject.XmlProperty) value).getXml().shortString(40));
+            else if (value instanceof LdapObject.XmlProperty) {
+                XmlNode xml = ((LdapObject.XmlProperty) value).getXml();
+                if (xml!=null)
+                    result.append(xml.shortString(40));
+                else
+                    result.append("null");
+            }
             else
                 result.append(value);
         }

@@ -129,6 +129,12 @@ public class XmlNode
         return (XmlNode) get(path);
     }
 
+    public XmlNode getChildWithCreate(String path)
+    {
+        return (XmlNode) getWithCreate(path);
+    }
+
+    
     public XmlNode getParent()
     {
         return new XmlNode(element.getParentElement());
@@ -191,6 +197,30 @@ public class XmlNode
                 e = e.getChild(part, null);
             if (e == null)
                 return null;
+        }
+        return new XmlNode(e);
+    }
+    
+    public Object getWithCreate(String path)
+    {
+        String[] parts = path.split("/");
+        Element e = element;
+        for (String part : parts)
+        {
+            if (part.equals(".."))
+                e = e.getParentElement();
+            else if (part.equals("text()"))
+                return e.getText();
+            else if (part.startsWith("@"))
+                return e.getAttribute(part.substring(1)).getValue();
+            else {
+                Element child = e.getChild(part, null);
+                if (child == null) {
+                    child = new Element(part, e.getNamespace());
+                    e.addContent(child);
+                }
+                e=child;
+            }
         }
         return new XmlNode(e);
     }
