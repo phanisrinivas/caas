@@ -53,9 +53,8 @@ public abstract class LdapObject extends CordysObject {
 			checkIfMayBeModified(); 
 			XmlNode newEntry=getEntry().clone();
 			XmlNode child = newEntry.getChildWithCreate(path);
-			if (child==null) {
-			    
-			}
+			if (child==null)
+			    throw new RuntimeException("Empty entry for "+getName()+", path"+path);
 			child.setText(value);
 			updateLdap(newEntry);
 		}
@@ -63,7 +62,7 @@ public abstract class LdapObject extends CordysObject {
 	public class XmlProperty extends StringProperty {
 		public XmlProperty(String path) {super(path);}
 		public XmlNode getXml() {
-		    String xml = get();
+ 		    String xml = get();
 		    if (xml==null)
 		        return null;
 		    return new XmlNode(get());
