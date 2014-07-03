@@ -10,6 +10,7 @@
 package org.kisst.cordys.caas.main;
 
 import org.kisst.cordys.caas.Caas;
+import org.kisst.cordys.caas.isvdev.DevelopCommand;
 import org.kisst.cordys.caas.util.Constants;
 
 public class CaasMainCommand extends CompositeCommand
@@ -46,6 +47,7 @@ public class CaasMainCommand extends CompositeCommand
         commands.put("log", new LogCommand());
         commands.put("setup", new SetupCommand());
         commands.put("template", new TemplateCommand());
+        commands.put("dev", new DevelopCommand());
     }
 
     /**
