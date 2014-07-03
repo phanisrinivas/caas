@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -100,12 +103,13 @@ public class NativeCaller extends BaseCaller
     @Override
     public String httpCall(String baseGatewayUrl, String request, HashMap<String, String> queryStringMap)
     {
-        String completeGatewayUrl = null, line = null;
+        String completeGatewayUrl = null;
         HttpURLConnection connection = null;
         OutputStream out = null;
         InputStream in = null;
         BufferedReader reader = null;
-        StringBuilder response = new StringBuilder();
+        StringWriter responseWriter=new StringWriter();
+        String responseString;
         int statusCode = 0;
         logStart();
         try
@@ -151,8 +155,7 @@ public class NativeCaller extends BaseCaller
                 in = connection.getErrorStream();
             }
             reader = new BufferedReader(new InputStreamReader(in));
-            while ((line = reader.readLine()) != null)
-                response.append(line);
+            copyLarge(reader, responseWriter);
 
         }
         catch (MalformedURLException e)
@@ -173,7 +176,8 @@ public class NativeCaller extends BaseCaller
         }
         finally
         {
-            logEnd(baseGatewayUrl, request);
+            responseString = responseWriter.toString();
+            logEnd(baseGatewayUrl, request, responseString);
             connection.disconnect();
             out = null;
             reader = null;
@@ -182,8 +186,19 @@ public class NativeCaller extends BaseCaller
         }
         if (statusCode != HttpURLConnection.HTTP_OK)
         {
-            throw new CaasRuntimeException("\nWebService failed:: " + response.toString());
+            throw new CaasRuntimeException("\nWebService failed:: " + responseString);
         }
-        return response.toString();
+        return responseString;
+    }
+    
+    private long copyLarge(Reader input, Writer output) throws IOException {
+        char[] buffer = new char[2048];
+        long count = 0;
+        int n = 0;
+        while (-1 != (n = input.read(buffer))) {
+            output.write(buffer, 0, n);
+            count += n;
+        }
+        return count;
     }
 }
