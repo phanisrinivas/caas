@@ -12,6 +12,7 @@ package org.kisst.cordys.caas;
 import org.kisst.cordys.caas.support.ChildList;
 import org.kisst.cordys.caas.support.LdapObject;
 import org.kisst.cordys.caas.support.LdapObjectBase;
+import org.kisst.cordys.caas.util.XmlNode;
 
 /**
  * This class wraps the web service interface definition in LDAP.
@@ -64,5 +65,13 @@ public class WebServiceInterface extends LdapObjectBase
     {
         createInLdap(newEntryXml("", name, "busmethod"));
         webServices.clear();
+    }
+    
+    public void createXsd(String name, String content)
+    {
+        XmlNode newentry = newEntryXml("", name, "busmethodtype");
+        newentry.add(new XmlNode("busmethodtypexsd").add(new XmlNode("string").setText(content)));
+        createInLdap(newentry);
+        xsds.clear();
     }
 }
