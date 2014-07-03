@@ -258,6 +258,11 @@ public class Caas
         }
         return getSystem(defaultSystem);
     }
+
+    public static String getDefaultOrg()
+    {
+        return get().getProp("caas.defaultOrganization", null);
+    }
     
     /**
      * This method enables trace logging for CAAS.
