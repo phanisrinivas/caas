@@ -68,7 +68,8 @@ public class SamlClientCaller extends BaseCaller
     public String sendHttpRequest(String url, String inputSoapRequest, HashMap<String, String> extraParams, boolean addArtifact)
     {
         int statusCode, pos;
-        String response, baseURL = null;
+        String response=null;
+        String baseURL = null;
 
         // Get the SamlClient instance for systemName and get its ArtifactID
         String artifactID = SamlClient.getInstance(systemName, this).getArtifactID();
@@ -152,7 +153,7 @@ public class SamlClientCaller extends BaseCaller
         }
         finally
         {
-            logEnd(baseURL, inputSoapRequest);
+            logEnd(baseURL, inputSoapRequest, response);
         }
 
         if (statusCode != HttpStatus.SC_OK)

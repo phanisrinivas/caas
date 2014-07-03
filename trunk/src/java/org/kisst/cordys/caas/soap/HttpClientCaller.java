@@ -134,7 +134,7 @@ public class HttpClientCaller extends BaseCaller
     public String httpCall(String baseGatewayUrl, String input, HashMap<String, String> extraRequestParameters)
     {
         int statusCode;
-        String response;
+        String response=null;
 
         logStart();
 
@@ -181,7 +181,7 @@ public class HttpClientCaller extends BaseCaller
         }
         finally
         {
-            logEnd(baseGatewayUrl, input);
+            logEnd(baseGatewayUrl, input, response);
         }
 
         if (statusCode != HttpStatus.SC_OK)

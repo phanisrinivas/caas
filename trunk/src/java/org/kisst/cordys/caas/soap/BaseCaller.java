@@ -59,6 +59,7 @@ public abstract class BaseCaller implements SoapCaller
     private long m_startTime;
     /** The end time of the request */
     private long m_endTime;
+    private boolean avoidNewLines=false;
 
     /**
      * Instantiates a new base caller.
@@ -482,7 +483,7 @@ public abstract class BaseCaller implements SoapCaller
      * @param url The URL to with the call was posted.
      * @param request The request that was executed.
      */
-    protected void logEnd(String url, String request)
+    protected void logEnd(String url, String request, String response)
     {
         m_endTime = System.currentTimeMillis();
 
@@ -499,8 +500,15 @@ public abstract class BaseCaller implements SoapCaller
                 sb.append("Request took ").append((m_endTime - m_startTime)).append(" miliseconds.");
             }
 
-            sb.append(" URL: ").append(url).append(". Request: ");
-            sb.append(request.replaceAll("\r{0,1}\n", ""));
+            sb.append(" URL: ").append(url).append(".");
+            if (avoidNewLines) {
+                sb.append("Request: ").append(request.replaceAll("\r{0,1}\n", ""));
+                sb.append("Response: ").append(response.replaceAll("\r{0,1}\n", ""));
+            }
+            else {
+                sb.append("\n\tRequest: ").append(request);
+                sb.append("\n\tResponse: ").append(response);
+            }
 
             Environment.debug(sb.toString());
         }
