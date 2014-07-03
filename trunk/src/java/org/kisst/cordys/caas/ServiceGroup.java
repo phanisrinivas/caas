@@ -145,9 +145,9 @@ public class ServiceGroup extends LdapObjectBase
         config.add("jreconfig").add("param").setAttribute("value", "-Xmx64M");
         config.add("loggerconfiguration");
         XmlNode config2 = config.add("configuration");
-        config2.setAttribute("implementation", connector.getData().getChildText(("step/implementation")));
-        config2.setAttribute("htmfile", connector.getData().getChildText(("step/url")));
-        config2.add(connector.getData().getChild("step/classpath").clone());
+        config2.setAttribute("implementation", connector.getData().getChildText(("implementation")));
+        config2.setAttribute("htmfile", connector.getData().getChildText(("url")));
+        config2.add(connector.getData().getChild("classpath").clone());
         createServiceContainer(name, getSystem().machines.get(0).getName(), false, config);
     }
 
