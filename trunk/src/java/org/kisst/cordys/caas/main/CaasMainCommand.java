@@ -36,6 +36,15 @@ public class CaasMainCommand extends CompositeCommand
             this.commands.put("shell", new GroovyShell());
         }
     }
+    private class JythonCommand extends CompositeCommand
+    {
+        public JythonCommand()
+        {
+            super("caas jython", "run either a interactive jython shell or a jython script");
+            //this.commands.put("run", new GroovyRunScript());
+            this.commands.put("shell", new JythonShell());
+        }
+    }
 
     public CaasMainCommand()
     {
@@ -44,6 +53,7 @@ public class CaasMainCommand extends CompositeCommand
         commands.put("run", new GroovyRunScript());
         commands.put("cm", new CmCommand("cm"));
         commands.put("groovy", new GroovyCommand());
+        commands.put("jython", new JythonCommand());
         commands.put("log", new LogCommand());
         commands.put("setup", new SetupCommand());
         commands.put("template", new TemplateCommand());
