@@ -1165,7 +1165,7 @@ public class CordysSystem extends LdapObject
             Organization system = o.getByName("system");
             for (ServiceContainer sc : system.serviceContainers)
             {
-                if (sc.getName().indexOf("monitor") >= 0)
+                if ("com.eibus.applicationconnector.monitor.Monitor".equals(sc.implementation.get()))
                 {
                     grow(new Machine(sc));
                 }

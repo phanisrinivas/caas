@@ -48,8 +48,9 @@ public class Machine extends CordysObject
     protected Machine(ServiceContainer monitor)
     {
         this.monitor = monitor;
-        String tmp = monitor.getName();
-        this.hostname = tmp.substring(tmp.indexOf("monitor@") + 8);
+        //String tmp = monitor.getName();
+        //this.hostname = tmp.substring(tmp.indexOf("monitor@") + 8);
+        this.hostname = monitor.computer.get();
         this.packages=new PackageList(this);
         this.p=packages;
     }
