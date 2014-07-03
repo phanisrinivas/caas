@@ -22,6 +22,7 @@ import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.xml.XMLLayout;
 import org.kisst.cordys.caas.exception.CaasRuntimeException;
 import org.kisst.cordys.caas.support.LoadedPropertyMap;
@@ -38,17 +39,29 @@ public class Environment
 
     static
     {
-        // Initialize the Log4J logging system.
-        Layout layout = new PatternLayout("%-5p [%d{HH:mm:ss,SSS}] [%c]: %m%n");
-        ConsoleAppender ca = new ConsoleAppender(layout);
-
-        if (!Logger.getRootLogger().getAllAppenders().hasMoreElements())
-        {
-            BasicConfigurator.configure(ca);
+        File lo4jpropertiesFile = new File("log4j.properties");
+        if (lo4jpropertiesFile.exists() && lo4jpropertiesFile.isFile()) {
+            try {
+                PropertyConfigurator.configure(lo4jpropertiesFile.toString());
+            }
+            catch (Exception e) {
+                System.out.println("Error reading log4properties file "+lo4jpropertiesFile+", it can be (re)moved to use default logging");
+                e.printStackTrace();
+                System.exit(1);
+            }
         }
+    	else {
+            // Initialize the Log4J logging system.
+            Layout layout = new PatternLayout("%-5p [%d{HH:mm:ss,SSS}] [%c]: %m%n");
+            ConsoleAppender ca = new ConsoleAppender(layout);
 
-        Logger.getRootLogger().setLevel(Level.ERROR);
+            if (!Logger.getRootLogger().getAllAppenders().hasMoreElements())
+            {
+                BasicConfigurator.configure(ca);
+            }
 
+            Logger.getRootLogger().setLevel(Level.ERROR);
+        }
         m_log = Logger.getLogger("caas");
 
         m_log.setLevel(Level.ALL);
