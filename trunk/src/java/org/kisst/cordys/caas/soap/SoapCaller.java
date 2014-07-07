@@ -27,6 +27,8 @@ public interface SoapCaller
      * @return The response as a string.
      */
     public String httpCall(String url, String input, HashMap<String, String> queryStringMap);
+    public String httpCall(String input);
+    public String httpCall(String input, HashMap<String, String> map);
 
     /**
      * This method executes the soap request. The given request should be without the SOAP envelope.
