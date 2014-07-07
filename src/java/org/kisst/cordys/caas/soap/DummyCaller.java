@@ -142,6 +142,9 @@ public class DummyCaller implements SoapCaller
     {
         return null;
     }
+    public String httpCall(String input) { return httpCall(input, null); }
+    public String httpCall(String input, HashMap<String, String> map) { return null; }
+
 
     /**
      * @see org.kisst.cordys.caas.soap.SoapCaller#getUrlBase()

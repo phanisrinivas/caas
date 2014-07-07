@@ -166,7 +166,8 @@ public abstract class BaseCaller implements SoapCaller
      * @param map The query string parameters.
      * @return The response of the call.
      */
-    private String httpCall(String input, HashMap<String, String> map)
+    public String httpCall(String input) { return httpCall(input, null); }
+    public String httpCall(String input, HashMap<String, String> map)
     {
         // Copy the query string map. This is needed to filter the organization in case of OLD.
         HashMap<String, String> filtered = new LinkedHashMap<String, String>();
