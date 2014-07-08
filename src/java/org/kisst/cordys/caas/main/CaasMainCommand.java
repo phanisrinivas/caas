@@ -58,6 +58,7 @@ public class CaasMainCommand extends CompositeCommand
         commands.put("setup", new SetupCommand());
         commands.put("template", new TemplateCommand());
         commands.put("dev", new DevelopCommand());
+        commands.put("http", new HttpCallCommand());
     }
 
     /**
