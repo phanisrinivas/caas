@@ -30,5 +30,6 @@
 	<classpathentry exported="true" kind="con" path="GROOVY_SUPPORT"/>
 	<classpathentry exported="true" kind="con" path="GROOVY_DSL_SUPPORT"/>
 	<classpathentry kind="lib" path="lib/jython-2.5.4-rc1.jar"/>
+	<classpathentry kind="lib" path="lib/velocity-1.7.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
