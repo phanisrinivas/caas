@@ -264,6 +264,11 @@ public class Caas
         return get().getProp("caas.defaultOrganization", null);
     }
     
+    public static String getTemplateEngine() 
+    {
+        return get().getProp("caas.templateEngine", null);
+    }
+    
     /**
      * This method enables trace logging for CAAS.
      */

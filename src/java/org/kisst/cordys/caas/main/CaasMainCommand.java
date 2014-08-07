@@ -95,7 +95,7 @@ public class CaasMainCommand extends CompositeCommand
     {
         args = cli.parse(args);
 
-        // If the config file is specified we reload the environment with the specified preoprty file.
+        // If the config file is specified we reload the environment with the specified property file.
         if (config.isSet())
         {
             System.setProperty(Constants.CAAS_CONF_LOCATION, config.get());
