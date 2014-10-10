@@ -53,7 +53,11 @@ public class CompatibilityManagerFactory
                 }
                 else if ("D1".equals(release) && major >= 4)
                 {
-                    retVal = new OpenText10_5CompatibilityManager();
+                    retVal = new OpenText10_CompatibilityManager();
+                }
+                else if ("10".equals(release))
+                {
+                    retVal = new OpenText10_CompatibilityManager();
                 }
                 else if ("C3".equals(release))
                 {

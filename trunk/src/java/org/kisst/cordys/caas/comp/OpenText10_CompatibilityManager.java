@@ -20,7 +20,7 @@ import org.kisst.cordys.caas.util.XmlNode;
  * 
  * @author pgussow
  */
-public class OpenText10_5CompatibilityManager extends Bop43CompatibilityManager
+public class OpenText10_CompatibilityManager extends Bop43CompatibilityManager
 {
     /**
      * @see org.kisst.cordys.caas.comp.DefaultCompatibilityManager#getVersionDetails()

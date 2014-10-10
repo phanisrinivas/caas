@@ -158,5 +158,8 @@ s.p.each { println String.format('%1$80s %2$s', it.name, it.status) }]]></action
     <release date="2014-08-07" description="Stable release" version="2.2.2">
       <action dev="hvdvlier" type="add"><![CDATA[Optionally use Velocity templates]]></action>	
     </release>
+    <release date="2014-10-10" description="Stable release" version="2.2.3">
+      <action dev="hvdvlier" type="add"><![CDATA[Added support for OpenText 10.X]]></action>	
+    </release>
   </body>
 </document>
