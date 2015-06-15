@@ -11,18 +11,23 @@ import org.kisst.cordys.caas.exception.CaasRuntimeException;
 
 /**
  * Render a template using the Velocity template Engine.
- * This implementation if not fully compatible with the SimpleRenderer as it will not allow you set the following properties:
+ * This implementation is not fully compatible with the SimpleRenderer as it will not allow you set the following properties:
  * 
  * a.b=xxx
  * a.b.c=xxx
  * 
  * @author hvdvlier
  */
-public class VelocityRendererImpl implements Renderer
+public class VelocityRendererImpl extends Renderer
 {
     @Override
     public String render(Map<String, String> vars, String template, File templateFolder)
     {
+        // First we need to include the files that are to be included using the CAAS-specific
+        // ${include:file=} or ${include:folder=;pattern=*.xml}
+        // Velocity-style includes - once supported - will be handled in Velocity.evaluate()
+        template = processIncludeFiles(template, templateFolder);
+        
         VelocityContext context = getVelocityContext(vars);
         StringWriter sw = new StringWriter();
         Velocity.evaluate(context, sw, "", template);

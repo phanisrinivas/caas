@@ -161,5 +161,9 @@ s.p.each { println String.format('%1$80s %2$s', it.name, it.status) }]]></action
     <release date="2014-10-10" description="Stable release" version="2.2.3">
       <action dev="hvdvlier" type="add"><![CDATA[Added support for OpenText 10.X]]></action>	
     </release>
+    <release date="2015-06-15" description="Stable release" version="2.2.4">
+      <action dev="mdraijer" type="fix"><![CDATA[In case of an include statement with a non existing file or folder, the include statement was not removed from the processed template]]></action>	
+      <action dev="mdraijer" type="add"><![CDATA[Added support for Velocity template engine in combination with CAAS-style includes]]></action>	
+    </release>
   </body>
 </document>
